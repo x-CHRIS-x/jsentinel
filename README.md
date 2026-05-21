@@ -51,6 +51,3 @@ CodeGuard-JS is a localized static analysis tool designed for web developers to 
 4. Scan: Custom rules traverse the AST nodes to find security patterns.
 5. Report: Results are displayed with line numbers and descriptions.
 
-## License
-
-Distributed under the MIT License. See LICENSE for more information.
