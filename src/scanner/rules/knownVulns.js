@@ -9,7 +9,22 @@ export const knownVulnsRules = [
     severity: "MEDIUM",
     message: "Import of a potentially risky or often-vulnerable library detected.",
     owasp: "A9:2021-Vulnerable and Outdated Components",
+    cvss: {
+      AV: 'N',
+      AC: 'H',
+      PR: 'N',
+      UI: 'N',
+      S:  'U',
+      C:  'L',
+      I:  'L',
+      A:  'N',
+      baseScore: 4.8,
+      baseSeverity: 'MEDIUM',
+      vector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N'
+    },
     visitor: (issues) => {
+      const cvssBaseScore = 4.8;
+      const cvssVector = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N';
       const riskyLibs = ['serialize-javascript', 'markdown-it', 'js-yaml', 'node-fetch'];
       return {
         ImportDeclaration(path) {
@@ -21,7 +36,9 @@ export const knownVulnsRules = [
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: `Risky library imported: '${moduleName}'`,
-              suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized."
+              suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
+              cvssBaseScore,
+              cvssVector
             });
           }
         },
@@ -37,7 +54,9 @@ export const knownVulnsRules = [
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: `Risky library required: '${arg.value}'`,
-                  suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized."
+                  suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
+                  cvssBaseScore,
+                  cvssVector
                 });
               }
             }

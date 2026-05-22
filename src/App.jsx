@@ -37,13 +37,12 @@ function App() {
     const criticalIssues = results.reduce((acc, res) => 
       acc + (res.issues?.filter(i => i.severity === 'CRITICAL').length || 0), 0)
     
-    const WEIGHTS = { CRITICAL: 20, HIGH: 10, MEDIUM: 5, LOW: 1 }
     const penalty = results.reduce((acc, res) => 
       acc + (res.issues?.reduce((sum, issue) => 
-        sum + (WEIGHTS[issue.severity] || 5), 0) || 0), 0)
+        sum + (issue.cvssBaseScore || 0), 0) || 0), 0)
 
     const securityScore = results.length > 0 
-      ? Math.max(0, 100 - penalty) 
+      ? parseFloat(Math.max(0, 100 - penalty).toFixed(1)) 
       : 100
 
     return { totalIssues, criticalIssues, securityScore }
@@ -186,10 +185,10 @@ function App() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white shadow-lg shadow-red-500/20">
-              <span className="font-black text-sm">CG</span>
+              <span className="font-black text-sm">JS</span>
             </div>
             <h1 className="text-xl font-display font-[300] tracking-tight">
-              CodeGuard<span className="text-red-600 font-sans font-black">JS</span>
+              JSentinel
             </h1>
           </div>
 
@@ -264,7 +263,7 @@ function App() {
             { label: 'Files', value: files.length, color: 'text-slate-900 dark:text-white' },
             { label: 'Issues', value: stats.totalIssues, color: stats.totalIssues > 0 ? 'text-red-600' : 'text-slate-900 dark:text-white' },
             { label: 'Critical', value: stats.criticalIssues, color: stats.criticalIssues > 0 ? 'text-red-500' : 'text-slate-900 dark:text-white' },
-            { label: 'Score', value: `${stats.securityScore}%`, color: stats.securityScore > 80 ? 'text-green-500' : 'text-orange-500' }
+            { label: 'Score', value: `${stats.securityScore.toFixed(1)}%`, color: stats.securityScore > 80 ? 'text-green-500' : 'text-orange-500' }
           ].map((s, i) => (
             <div key={i} className="bg-slate-200 dark:bg-zinc-900 p-5 rounded-2xl border border-slate-300 dark:border-zinc-800 shadow-refined dark:shadow-none flex flex-col items-center justify-center">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">{s.label}</span>
@@ -404,8 +403,8 @@ function App() {
       <footer className="mt-20 py-12 border-t border-slate-300 dark:border-zinc-800">
         <div className="container mx-auto px-4 flex flex-col items-center">
            <div className="flex items-center gap-2 mb-4">
-              <div className="h-6 w-6 rounded bg-slate-900 dark:bg-zinc-200 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-[10px]">CG</div>
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">CodeGuard Protocol</span>
+              <div className="h-6 w-6 rounded bg-slate-900 dark:bg-zinc-200 flex items-center justify-center text-white dark:text-zinc-900 font-bold text-[10px]">JS</div>
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">JSentinel Protocol</span>
            </div>
            <p className="text-xs text-slate-500 font-medium">v1.0.0-Beta • Local-First Browser Analysis • 2026</p>
         </div>
