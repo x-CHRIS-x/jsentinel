@@ -1,0 +1,83 @@
+{
+  "name": "jsentinel",
+  "displayName": "JSentinel — JavaScript Security Scanner",
+  "description": "Client-side static analysis for detecting JavaScript security vulnerabilities using AST traversal. Detects OWASP Top 10 vulnerabilities directly in your editor.",
+  "version": "1.0.0",
+  "publisher": "jsentinel-team",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "javascript",
+    "security",
+    "vulnerability",
+    "owasp",
+    "static-analysis",
+    "ast",
+    "xss",
+    "injection"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "jsentinel.scanActiveFile",
+        "title": "JSentinel: Scan Active File"
+      },
+      {
+        "command": "jsentinel.scanWorkspace",
+        "title": "JSentinel: Scan Workspace"
+      },
+      {
+        "command": "jsentinel.clearDiagnostics",
+        "title": "JSentinel: Clear All Diagnostics"
+      }
+    ],
+    "configuration": {
+      "title": "JSentinel",
+      "properties": {
+        "jsentinel.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files for security vulnerabilities when saved."
+        },
+        "jsentinel.scanOnOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically scan files when opened in the editor."
+        },
+        "jsentinel.severityFilter": {
+          "type": "string",
+          "default": "ALL",
+          "enum": [
+            "ALL",
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "description": "Minimum severity level to report. Set to CRITICAL to only see critical issues."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint src/"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.27.0",
+    "@babel/traverse": "^7.27.0",
+    "@types/vscode": "^1.85.0"
+  }
+}

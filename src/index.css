@@ -64,3 +64,20 @@
     transform: translateY(0);
   }
 }
+
+@keyframes line-pulse {
+  0% {
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.4);
+  }
+  100% {
+    background-color: rgba(239, 68, 68, 0.15);
+  }
+}
+
+.line-selected-pulse {
+  animation: line-pulse 2s infinite ease-in-out;
+  border-left: 4px solid #ef4444 !important;
+}

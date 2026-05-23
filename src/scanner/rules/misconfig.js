@@ -1,6 +1,6 @@
 /**
- * A6 - Security Misconfiguration
- * Targets: console.log of sensitive data, permissive CORS headers
+ * A6 - Security Misconfiguration Rules
+ * Targets: console.log of secrets/sensitive variables, permissive CORS, logging sensitive objects, Express without helmet
  */
 export const misconfigRules = [
   {
@@ -29,7 +29,6 @@ export const misconfigRules = [
         CallExpression(path) {
           const callee = path.node.callee;
           if (callee.type === 'MemberExpression' && callee.object.name === 'console') {
-            // Check what is being logged
             path.node.arguments.forEach(arg => {
               if (arg.type === 'Identifier') {
                 const argName = arg.name.toLowerCase();
@@ -77,7 +76,6 @@ export const misconfigRules = [
       return {
         CallExpression(path) {
           const callee = path.node.callee;
-          // Looking for res.setHeader('Access-Control-Allow-Origin', '*')
           if (callee.type === 'MemberExpression' && (callee.property.name === 'setHeader' || callee.property.name === 'header')) {
             const args = path.node.arguments;
             if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
@@ -93,6 +91,123 @@ export const misconfigRules = [
                   cvssVector
                 });
               }
+            }
+          }
+        }
+      };
+    }
+  },
+  {
+    name: "console-log-objects",
+    id: "OWASP-A6-003",
+    severity: "MEDIUM",
+    message: "Logging potentially sensitive objects to the console can expose session details, configurations, or credentials in production environments.",
+    owasp: "A6:2021-Security Misconfiguration",
+    cvss: {
+      AV: 'L',
+      AC: 'L',
+      PR: 'L',
+      UI: 'N',
+      S:  'U',
+      C:  'H',
+      I:  'N',
+      A:  'N',
+      baseScore: 5.5,
+      baseSeverity: 'MEDIUM',
+      vector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
+    },
+    visitor: (issues) => {
+      const cvssBaseScore = 5.5;
+      const cvssVector = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N';
+      const sensitiveObjects = ['req', 'user', 'session', 'credentials', 'config'];
+      return {
+        CallExpression(path) {
+          const callee = path.node.callee;
+          if (callee.type === 'MemberExpression' && callee.object.name === 'console') {
+            path.node.arguments.forEach(arg => {
+              if (arg.type === 'Identifier') {
+                if (sensitiveObjects.includes(arg.name.toLowerCase())) {
+                  issues.push({
+                    id: "OWASP-A6-003",
+                    severity: "MEDIUM",
+                    line: path.node.loc?.start?.line || 'unknown',
+                    column: path.node.loc?.start?.column || 'unknown',
+                    message: `Sensitive object variable '${arg.name}' logged to console`,
+                    suggestion: "Avoid logging complete request, session, or credential objects. Log only specific non-sensitive attributes.",
+                    cvssBaseScore,
+                    cvssVector
+                  });
+                }
+              }
+            });
+          }
+        }
+      };
+    }
+  },
+  {
+    name: "missing-helmet-middleware",
+    id: "OWASP-A6-004",
+    severity: "LOW",
+    message: "Express application detected without helmet middleware integration. Use helmet to set secure HTTP headers.",
+    owasp: "A6:2021-Security Misconfiguration",
+    cvss: {
+      AV: 'L',
+      AC: 'L',
+      PR: 'L',
+      UI: 'N',
+      S:  'U',
+      C:  'L',
+      I:  'N',
+      A:  'N',
+      baseScore: 3.3,
+      baseSeverity: 'LOW',
+      vector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
+    },
+    visitor: (issues) => {
+      const cvssBaseScore = 3.3;
+      const cvssVector = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N';
+      let hasExpress = false;
+      let hasHelmet = false;
+      let expressNode = null;
+
+      return {
+        ImportDeclaration(path) {
+          if (path.node.source.value === 'express') {
+            hasExpress = true;
+            expressNode = path.node;
+          }
+          if (path.node.source.value === 'helmet') {
+            hasHelmet = true;
+          }
+        },
+        CallExpression(path) {
+          if (path.node.callee.name === 'require') {
+            const arg = path.node.arguments[0];
+            if (arg && arg.type === 'StringLiteral') {
+              if (arg.value === 'express') {
+                hasExpress = true;
+                expressNode = path.node;
+              }
+              if (arg.value === 'helmet') {
+                hasHelmet = true;
+              }
+            }
+          }
+        },
+        Program: {
+          exit() {
+            if (hasExpress && !hasHelmet) {
+              issues.push({
+                id: "OWASP-A6-004",
+                severity: "LOW",
+                line: expressNode?.loc?.start?.line || 1,
+                column: expressNode?.loc?.start?.column || 0,
+                message: "Express framework imported without protective helmet middleware",
+                suggestion: "Install helmet (npm install helmet) and integrate it using app.use(helmet()) to enable secure HTTP response headers.",
+                cvssBaseScore,
+                cvssVector
+              });
             }
           }
         }
