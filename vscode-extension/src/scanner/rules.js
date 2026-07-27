@@ -17,6 +17,59 @@
  *   A10 - Server-Side Request Forgery (1 rule)
  */
 
+function isValidated(path, varName) {
+  if (!varName) return false;
+  let currentPath = path;
+  while (currentPath) {
+    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
+      const test = currentPath.node.test;
+      
+      const checkTestNode = (node) => {
+        if (!node) return false;
+        
+        // Match methods like includes, indexOf, test, validate, or check
+        if (node.type === 'CallExpression') {
+          const callee = node.callee;
+          const hasVarArg = node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
+          if (hasVarArg) {
+            let funcName = '';
+            if (callee.type === 'Identifier') {
+              funcName = callee.name;
+            } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
+              funcName = callee.property.name;
+            }
+            const lowerFunc = funcName.toLowerCase();
+            if (lowerFunc.includes('include') || lowerFunc.includes('indexof') || lowerFunc.includes('test') || lowerFunc.includes('validate') || lowerFunc.includes('check')) {
+              return true;
+            }
+          }
+        }
+        
+        if (node.type === 'BinaryExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'LogicalExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'UnaryExpression') {
+          return checkTestNode(node.argument);
+        }
+        return false;
+      };
+      
+      if (checkTestNode(test)) {
+        return true;
+      }
+    }
+    // Stop traversal if we leave the current function
+    if (currentPath.isFunction && currentPath.isFunction()) {
+      break;
+    }
+    currentPath = currentPath.parentPath;
+  }
+  return false;
+}
+
 // ============================================================
 // A1 - Injection Rules
 // ============================================================
@@ -50,7 +103,7 @@ const injectionRules = [
         if (!calleeName) return;
         if (calleeName === 'setTimeout' || calleeName === 'setInterval') {
           const firstArg = path.node.arguments[0];
-          if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
+          if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
             issues.push({
               id: "OWASP-A1-002", severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
@@ -223,9 +276,27 @@ const authRules = [
               id: "OWASP-A2-003", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Cookie set via template literal — verify HttpOnly and Secure flags are present",
-              suggestion: "Ensure template literals used for cookies include '; HttpOnly; Secure' for sensitive data.",
+              suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
               cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
             });
+          } else if (right.type === 'BinaryExpression') {
+            // Check if the concatenation chain contains both HttpOnly and Secure flags
+            const collectStrings = (node) => {
+              if (!node) return '';
+              if (node.type === 'StringLiteral') return node.value;
+              if (node.type === 'BinaryExpression') return collectStrings(node.left) + collectStrings(node.right);
+              return '';
+            };
+            const fullCookieStr = collectStrings(right).toLowerCase();
+            if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
+              issues.push({
+                id: "OWASP-A2-003", severity: "MEDIUM",
+                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                message: "Cookie set via dynamic concatenation — missing HttpOnly or Secure flags",
+                suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
+                cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
+              });
+            }
           }
         }
       }
@@ -235,14 +306,30 @@ const authRules = [
     name: "insecure-random",
     id: "OWASP-A2-004",
     severity: "HIGH",
-    visitor: (issues) => ({
-      VariableDeclarator(path) {
-        const varName = path.node.id.name?.toLowerCase();
-        if (varName && (varName.includes('token') || varName.includes('otp') || varName.includes('secret') || varName.includes('salt') || varName.includes('key'))) {
-          const init = path.node.init;
-          if (init && init.type === 'CallExpression') {
-            const callee = init.callee;
-            if (callee.type === 'MemberExpression' && callee.object.name === 'Math' && callee.property.name === 'random') {
+    visitor: (issues) => {
+      const hasMathRandom = (node) => {
+        if (!node) return false;
+        if (node.type === 'CallExpression') {
+          const callee = node.callee;
+          if (callee.type === 'MemberExpression' && callee.object.name === 'Math' && callee.property.name === 'random') {
+            return true;
+          }
+          return hasMathRandom(callee) || node.arguments.some(hasMathRandom);
+        }
+        if (node.type === 'MemberExpression') {
+          return hasMathRandom(node.object) || hasMathRandom(node.property);
+        }
+        if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+          return hasMathRandom(node.left) || hasMathRandom(node.right);
+        }
+        return false;
+      };
+      return {
+        VariableDeclarator(path) {
+          const varName = path.node.id.name?.toLowerCase();
+          if (varName && (varName.includes('token') || varName.includes('otp') || varName.includes('secret') || varName.includes('salt') || varName.includes('key'))) {
+            const init = path.node.init;
+            if (init && hasMathRandom(init)) {
               issues.push({
                 id: "OWASP-A2-004", severity: "HIGH",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
@@ -253,8 +340,8 @@ const authRules = [
             }
           }
         }
-      }
-    })
+      };
+    }
   },
   {
     name: "plaintext-http-url",
@@ -335,6 +422,7 @@ const sensitiveDataRules = [
           if (init && init.type === 'StringLiteral' && init.value.length > 8) {
             const val = init.value.toLowerCase();
             if (val.includes('placeholder') || val.includes('dummy') || val.includes('test') || val.includes('example')) return;
+            if (val.startsWith('http://') || val.startsWith('https://')) return; // Ignore URLs to prevent false positives
             issues.push({
               id: "OWASP-A3-002", severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
@@ -392,13 +480,36 @@ const accessControlRules = [
           if (isLocationHref) {
             const right = path.node.right;
             if (right && (right.type === 'Identifier' || right.type === 'TemplateLiteral' || right.type === 'CallExpression')) {
-              issues.push({
-                id: "OWASP-A5-001", severity: "HIGH",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-                message: "Unsafe location redirection using dynamic value",
-                suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
-              });
+              let isUnsafe = false;
+              if (right.type === 'Identifier') {
+                if (!isValidated(path, right.name)) {
+                  isUnsafe = true;
+                }
+              } else if (right.type === 'TemplateLiteral') {
+                if (right.expressions && right.expressions.length > 0) {
+                  const hasUnvalidatedExpression = right.expressions.some(expr => {
+                    if (expr.type === 'Identifier') {
+                      return !isValidated(path, expr.name);
+                    }
+                    return true;
+                  });
+                  if (hasUnvalidatedExpression) {
+                    isUnsafe = true;
+                  }
+                }
+              } else if (right.type === 'CallExpression') {
+                isUnsafe = true;
+              }
+
+              if (isUnsafe) {
+                issues.push({
+                  id: "OWASP-A5-001", severity: "HIGH",
+                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  message: "Unsafe location redirection using dynamic value",
+                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
+                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
+                });
+              }
             }
           }
         }
@@ -412,13 +523,36 @@ const accessControlRules = [
           if (isReplace && isLocationObject) {
             const arg = path.node.arguments[0];
             if (arg && (arg.type === 'Identifier' || arg.type === 'TemplateLiteral' || arg.type === 'CallExpression')) {
-              issues.push({
-                id: "OWASP-A5-001", severity: "HIGH",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-                message: "Unsafe location.replace() using dynamic value",
-                suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
-              });
+              let isUnsafe = false;
+              if (arg.type === 'Identifier') {
+                if (!isValidated(path, arg.name)) {
+                  isUnsafe = true;
+                }
+              } else if (arg.type === 'TemplateLiteral') {
+                if (arg.expressions && arg.expressions.length > 0) {
+                  const hasUnvalidatedExpression = arg.expressions.some(expr => {
+                    if (expr.type === 'Identifier') {
+                      return !isValidated(path, expr.name);
+                    }
+                    return true;
+                  });
+                  if (hasUnvalidatedExpression) {
+                    isUnsafe = true;
+                  }
+                }
+              } else if (arg.type === 'CallExpression') {
+                isUnsafe = true;
+              }
+
+              if (isUnsafe) {
+                issues.push({
+                  id: "OWASP-A5-001", severity: "HIGH",
+                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  message: "Unsafe location.replace() using dynamic value",
+                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
+                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
+                });
+              }
             }
           }
         }
@@ -433,7 +567,7 @@ const accessControlRules = [
       const isSensitiveProperty = (name) => {
         if (!name) return false;
         const lower = name.toLowerCase();
-        return lower === 'role' || lower === 'isadmin' || lower === 'isauthenticated' || lower === 'admin';
+        return lower === 'role' || lower === 'isadmin' || lower === 'admin';
       };
       const checkExpression = (node) => {
         if (!node) return false;
@@ -469,27 +603,45 @@ const misconfigRules = [
     name: "console-log-secrets",
     id: "OWASP-A6-001",
     severity: "MEDIUM",
-    visitor: (issues) => ({
-      CallExpression(path) {
-        const callee = path.node.callee;
-        if (callee.type === 'MemberExpression' && callee.object.name === 'console') {
-          path.node.arguments.forEach(arg => {
-            if (arg.type === 'Identifier') {
-              const argName = arg.name.toLowerCase();
-              if (argName.includes('password') || argName.includes('token') || argName.includes('secret') || argName.includes('key')) {
+    visitor: (issues) => {
+      // Recursively search an expression tree for sensitive Identifier names
+      const findSensitiveIdentifiers = (node) => {
+        if (!node) return [];
+        if (node.type === 'Identifier') {
+          const name = node.name.toLowerCase();
+          if (name.includes('password') || name.includes('token') || name.includes('secret') || name.includes('key')) {
+            return [node.name];
+          }
+          return [];
+        }
+        if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+          return [...findSensitiveIdentifiers(node.left), ...findSensitiveIdentifiers(node.right)];
+        }
+        if (node.type === 'TemplateLiteral' && node.expressions) {
+          return node.expressions.flatMap(findSensitiveIdentifiers);
+        }
+        return [];
+      };
+      return {
+        CallExpression(path) {
+          const callee = path.node.callee;
+          if (callee.type === 'MemberExpression' && callee.object.name === 'console') {
+            path.node.arguments.forEach(arg => {
+              const sensitiveNames = findSensitiveIdentifiers(arg);
+              sensitiveNames.forEach(name => {
                 issues.push({
                   id: "OWASP-A6-001", severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-                  message: `Sensitive variable '${arg.name}' logged to console`,
+                  message: `Sensitive variable '${name}' logged to console`,
                   suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
                   cvssBaseScore: 5.5, cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
                 });
-              }
-            }
-          });
+              });
+            });
+          }
         }
-      }
-    })
+      };
+    }
   },
   {
     name: "cors-wildcard",
@@ -654,13 +806,69 @@ const deserializationRules = [
       CallExpression(path) {
         const callee = path.node.callee;
         if (callee.type === 'MemberExpression' && callee.object.name === 'JSON' && callee.property.name === 'parse') {
-          issues.push({
-            id: "OWASP-A8-001", severity: "LOW",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-            message: "JSON.parse() usage detected",
-            suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
-            cvssBaseScore: 3.7, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N'
-          });
+          let isParsedValidated = false;
+
+          const varDecl = path.findParent(p => p.isVariableDeclarator());
+          if (varDecl && varDecl.node.id.type === 'Identifier') {
+            const varName = varDecl.node.id.name;
+            
+            // First attempt using scope bindings which is standard and elegant
+            const binding = path.scope.getBinding(varName);
+            if (binding && binding.referencePaths) {
+              for (const refPath of binding.referencePaths) {
+                const callPath = refPath.findParent(p => p.isCallExpression());
+                if (callPath) {
+                  const childCallee = callPath.node.callee;
+                  let funcName = '';
+                  if (childCallee.type === 'Identifier') {
+                    funcName = childCallee.name;
+                  } else if (childCallee.type === 'MemberExpression' && childCallee.property.type === 'Identifier') {
+                    funcName = childCallee.property.name;
+                  }
+                  const lowerFunc = funcName.toLowerCase();
+                  if (lowerFunc.includes('validate') || lowerFunc.includes('verify') || lowerFunc.includes('isvalid')) {
+                    isParsedValidated = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            // Fallback to traversing parent scope if binding not resolved
+            if (!isParsedValidated) {
+              const parentScope = path.findParent(p => p.isFunction() || p.isProgram());
+              if (parentScope) {
+                parentScope.traverse({
+                  CallExpression(childPath) {
+                    const childCallee = childPath.node.callee;
+                    const hasVarArg = childPath.node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
+                    if (hasVarArg) {
+                      let funcName = '';
+                      if (childCallee.type === 'Identifier') {
+                        funcName = childCallee.name;
+                      } else if (childCallee.type === 'MemberExpression' && childCallee.property.type === 'Identifier') {
+                        funcName = childCallee.property.name;
+                      }
+                      const lowerFunc = funcName.toLowerCase();
+                      if (lowerFunc.includes('validate') || lowerFunc.includes('verify') || lowerFunc.includes('isvalid')) {
+                        isParsedValidated = true;
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          }
+
+          if (!isParsedValidated) {
+            issues.push({
+              id: "OWASP-A8-001", severity: "LOW",
+              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              message: "JSON.parse() usage detected",
+              suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
+              cvssBaseScore: 3.7, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N'
+            });
+          }
         }
       }
     })
@@ -669,30 +877,35 @@ const deserializationRules = [
     name: "prototype-pollution",
     id: "OWASP-A8-002",
     severity: "HIGH",
-    visitor: (issues) => ({
-      AssignmentExpression(path) {
-        const left = path.node.left;
-        if (!left) return;
-        let isPollution = false;
-        if (left.type === 'MemberExpression') {
-          if (left.property && left.property.name === '__proto__') isPollution = true;
-          if (left.object && left.object.type === 'MemberExpression') {
-            if (left.object.property && left.object.property.name === 'constructor' && left.property && left.property.name === 'prototype') {
-              isPollution = true;
-            }
+    visitor: (issues) => {
+      // Recursively check if any MemberExpression in the chain references __proto__ or constructor.prototype
+      const hasProtoPollution = (node) => {
+        if (!node || node.type !== 'MemberExpression') return false;
+        // Check for __proto__ at any level
+        if (node.property && (node.property.name === '__proto__' || (node.property.type === 'StringLiteral' && node.property.value === '__proto__'))) return true;
+        // Check for constructor.prototype chain
+        if (node.object && node.object.type === 'MemberExpression') {
+          if (node.object.property && node.object.property.name === 'constructor' && node.property && node.property.name === 'prototype') return true;
+        }
+        // Recurse into deeper chains like target.__proto__[key]
+        return hasProtoPollution(node.object);
+      };
+      return {
+        AssignmentExpression(path) {
+          const left = path.node.left;
+          if (!left) return;
+          if (hasProtoPollution(left)) {
+            issues.push({
+              id: "OWASP-A8-002", severity: "HIGH",
+              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              message: "Potential prototype pollution assignment detected",
+              suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
+              cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+            });
           }
         }
-        if (isPollution) {
-          issues.push({
-            id: "OWASP-A8-002", severity: "HIGH",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-            message: "Potential prototype pollution assignment detected",
-            suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
-            cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
-          });
-        }
-      }
-    })
+      };
+    }
   },
   {
     name: "unsafe-object-assign",
@@ -703,12 +916,12 @@ const deserializationRules = [
         const callee = path.node.callee;
         if (callee.type === 'MemberExpression' && callee.object.name === 'Object' && callee.property.name === 'assign') {
           const args = path.node.arguments;
-          if (args.length >= 2 && args[0].type === 'ObjectExpression' && args[1].type === 'Identifier') {
+          if (args.length >= 2 && args[0].type === 'Identifier') {
             issues.push({
               id: "OWASP-A8-003", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-              message: "Unsafe use of Object.assign() with dynamic source argument",
-              suggestion: "Validate and sanitize dynamic input arguments, or use a strict schema validator before merging objects.",
+              message: "Unsafe use of Object.assign() mutating target object",
+              suggestion: "Validate and sanitize dynamic input arguments, or merge properties into a safe new object Object.assign({}, target, ...).",
               cvssBaseScore: 5.3, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
             });
           }
@@ -727,32 +940,137 @@ const knownVulnsRules = [
     id: "OWASP-A9-001",
     severity: "MEDIUM",
     visitor: (issues) => {
+      const cvssBaseScore = 4.8;
+      const cvssVector = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N';
       const riskyLibs = ['serialize-javascript', 'markdown-it', 'js-yaml', 'node-fetch', 'lodash', 'axios', 'jsonwebtoken', 'express', 'mongoose', 'vm2'];
+
+      const imports = [];
+      let hasHelmet = false;
+      const axiosCalls = [];
+
       return {
         ImportDeclaration(path) {
           const moduleName = path.node.source.value;
+          if (moduleName === 'helmet') {
+            hasHelmet = true;
+          }
           if (riskyLibs.includes(moduleName)) {
-            issues.push({
-              id: "OWASP-A9-001", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-              message: `Risky library imported: '${moduleName}'`,
-              suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
-              cvssBaseScore: 4.8, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N'
+            imports.push({
+              name: moduleName,
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
+              type: 'import'
             });
           }
         },
         CallExpression(path) {
-          if (path.node.callee.name === 'require') {
+          const callee = path.node.callee;
+          if (callee.type === 'Identifier' && callee.name === 'require') {
             const arg = path.node.arguments[0];
-            if (arg && arg.type === 'StringLiteral' && riskyLibs.includes(arg.value)) {
-              issues.push({
-                id: "OWASP-A9-001", severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-                message: `Risky library required: '${arg.value}'`,
-                suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
-                cvssBaseScore: 4.8, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N'
-              });
+            if (arg && arg.type === 'StringLiteral') {
+              const moduleName = arg.value;
+              if (moduleName === 'helmet') {
+                hasHelmet = true;
+              }
+              if (riskyLibs.includes(moduleName)) {
+                imports.push({
+                  name: moduleName,
+                  line: path.node.loc?.start?.line || 1,
+                  column: path.node.loc?.start?.column || 0,
+                  type: 'require'
+                });
+              }
             }
+          }
+
+          if (callee.type === 'MemberExpression') {
+            const objName = callee.object.name;
+            const propName = callee.property.name;
+            if (objName === 'axios' && (propName === 'get' || propName === 'post')) {
+              axiosCalls.push({ path, arg: path.node.arguments[0] });
+            }
+          } else if (callee.type === 'Identifier' && callee.name === 'axios') {
+            axiosCalls.push({ path, arg: path.node.arguments[0] });
+          }
+        },
+        Program: {
+          exit() {
+            imports.forEach(imp => {
+              if (imp.name === 'express') {
+                if (!hasHelmet) {
+                  issues.push({
+                    id: "OWASP-A9-001",
+                    severity: "MEDIUM",
+                    line: imp.line,
+                    column: imp.column,
+                    message: imp.type === 'import' 
+                      ? "Risky library imported: 'express' (missing helmet protection)"
+                      : "Risky library required: 'express' (missing helmet protection)",
+                    suggestion: "Ensure helmet middleware is required and used (app.use(helmet())) to secure Express HTTP headers.",
+                    cvssBaseScore,
+                    cvssVector
+                  });
+                }
+              } else if (imp.name === 'axios') {
+                let hasUnsafeAxiosCall = false;
+                if (axiosCalls.length > 0) {
+                  hasUnsafeAxiosCall = axiosCalls.some(call => {
+                    const arg = call.arg;
+                    if (!arg) return false;
+                    
+                    let isUnsafe = false;
+                    if (arg.type === 'Identifier') {
+                      if (!isValidated(call.path, arg.name)) {
+                        isUnsafe = true;
+                      }
+                    } else if (arg.type === 'TemplateLiteral') {
+                      if (arg.expressions && arg.expressions.length > 0) {
+                        const hasUnvalidatedExpression = arg.expressions.some(expr => {
+                          if (expr.type === 'Identifier') {
+                            return !isValidated(call.path, expr.name);
+                          }
+                          return true;
+                        });
+                        if (hasUnvalidatedExpression) {
+                          isUnsafe = true;
+                        }
+                      }
+                    } else if (arg.type === 'CallExpression') {
+                      isUnsafe = true;
+                    }
+                    return isUnsafe;
+                  });
+                }
+
+                if (hasUnsafeAxiosCall) {
+                  issues.push({
+                    id: "OWASP-A9-001",
+                    severity: "MEDIUM",
+                    line: imp.line,
+                    column: imp.column,
+                    message: imp.type === 'import'
+                      ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
+                      : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
+                    suggestion: "Avoid dynamic user-controlled URLs in axios calls or validate target URLs against a strict safelist.",
+                    cvssBaseScore,
+                    cvssVector
+                  });
+                }
+              } else {
+                issues.push({
+                  id: "OWASP-A9-001",
+                  severity: "MEDIUM",
+                  line: imp.line,
+                  column: imp.column,
+                  message: imp.type === 'import'
+                    ? `Risky library imported: '${imp.name}'`
+                    : `Risky library required: '${imp.name}'`,
+                  suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
+                  cvssBaseScore,
+                  cvssVector
+                });
+              }
+            });
           }
         }
       };
@@ -787,9 +1105,26 @@ const ssrfRules = [
         }
         if (isHttpClientCall && firstArg) {
           let isUnsafe = false;
-          if (firstArg.type === 'Identifier') isUnsafe = true;
-          else if (firstArg.type === 'TemplateLiteral' && firstArg.expressions && firstArg.expressions.length > 0) isUnsafe = true;
-          else if (firstArg.type === 'CallExpression') isUnsafe = true;
+          if (firstArg.type === 'Identifier') {
+            if (!isValidated(path, firstArg.name)) {
+              isUnsafe = true;
+            }
+          } else if (firstArg.type === 'TemplateLiteral') {
+            if (firstArg.expressions && firstArg.expressions.length > 0) {
+              const hasUnvalidatedExpression = firstArg.expressions.some(expr => {
+                if (expr.type === 'Identifier') {
+                  return !isValidated(path, expr.name);
+                }
+                return true;
+              });
+              if (hasUnvalidatedExpression) {
+                isUnsafe = true;
+              }
+            }
+          } else if (firstArg.type === 'CallExpression') {
+            isUnsafe = true;
+          }
+
           if (isUnsafe) {
             issues.push({
               id: "OWASP-A10-001", severity: "HIGH",

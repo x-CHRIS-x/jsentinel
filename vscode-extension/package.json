@@ -44,6 +44,24 @@
         "title": "JSentinel: Clear All Diagnostics"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jsentinel-explorer",
+          "title": "JSentinel",
+          "icon": "media/shield.svg"
+        }
+      ]
+    },
+    "views": {
+      "jsentinel-explorer": [
+        {
+          "type": "webview",
+          "id": "jsentinel.sidebar",
+          "name": "JSentinel Dashboard"
+        }
+      ]
+    },
     "configuration": {
       "title": "JSentinel",
       "properties": {

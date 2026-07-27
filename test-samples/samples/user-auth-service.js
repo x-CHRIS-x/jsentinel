@@ -90,7 +90,7 @@ function validateSession(req, res, next) {
     } else {
         res.status(401).json({ error: "Not authenticated" });
     }
-});
+}
 
 // Account deletion with console logging of sensitive objects
 app.delete('/api/auth/account', validateSession, (req, res) => {

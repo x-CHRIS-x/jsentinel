@@ -35,12 +35,16 @@ const mapSeverity = (severity) => {
  * @param {string} severityFilter - Minimum severity to report ('ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW').
  * @returns {vscode.Diagnostic[]} - Array of VS Code Diagnostic objects.
  */
-const createDiagnostics = (document, issues, severityFilter = 'ALL') => {
+const createDiagnostics = (document, issues, severityFilter = 'ALL', fpFlags = []) => {
   const severityOrder = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
   const filterLevel = severityOrder[severityFilter] || 0;
 
   return issues
     .filter(issue => {
+      // Filter out false positives
+      const fpKey = `${document.fileName}:${issue.id}:${issue.line}:${issue.column}`;
+      if (fpFlags.includes(fpKey)) return false;
+
       if (severityFilter === 'ALL') return true;
       return (severityOrder[issue.severity] || 0) >= filterLevel;
     })
@@ -59,7 +63,7 @@ const createDiagnostics = (document, issues, severityFilter = 'ALL') => {
 
       const diagnostic = new vscode.Diagnostic(
         range,
-        `[${issue.severity}] ${issue.message}`,
+        `[${issue.id}] ${issue.message}`,
         mapSeverity(issue.severity)
       );
 
@@ -68,19 +72,6 @@ const createDiagnostics = (document, issues, severityFilter = 'ALL') => {
         value: issue.id,
         target: vscode.Uri.parse('https://owasp.org/Top10/')
       };
-
-      // Attach confidence level and suggestion as related information
-      if (issue.confidence) {
-        diagnostic.message += ` (Confidence: ${issue.confidence})`;
-      }
-
-      if (issue.suggestion) {
-        diagnostic.message += `\n💡 Fix: ${issue.suggestion}`;
-      }
-
-      if (issue.cvssVector) {
-        diagnostic.message += `\n📊 CVSS: ${issue.cvssVector}`;
-      }
 
       return diagnostic;
     });

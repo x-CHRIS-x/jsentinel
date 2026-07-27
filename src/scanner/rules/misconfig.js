@@ -25,26 +25,42 @@ export const misconfigRules = [
     visitor: (issues) => {
       const cvssBaseScore = 5.5;
       const cvssVector = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N';
+      // Recursively search an expression tree for sensitive Identifier names
+      const findSensitiveIdentifiers = (node) => {
+        if (!node) return [];
+        if (node.type === 'Identifier') {
+          const name = node.name.toLowerCase();
+          if (name.includes('password') || name.includes('token') || name.includes('secret') || name.includes('key')) {
+            return [node.name];
+          }
+          return [];
+        }
+        if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+          return [...findSensitiveIdentifiers(node.left), ...findSensitiveIdentifiers(node.right)];
+        }
+        if (node.type === 'TemplateLiteral' && node.expressions) {
+          return node.expressions.flatMap(findSensitiveIdentifiers);
+        }
+        return [];
+      };
       return {
         CallExpression(path) {
           const callee = path.node.callee;
           if (callee.type === 'MemberExpression' && callee.object.name === 'console') {
             path.node.arguments.forEach(arg => {
-              if (arg.type === 'Identifier') {
-                const argName = arg.name.toLowerCase();
-                if (argName.includes('password') || argName.includes('token') || argName.includes('secret') || argName.includes('key')) {
-                  issues.push({
-                    id: "OWASP-A6-001",
-                    severity: "MEDIUM",
-                    line: path.node.loc?.start?.line || 'unknown',
-                    column: path.node.loc?.start?.column || 'unknown',
-                    message: `Sensitive variable '${arg.name}' logged to console`,
-                    suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
-                    cvssBaseScore,
-                    cvssVector
-                  });
-                }
-              }
+              const sensitiveNames = findSensitiveIdentifiers(arg);
+              sensitiveNames.forEach(name => {
+                issues.push({
+                  id: "OWASP-A6-001",
+                  severity: "MEDIUM",
+                  line: path.node.loc?.start?.line || 'unknown',
+                  column: path.node.loc?.start?.column || 'unknown',
+                  message: `Sensitive variable '${name}' logged to console`,
+                  suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
+                  cvssBaseScore,
+                  cvssVector
+                });
+              });
             });
           }
         }

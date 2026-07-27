@@ -2,6 +2,59 @@
  * A10 - Server-Side Request Forgery Rules
  * Targets: fetch(), axios.get/post calls with dynamic variables or template literals
  */
+function isValidated(path, varName) {
+  if (!varName) return false;
+  let currentPath = path;
+  while (currentPath) {
+    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
+      const test = currentPath.node.test;
+      
+      const checkTestNode = (node) => {
+        if (!node) return false;
+        
+        // Match methods like includes, indexOf, test, validate, or check
+        if (node.type === 'CallExpression') {
+          const callee = node.callee;
+          const hasVarArg = node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
+          if (hasVarArg) {
+            let funcName = '';
+            if (callee.type === 'Identifier') {
+              funcName = callee.name;
+            } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
+              funcName = callee.property.name;
+            }
+            const lowerFunc = funcName.toLowerCase();
+            if (lowerFunc.includes('include') || lowerFunc.includes('indexof') || lowerFunc.includes('test') || lowerFunc.includes('validate') || lowerFunc.includes('check')) {
+              return true;
+            }
+          }
+        }
+        
+        if (node.type === 'BinaryExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'LogicalExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'UnaryExpression') {
+          return checkTestNode(node.argument);
+        }
+        return false;
+      };
+      
+      if (checkTestNode(test)) {
+        return true;
+      }
+    }
+    // Stop traversal if we leave the current function
+    if (currentPath.isFunction && currentPath.isFunction()) {
+      break;
+    }
+    currentPath = currentPath.parentPath;
+  }
+  return false;
+}
+
 export const ssrfRules = [
   {
     name: "ssrf-detection",
@@ -49,14 +102,23 @@ export const ssrfRules = [
           }
 
           if (isHttpClientCall && firstArg) {
-            // Unsafe if argument is an Identifier or a dynamic TemplateLiteral (i.e. contains expressions)
             let isUnsafe = false;
             
             if (firstArg.type === 'Identifier') {
-              isUnsafe = true;
+              if (!isValidated(path, firstArg.name)) {
+                isUnsafe = true;
+              }
             } else if (firstArg.type === 'TemplateLiteral') {
               if (firstArg.expressions && firstArg.expressions.length > 0) {
-                isUnsafe = true;
+                const hasUnvalidatedExpression = firstArg.expressions.some(expr => {
+                  if (expr.type === 'Identifier') {
+                    return !isValidated(path, expr.name);
+                  }
+                  return true;
+                });
+                if (hasUnvalidatedExpression) {
+                  isUnsafe = true;
+                }
               }
             } else if (firstArg.type === 'CallExpression') {
               isUnsafe = true;

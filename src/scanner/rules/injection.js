@@ -72,7 +72,7 @@ export const injectionRules = [
 
           if (calleeName === 'setTimeout' || calleeName === 'setInterval') {
             const firstArg = path.node.arguments[0];
-            if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
+            if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
               issues.push({
                 id: "OWASP-A1-002",
                 severity: "HIGH",

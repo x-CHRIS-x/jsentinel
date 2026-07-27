@@ -157,10 +157,30 @@ export const authRules = [
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Cookie set via template literal — verify HttpOnly and Secure flags are present",
-                suggestion: "Ensure template literals used for cookies include '; HttpOnly; Secure' for sensitive data.",
+                suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
                 cvssBaseScore,
                 cvssVector
               });
+            } else if (right.type === 'BinaryExpression') {
+              const collectStrings = (node) => {
+                if (!node) return '';
+                if (node.type === 'StringLiteral') return node.value;
+                if (node.type === 'BinaryExpression') return collectStrings(node.left) + collectStrings(node.right);
+                return '';
+              };
+              const fullCookieStr = collectStrings(right).toLowerCase();
+              if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
+                issues.push({
+                  id: "OWASP-A2-003",
+                  severity: "MEDIUM",
+                  line: path.node.loc?.start?.line || 'unknown',
+                  column: path.node.loc?.start?.column || 'unknown',
+                  message: "Cookie set via dynamic concatenation — missing HttpOnly or Secure flags",
+                  suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
+                  cvssBaseScore,
+                  cvssVector
+                });
+              }
             }
           }
         }
@@ -189,25 +209,39 @@ export const authRules = [
     visitor: (issues) => {
       const cvssBaseScore = 7.5;
       const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N';
+      const hasMathRandom = (node) => {
+        if (!node) return false;
+        if (node.type === 'CallExpression') {
+          const callee = node.callee;
+          if (callee.type === 'MemberExpression' && callee.object.name === 'Math' && callee.property.name === 'random') {
+            return true;
+          }
+          return hasMathRandom(callee) || node.arguments.some(hasMathRandom);
+        }
+        if (node.type === 'MemberExpression') {
+          return hasMathRandom(node.object) || hasMathRandom(node.property);
+        }
+        if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+          return hasMathRandom(node.left) || hasMathRandom(node.right);
+        }
+        return false;
+      };
       return {
         VariableDeclarator(path) {
           const varName = path.node.id.name?.toLowerCase();
           if (varName && (varName.includes('token') || varName.includes('otp') || varName.includes('secret') || varName.includes('salt') || varName.includes('key'))) {
             const init = path.node.init;
-            if (init && init.type === 'CallExpression') {
-              const callee = init.callee;
-              if (callee.type === 'MemberExpression' && callee.object.name === 'Math' && callee.property.name === 'random') {
-                issues.push({
-                  id: "OWASP-A2-004",
-                  severity: "HIGH",
-                  line: path.node.loc?.start?.line || 'unknown',
-                  column: path.node.loc?.start?.column || 'unknown',
-                  message: `Insecure pseudo-random number generator used for sensitive variable '${path.node.id.name}'`,
-                  suggestion: "Use window.crypto.getRandomValues() or the Web Crypto API to generate cryptographically secure random values.",
-                  cvssBaseScore,
-                  cvssVector
-                });
-              }
+            if (init && hasMathRandom(init)) {
+              issues.push({
+                id: "OWASP-A2-004",
+                severity: "HIGH",
+                line: path.node.loc?.start?.line || 'unknown',
+                column: path.node.loc?.start?.column || 'unknown',
+                message: `Insecure pseudo-random number generator used for sensitive variable '${path.node.id.name}'`,
+                suggestion: "Use window.crypto.getRandomValues() or the Web Crypto API to generate cryptographically secure random values.",
+                cvssBaseScore,
+                cvssVector
+              });
             }
           }
         }

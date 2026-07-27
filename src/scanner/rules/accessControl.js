@@ -2,6 +2,59 @@
  * A5 - Broken Access Control Rules
  * Targets: Open redirects, client-side role checks guarding conditional logic
  */
+function isValidated(path, varName) {
+  if (!varName) return false;
+  let currentPath = path;
+  while (currentPath) {
+    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
+      const test = currentPath.node.test;
+      
+      const checkTestNode = (node) => {
+        if (!node) return false;
+        
+        // Match methods like includes, indexOf, test, validate, or check
+        if (node.type === 'CallExpression') {
+          const callee = node.callee;
+          const hasVarArg = node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
+          if (hasVarArg) {
+            let funcName = '';
+            if (callee.type === 'Identifier') {
+              funcName = callee.name;
+            } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
+              funcName = callee.property.name;
+            }
+            const lowerFunc = funcName.toLowerCase();
+            if (lowerFunc.includes('include') || lowerFunc.includes('indexof') || lowerFunc.includes('test') || lowerFunc.includes('validate') || lowerFunc.includes('check')) {
+              return true;
+            }
+          }
+        }
+        
+        if (node.type === 'BinaryExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'LogicalExpression') {
+          return checkTestNode(node.left) || checkTestNode(node.right);
+        }
+        if (node.type === 'UnaryExpression') {
+          return checkTestNode(node.argument);
+        }
+        return false;
+      };
+      
+      if (checkTestNode(test)) {
+        return true;
+      }
+    }
+    // Stop traversal if we leave the current function
+    if (currentPath.isFunction && currentPath.isFunction()) {
+      break;
+    }
+    currentPath = currentPath.parentPath;
+  }
+  return false;
+}
+
 export const accessControlRules = [
   {
     name: "open-redirect",
@@ -39,16 +92,39 @@ export const accessControlRules = [
             if (isLocationHref) {
               const right = path.node.right;
               if (right && (right.type === 'Identifier' || right.type === 'TemplateLiteral' || right.type === 'CallExpression')) {
-                issues.push({
-                  id: "OWASP-A5-001",
-                  severity: "HIGH",
-                  line: path.node.loc?.start?.line || 'unknown',
-                  column: path.node.loc?.start?.column || 'unknown',
-                  message: "Unsafe location redirection using dynamic value",
-                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
-                  cvssBaseScore,
-                  cvssVector
-                });
+                let isUnsafe = false;
+                if (right.type === 'Identifier') {
+                  if (!isValidated(path, right.name)) {
+                    isUnsafe = true;
+                  }
+                } else if (right.type === 'TemplateLiteral') {
+                  if (right.expressions && right.expressions.length > 0) {
+                    const hasUnvalidatedExpression = right.expressions.some(expr => {
+                      if (expr.type === 'Identifier') {
+                        return !isValidated(path, expr.name);
+                      }
+                      return true;
+                    });
+                    if (hasUnvalidatedExpression) {
+                      isUnsafe = true;
+                    }
+                  }
+                } else if (right.type === 'CallExpression') {
+                  isUnsafe = true;
+                }
+
+                if (isUnsafe) {
+                  issues.push({
+                    id: "OWASP-A5-001",
+                    severity: "HIGH",
+                    line: path.node.loc?.start?.line || 'unknown',
+                    column: path.node.loc?.start?.column || 'unknown',
+                    message: "Unsafe location redirection using dynamic value",
+                    suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
+                    cvssBaseScore,
+                    cvssVector
+                  });
+                }
               }
             }
           }
@@ -66,16 +142,39 @@ export const accessControlRules = [
             if (isReplace && isLocationObject) {
               const arg = path.node.arguments[0];
               if (arg && (arg.type === 'Identifier' || arg.type === 'TemplateLiteral' || arg.type === 'CallExpression')) {
-                issues.push({
-                  id: "OWASP-A5-001",
-                  severity: "HIGH",
-                  line: path.node.loc?.start?.line || 'unknown',
-                  column: path.node.loc?.start?.column || 'unknown',
-                  message: "Unsafe location.replace() using dynamic value",
-                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
-                  cvssBaseScore,
-                  cvssVector
-                });
+                let isUnsafe = false;
+                if (arg.type === 'Identifier') {
+                  if (!isValidated(path, arg.name)) {
+                    isUnsafe = true;
+                  }
+                } else if (arg.type === 'TemplateLiteral') {
+                  if (arg.expressions && arg.expressions.length > 0) {
+                    const hasUnvalidatedExpression = arg.expressions.some(expr => {
+                      if (expr.type === 'Identifier') {
+                        return !isValidated(path, expr.name);
+                      }
+                      return true;
+                    });
+                    if (hasUnvalidatedExpression) {
+                      isUnsafe = true;
+                    }
+                  }
+                } else if (arg.type === 'CallExpression') {
+                  isUnsafe = true;
+                }
+
+                if (isUnsafe) {
+                  issues.push({
+                    id: "OWASP-A5-001",
+                    severity: "HIGH",
+                    line: path.node.loc?.start?.line || 'unknown',
+                    column: path.node.loc?.start?.column || 'unknown',
+                    message: "Unsafe location.replace() using dynamic value",
+                    suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
+                    cvssBaseScore,
+                    cvssVector
+                  });
+                }
               }
             }
           }
@@ -109,7 +208,7 @@ export const accessControlRules = [
       const isSensitiveProperty = (name) => {
         if (!name) return false;
         const lower = name.toLowerCase();
-        return lower === 'role' || lower === 'isadmin' || lower === 'isauthenticated' || lower === 'admin';
+        return lower === 'role' || lower === 'isadmin' || lower === 'admin';
       };
 
       const checkExpression = (node) => {

@@ -29,16 +29,72 @@ export const deserializationRules = [
         CallExpression(path) {
           const callee = path.node.callee;
           if (callee.type === 'MemberExpression' && callee.object.name === 'JSON' && callee.property.name === 'parse') {
-            issues.push({
-              id: "OWASP-A8-001",
-              severity: "LOW",
-              line: path.node.loc?.start?.line || 'unknown',
-              column: path.node.loc?.start?.column || 'unknown',
-              message: "JSON.parse() usage detected",
-              suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
-              cvssBaseScore,
-              cvssVector
-            });
+            let isParsedValidated = false;
+
+            const varDecl = path.findParent(p => p.isVariableDeclarator());
+            if (varDecl && varDecl.node.id.type === 'Identifier') {
+              const varName = varDecl.node.id.name;
+              
+              // First attempt using scope bindings which is standard and elegant
+              const binding = path.scope.getBinding(varName);
+              if (binding && binding.referencePaths) {
+                for (const refPath of binding.referencePaths) {
+                  const callPath = refPath.findParent(p => p.isCallExpression());
+                  if (callPath) {
+                    const childCallee = callPath.node.callee;
+                    let funcName = '';
+                    if (childCallee.type === 'Identifier') {
+                      funcName = childCallee.name;
+                    } else if (childCallee.type === 'MemberExpression' && childCallee.property.type === 'Identifier') {
+                      funcName = childCallee.property.name;
+                    }
+                    const lowerFunc = funcName.toLowerCase();
+                    if (lowerFunc.includes('validate') || lowerFunc.includes('verify') || lowerFunc.includes('isvalid')) {
+                      isParsedValidated = true;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // Fallback to traversing parent scope if binding not resolved
+              if (!isParsedValidated) {
+                const parentScope = path.findParent(p => p.isFunction() || p.isProgram());
+                if (parentScope) {
+                  parentScope.traverse({
+                    CallExpression(childPath) {
+                      const childCallee = childPath.node.callee;
+                      const hasVarArg = childPath.node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
+                      if (hasVarArg) {
+                        let funcName = '';
+                        if (childCallee.type === 'Identifier') {
+                          funcName = childCallee.name;
+                        } else if (childCallee.type === 'MemberExpression' && childCallee.property.type === 'Identifier') {
+                          funcName = childCallee.property.name;
+                        }
+                        const lowerFunc = funcName.toLowerCase();
+                        if (lowerFunc.includes('validate') || lowerFunc.includes('verify') || lowerFunc.includes('isvalid')) {
+                          isParsedValidated = true;
+                        }
+                      }
+                    }
+                  });
+                }
+              }
+            }
+
+            if (!isParsedValidated) {
+              issues.push({
+                id: "OWASP-A8-001",
+                severity: "LOW",
+                line: path.node.loc?.start?.line || 'unknown',
+                column: path.node.loc?.start?.column || 'unknown',
+                message: "JSON.parse() usage detected",
+                suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
+                cvssBaseScore,
+                cvssVector
+              });
+            }
           }
         }
       };
@@ -66,35 +122,29 @@ export const deserializationRules = [
     visitor: (issues) => {
       const cvssBaseScore = 7.5;
       const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N';
+      const hasProtoPollution = (node) => {
+        if (!node || node.type !== 'MemberExpression') return false;
+        // Check for __proto__ at any level
+        if (node.property && (node.property.name === '__proto__' || (node.property.type === 'StringLiteral' && node.property.value === '__proto__'))) return true;
+        // Check for constructor.prototype chain
+        if (node.object && node.object.type === 'MemberExpression') {
+          if (node.object.property && node.object.property.name === 'constructor' && node.property && node.property.name === 'prototype') return true;
+        }
+        // Recurse into deeper chains like target.__proto__[key]
+        return hasProtoPollution(node.object);
+      };
       return {
         AssignmentExpression(path) {
           const left = path.node.left;
           if (!left) return;
-
-          let isPollution = false;
-          
-          if (left.type === 'MemberExpression') {
-            // Check for assignment to __proto__
-            if (left.property && left.property.name === '__proto__') {
-              isPollution = true;
-            }
-            // Check for assignment to constructor.prototype
-            if (left.object && left.object.type === 'MemberExpression') {
-              if (left.object.property && left.object.property.name === 'constructor' && 
-                  left.property && left.property.name === 'prototype') {
-                isPollution = true;
-              }
-            }
-          }
-
-          if (isPollution) {
+          if (hasProtoPollution(left)) {
             issues.push({
               id: "OWASP-A8-002",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Potential prototype pollution assignment detected",
-              suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null) for safe storage.",
+              suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
               cvssBaseScore,
               cvssVector
             });
@@ -130,22 +180,17 @@ export const deserializationRules = [
           const callee = path.node.callee;
           if (callee.type === 'MemberExpression' && callee.object.name === 'Object' && callee.property.name === 'assign') {
             const args = path.node.arguments;
-            if (args.length >= 2) {
-              const firstArg = args[0];
-              const secondArg = args[1];
-              // First argument is empty object literal, second is variable
-              if (firstArg.type === 'ObjectExpression' && secondArg.type === 'Identifier') {
-                issues.push({
-                  id: "OWASP-A8-003",
-                  severity: "MEDIUM",
-                  line: path.node.loc?.start?.line || 'unknown',
-                  column: path.node.loc?.start?.column || 'unknown',
-                  message: "Unsafe use of Object.assign() with dynamic source argument",
-                  suggestion: "Validate and sanitize dynamic input arguments, or use a strict schema validator before merging objects.",
-                  cvssBaseScore,
-                  cvssVector
-                });
-              }
+            if (args.length >= 2 && args[0].type === 'Identifier') {
+              issues.push({
+                id: "OWASP-A8-003",
+                severity: "MEDIUM",
+                line: path.node.loc?.start?.line || 'unknown',
+                column: path.node.loc?.start?.column || 'unknown',
+                message: "Unsafe use of Object.assign() mutating target object",
+                suggestion: "Validate and sanitize dynamic input arguments, or merge properties into a safe new object Object.assign({}, target, ...).",
+                cvssBaseScore,
+                cvssVector
+              });
             }
           }
         }
