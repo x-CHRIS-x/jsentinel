@@ -84,8 +84,7 @@ const riskExplanations = {
   'OWASP-A8-002': 'Modifying __proto__ or constructor.prototype changes the behavior of all objects sharing that prototype — enabling denial of service or code execution.',
   'OWASP-A8-003': 'Object.assign() merges all properties from the source. If the source is user-controlled, attackers can inject __proto__ or other dangerous properties.',
   'OWASP-A9-001': 'This library has known CVEs or common misuse patterns. Using outdated or misconfigured versions can introduce exploitable vulnerabilities into your application.',
-  'OWASP-A10-001': 'When fetch/axios URLs are user-controlled, attackers can make your server request internal resources (databases, admin panels, cloud metadata endpoints).',
-  'OWASP-A3-ENTROPY': 'This string has unusually high randomness, characteristic of passwords, API keys, cryptographic tokens, or private keys that should not be in source code.',
+  'OWASP-A10-001': 'When fetch/axios URLs are user-controlled, attackers can make your server request internal resources (databases, admin panels, cloud metadata endpoints).'
 };
 
 /**

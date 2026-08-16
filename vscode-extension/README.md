@@ -10,7 +10,6 @@ A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files
 - **Scan Workspace** — Run `JSentinel: Scan Workspace` to scan all JS/TS files in the workspace
 - **Scan on Save** — Automatically scans files when saved (configurable)
 - **27 Detection Rules** — Covers 9 OWASP Top 10 categories with CVSS v3.1 severity scoring
-- **Shannon Entropy** — Detects hardcoded secrets through mathematical randomness analysis
 - **Confidence Levels** — Each finding includes HIGH / MEDIUM / LOW confidence rating
 
 ## OWASP Categories Covered
@@ -46,7 +45,6 @@ A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files
 1. Files are parsed into an Abstract Syntax Tree (AST) using `@babel/parser`
 2. 27 detection rules traverse the AST using `@babel/traverse`
 3. Detected issues are mapped to VS Code Diagnostics (Problems panel + inline underlines)
-4. Shannon Entropy analysis detects high-randomness strings that may be secrets
 
 ## Installation (Development)
 

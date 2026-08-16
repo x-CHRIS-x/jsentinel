@@ -110,10 +110,6 @@ const pdfCodeFixGuide = {
   'OWASP-A10-001': {
     bad: 'axios.get(dynamicRequestUrl);',
     good: 'if (isValidInternalEndpoint(dynamicRequestUrl)) {\n  axios.get(dynamicRequestUrl);\n} // Restrict connection targets to authenticated APIs'
-  },
-  'OWASP-A3-ENTROPY': {
-    bad: 'const secretValue = "a8f3d6c1b9e0f2a4c5d8e7f9b0a1c2d3e4f5"; // Raw high entropy string',
-    good: 'const secretValue = process.env.API_KEY; // Relocate raw strings to local environment configs'
   }
 };
 

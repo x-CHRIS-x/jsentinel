@@ -1,9 +1,8 @@
 import * as Babel from '@babel/standalone';
-import { calculateShannonEntropy } from './entropy';
 
 /**
  * Main scanning engine that coordinates file parsing and rule execution.
- * Includes built-in Shannon Entropy analysis and Confidence Level evaluation.
+ * Includes Confidence Level evaluation.
  * 
  * @param {File} file - Browser File object.
  * @param {Array} rules - Array of security rule objects.
@@ -14,41 +13,6 @@ export const scanFile = async (file, rules) => {
   try {
     const code = await file.text();
     const issues = [];
-
-    // Built-in Shannon Entropy Rule for Detecting Secrets
-    const runEntropyCheck = (node) => {
-      const val = node.value;
-      // Secrets are generally longer than 8 characters, lack whitespace, and are not SVG paths or URLs
-      if (val && val.length > 8 && !val.includes(' ')) {
-        // Exclude common dynamic structures or static assets
-        const isCommonAsset = 
-          val.startsWith('http://') || 
-          val.startsWith('https://') || 
-          val.startsWith('data:') ||
-          (val.startsWith('M') && val.includes('z')) || // SVG path indicator
-          val.endsWith('.css') || 
-          val.endsWith('.png') || 
-          val.endsWith('.jpg') || 
-          val.endsWith('.svg');
-
-        if (!isCommonAsset) {
-          const entropy = calculateShannonEntropy(val);
-          if (entropy > 4.5) {
-            issues.push({
-              id: "OWASP-A3-ENTROPY",
-              severity: "MEDIUM",
-              line: node.loc?.start?.line || 'unknown',
-              column: node.loc?.start?.column || 'unknown',
-              message: `High-entropy string detected (randomness: ${entropy} bits/char)`,
-              suggestion: "Verify if this string represents a password, token, or private key, and move it to environment variables.",
-              cvssBaseScore: 5.3,
-              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
-              confidence: "LOW"
-            });
-          }
-        }
-      }
-    };
 
     // Run rules via @babel/standalone parser
     for (const rule of rules) {
@@ -77,35 +41,6 @@ export const scanFile = async (file, rules) => {
       }
     }
 
-    // Run custom visitor for Shannon Entropy
-    try {
-      Babel.transform(code, {
-        filename: file.name,
-        ast: false,
-        code: false,
-        highlightCode: false,
-        parserOpts: {
-          errorRecovery: true
-        },
-        presets: [
-          file.name.endsWith('.ts') || file.name.endsWith('.tsx') ? 'typescript' : null,
-          ['react', { runtime: 'automatic' }]
-        ].filter(Boolean),
-        plugins: [
-          () => ({
-            visitor: {
-              StringLiteral(path) {
-                runEntropyCheck(path.node);
-              }
-            }
-          })
-        ]
-      });
-    } catch (entropyError) {
-      console.error(`Error running Shannon Entropy check on ${file.name}:`, entropyError);
-      hasError = true;
-    }
-
     // Post-Process issues to assign confidence levels.
     // Confidence answers: "How likely is this flagged finding to be a
     // real exploitable vulnerability rather than a false positive?"
@@ -117,7 +52,6 @@ export const scanFile = async (file, rules) => {
     // LOW:    Informational or probabilistic. The finding may or may not
     //         represent a real security issue depending on project context.
     issues.forEach(issue => {
-      // If confidence level is already defined (e.g. by Entropy), retain it
       if (issue.confidence) return;
 
       let confidence = "MEDIUM"; // Default for unrecognized rules

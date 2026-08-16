@@ -11,7 +11,6 @@
 
 const parser = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
-const { calculateShannonEntropy } = require('./entropy');
 
 /**
  * Scans a code string using all provided security rules.
@@ -59,46 +58,6 @@ const scanCode = (code, fileName, rules) => {
       console.error(`Error running rule ${rule.name} on ${fileName}:`, ruleError.message);
       hasError = true;
     }
-  }
-
-  // Run Shannon Entropy check on string literals
-  try {
-    traverse(ast, {
-      StringLiteral(path) {
-        const val = path.node.value;
-        if (val && val.length > 8 && !val.includes(' ')) {
-          const isCommonAsset =
-            val.startsWith('http://') ||
-            val.startsWith('https://') ||
-            val.startsWith('data:') ||
-            (val.startsWith('M') && val.includes('z')) ||
-            val.endsWith('.css') ||
-            val.endsWith('.png') ||
-            val.endsWith('.jpg') ||
-            val.endsWith('.svg');
-
-          if (!isCommonAsset) {
-            const entropy = calculateShannonEntropy(val);
-            if (entropy > 4.5) {
-              issues.push({
-                id: 'OWASP-A3-ENTROPY',
-                severity: 'MEDIUM',
-                line: path.node.loc?.start?.line || 1,
-                column: path.node.loc?.start?.column || 0,
-                message: `High-entropy string detected (randomness: ${entropy} bits/char)`,
-                suggestion: 'Verify if this string represents a password, token, or private key, and move it to environment variables.',
-                cvssBaseScore: 5.3,
-                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N',
-                confidence: 'LOW'
-              });
-            }
-          }
-        }
-      }
-    });
-  } catch (entropyError) {
-    console.error(`Error running Shannon Entropy check on ${fileName}:`, entropyError.message);
-    hasError = true;
   }
 
   // Assign confidence levels (same logic as browser version)
