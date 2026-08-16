@@ -54,17 +54,17 @@ export const injectionRules = [
       AC: 'L',
       PR: 'N',
       UI: 'R',
-      S:  'C',
+      S:  'U',
       C:  'H',
       I:  'H',
-      A:  'N',
+      A:  'H',
       baseScore: 8.8,
       baseSeverity: 'HIGH',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
     },
     visitor: (issues) => {
       const cvssBaseScore = 8.8;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N';
+      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H';
       return {
         CallExpression(path) {
           const calleeName = path.node.callee?.name;
@@ -144,17 +144,17 @@ export const injectionRules = [
       AC: 'L',
       PR: 'N',
       UI: 'R',
-      S:  'C',
+      S:  'U',
       C:  'H',
       I:  'H',
-      A:  'N',
+      A:  'H',
       baseScore: 8.8,
       baseSeverity: 'HIGH',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
     },
     visitor: (issues) => {
       const cvssBaseScore = 8.8;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N';
+      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H';
       return {
         AssignmentExpression(path) {
           const left = path.node.left;
@@ -191,17 +191,17 @@ export const injectionRules = [
       AC: 'L',
       PR: 'N',
       UI: 'R',
-      S:  'C',
+      S:  'U',
       C:  'H',
       I:  'H',
-      A:  'N',
+      A:  'H',
       baseScore: 8.8,
       baseSeverity: 'HIGH',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
     },
     visitor: (issues) => {
       const cvssBaseScore = 8.8;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N';
+      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H';
       return {
         AssignmentExpression(path) {
           const left = path.node.left;

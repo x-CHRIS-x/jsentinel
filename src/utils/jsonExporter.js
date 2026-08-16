@@ -27,7 +27,6 @@ export const generateJSONReport = (results, stats, owaspCategories, fpFlags) => 
           fileName: res.fileName,
           id: issue.id,
           severity: issue.severity,
-          confidence: issue.confidence || 'MEDIUM',
           line: issue.line,
           column: issue.column,
           message: issue.message,

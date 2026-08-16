@@ -5,7 +5,7 @@
 
 // Clean: authorization checks validated on the server API side
 function renderSecureComponentsSecure(userContext) {
-    // Only query client UI components — server enforces real validation
+    // Only query client UI components: server enforces real validation
     if (userContext.isAuthenticated) {
         showSuperUserMenu();
     }

@@ -105,7 +105,7 @@ const pdfCodeFixGuide = {
   },
   'OWASP-A9-001': {
     bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Utilize updated or patched utility libraries'
+    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
   },
   'OWASP-A10-001': {
     bad: 'axios.get(dynamicRequestUrl);',
@@ -328,8 +328,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
           line: issue.line,
           id: issue.id,
           severity: issue.severity,
-          message: issue.message,
-          confidence: issue.confidence || 'MEDIUM'
+          message: issue.message
         });
 
         triggeredRuleIds.add(issue.id);
@@ -349,13 +348,12 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
       issue.id,
       `Line ${issue.line}`,
       issue.file,
-      issue.confidence,
       issue.message
     ]);
 
     autoTable(doc, {
       startY: y,
-      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Confidence', 'Breach Description']],
+      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Breach Description']],
       body: findingsBody,
       theme: 'grid',
       styles: { fontSize: 7.5, cellPadding: 3.5 },
@@ -369,7 +367,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
           data.cell.styles.fontStyle = 'bold';
         }
       },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 15 }, 4: { fontStyle: 'bold', cellWidth: 20 } }
+      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 15 }, 3: { cellWidth: 35 } }
     });
     y = doc.lastAutoTable.finalY + 12;
   }

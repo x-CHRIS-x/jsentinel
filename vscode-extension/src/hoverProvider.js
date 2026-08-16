@@ -11,7 +11,7 @@
  *   - OWASP category identification
  *   - Confidence level indicator
  *   - CVSS v3.1 base score and vector
- *   - What the vulnerability is and why it's dangerous
+ *   - What the vulnerability is and why it is dangerous
  *   - How to fix it
  *   - Link to OWASP documentation
  */
@@ -50,7 +50,7 @@ const severityConfig = {
 const confidenceConfig = {
   'HIGH':   { emoji: '🟢', description: 'Almost certainly a real vulnerability' },
   'MEDIUM': { emoji: '🟡', description: 'Likely real, but context matters' },
-  'LOW':    { emoji: '⚪', description: 'Informational — verify manually' },
+  'LOW':    { emoji: '⚪', description: 'Informational: verify manually' },
 };
 
 // ──────────────────────────────────────────────
@@ -59,10 +59,10 @@ const confidenceConfig = {
 // ──────────────────────────────────────────────
 const riskExplanations = {
   'OWASP-A1-001': 'eval() executes arbitrary strings as JavaScript code. An attacker who controls the input can run any code in the application context, leading to full compromise.',
-  'OWASP-A1-002': 'When setTimeout/setInterval receives a string, it acts like eval() — parsing and executing the string as code. This opens the same arbitrary code execution risks.',
+  'OWASP-A1-002': 'When setTimeout/setInterval receives a string, it acts like eval(), parsing and executing the string as code. This opens the same arbitrary code execution risks.',
   'OWASP-A1-003': 'The Function constructor creates a new function from a string argument, identical in risk to eval(). Attackers can inject executable code through the string parameter.',
   'OWASP-A1-004': 'Assigning a template literal with variables to innerHTML allows attackers to inject malicious HTML/JavaScript if they control any of the interpolated values.',
-  'OWASP-A1-005': 'Setting innerHTML to a function\'s return value is dangerous if the function processes any user input — the returned HTML could contain injected script tags.',
+  'OWASP-A1-005': 'Setting innerHTML to a function\'s return value is dangerous if the function processes any user input. The returned HTML could contain injected script tags.',
   'OWASP-A2-001': 'Hardcoded passwords in source code are exposed to anyone with repository access. They cannot be rotated without a code change and deployment.',
   'OWASP-A2-002': 'localStorage is accessible to any JavaScript on the page. If an XSS vulnerability exists, an attacker\'s script can steal all stored tokens instantly.',
   'OWASP-A2-003': 'Cookies without HttpOnly flag can be read by JavaScript (enabling XSS theft). Without Secure flag, they transmit over unencrypted HTTP connections.',
@@ -70,7 +70,7 @@ const riskExplanations = {
   'OWASP-A2-005': 'HTTP transmits data as plaintext. Anyone on the network path (WiFi, ISP, proxy) can read or modify the traffic, including credentials and session tokens.',
   'OWASP-A3-001': 'Hardcoded secrets (JWT tokens, AWS keys, IPs) in source code are permanently exposed in version control history, even if later removed.',
   'OWASP-A3-002': 'API keys and secrets hardcoded in variables can be extracted from client-side bundles, version control, or build artifacts by anyone with access.',
-  'OWASP-A3-003': 'Credentials in URL query strings are logged in browser history, server logs, proxy logs, and the Referer header — creating multiple exposure vectors.',
+  'OWASP-A3-003': 'Credentials in URL query strings are logged in browser history, server logs, proxy logs, and the Referer header, creating multiple exposure vectors.',
   'OWASP-A5-001': 'Setting location.href to a user-controlled variable lets attackers craft URLs that redirect victims to phishing sites or malicious pages.',
   'OWASP-A5-002': 'Client-side role checks can be trivially bypassed using browser DevTools. An attacker can modify variables or skip conditions to access restricted features.',
   'OWASP-A6-001': 'Console.log statements with sensitive variables persist in production browser consoles. Any user or attacker can open DevTools and read the logged secrets.',
@@ -81,7 +81,7 @@ const riskExplanations = {
   'OWASP-A7-002': 'document.write() injects raw HTML into the page during parsing. It has no sanitization and can completely overwrite page content with malicious code.',
   'OWASP-A7-003': 'React\'s dangerouslySetInnerHTML bypasses React\'s built-in XSS protection. If the HTML content is user-controlled, scripts will execute in the browser.',
   'OWASP-A8-001': 'JSON.parse() on untrusted input can produce unexpected object shapes. Without validation, downstream code may behave unpredictably or insecurely.',
-  'OWASP-A8-002': 'Modifying __proto__ or constructor.prototype changes the behavior of all objects sharing that prototype — enabling denial of service or code execution.',
+  'OWASP-A8-002': 'Modifying __proto__ or constructor.prototype changes the behavior of all objects sharing that prototype, enabling denial of service or code execution.',
   'OWASP-A8-003': 'Object.assign() merges all properties from the source. If the source is user-controlled, attackers can inject __proto__ or other dangerous properties.',
   'OWASP-A9-001': 'This library has known CVEs or common misuse patterns. Using outdated or misconfigured versions can introduce exploitable vulnerabilities into your application.',
   'OWASP-A10-001': 'When fetch/axios URLs are user-controlled, attackers can make your server request internal resources (databases, admin panels, cloud metadata endpoints).'
@@ -101,10 +101,10 @@ const getCategoryPrefix = (ruleId) => {
  * Formats a CVSS base score into a human-readable severity band.
  */
 const formatCvssScore = (score) => {
-  if (score >= 9.0) return `\`${score}\` — Critical`;
-  if (score >= 7.0) return `\`${score}\` — High`;
-  if (score >= 4.0) return `\`${score}\` — Medium`;
-  if (score >= 0.1) return `\`${score}\` — Low`;
+  if (score >= 9.0) return `\`${score}\`: Critical`;
+  if (score >= 7.0) return `\`${score}\`: High`;
+  if (score >= 4.0) return `\`${score}\`: Medium`;
+  if (score >= 0.1) return `\`${score}\`: Low`;
   return `\`${score}\``;
 };
 
@@ -121,7 +121,7 @@ const buildHoverCard = (issue) => {
   const lines = [];
 
   // ── Header: Severity + Rule ID ──
-  lines.push(`## ${severity.emoji} ${severity.label} — \`${issue.id}\``);
+  lines.push(`## ${severity.emoji} ${severity.label}: \`${issue.id}\``);
   lines.push('');
 
   // ── OWASP Category ──
@@ -140,7 +140,7 @@ const buildHoverCard = (issue) => {
   lines.push(issue.message);
   lines.push('');
 
-  // ── Why it's dangerous ──
+  // ── Why this is dangerous ──
   if (riskExplanation) {
     lines.push(`### ⚠️ Why this is dangerous`);
     lines.push('');
@@ -164,7 +164,7 @@ const buildHoverCard = (issue) => {
   const metricsRow = [];
 
   // Confidence
-  metricsRow.push(`${confidence.emoji} **Confidence:** ${issue.confidence} — *${confidence.description}*`);
+  metricsRow.push(`${confidence.emoji} **Confidence:** ${issue.confidence}: *${confidence.description}*`);
 
   // CVSS Score
   if (issue.cvssBaseScore !== undefined) {

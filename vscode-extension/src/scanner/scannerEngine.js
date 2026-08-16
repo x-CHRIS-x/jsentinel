@@ -1,11 +1,11 @@
 /**
- * JSentinel Scanner Engine — Node.js / VS Code Extension Port
+ * JSentinel Scanner Engine: Node.js / VS Code Extension Port
  * 
  * This is the VS Code extension version of the scanner engine.
  * Uses @babel/parser + @babel/traverse directly instead of @babel/standalone
  * (which is browser-only).
  * 
- * The rule visitor pattern is identical to the browser version — each rule
+ * The rule visitor pattern is identical to the browser version: each rule
  * exports a visitor(issues) function that returns Babel visitor node handlers.
  */
 

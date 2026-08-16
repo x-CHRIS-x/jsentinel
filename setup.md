@@ -1,6 +1,6 @@
-# JSentinel / CodeGuard-JS — Laptop Setup & Capstone Inspection Guide
+# JSentinel / CodeGuard-JS: Laptop Setup & Capstone Inspection Guide
 
-This guide contains step-by-step setup instructions to run **JSentinel / CodeGuard-JS** on a laptop, as well as the preparation checklist for the Capstone Inspection.
+> Quick reference for opening, inspecting, and presenting the JSentinel repository during the title defense and panel evaluation.
 
 ---
 

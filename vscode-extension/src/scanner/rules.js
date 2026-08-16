@@ -1,5 +1,5 @@
 /**
- * JSentinel Detection Rules — Consolidated for VS Code Extension
+ * JSentinel Detection Rules - Consolidated for VS Code Extension
  * 
  * All 27 security detection rules across 9 OWASP categories, ported to CommonJS.
  * Each rule follows the same visitor pattern as the browser version:
@@ -110,7 +110,7 @@ const injectionRules = [
               column: path.node.loc?.start?.column || 0,
               message: `Dangerous use of string in ${calleeName}`,
               suggestion: "Pass a function or arrow function as the first argument instead of a string.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -156,7 +156,7 @@ const injectionRules = [
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using dynamic template literal",
               suggestion: "Use DOM manipulation methods such as document.createElement() and textContent, or apply a sanitization library.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -179,7 +179,7 @@ const injectionRules = [
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using function return value",
               suggestion: "Ensure the returned string is properly sanitized before assignment, or use textContent instead of innerHTML.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -275,7 +275,7 @@ const authRules = [
             issues.push({
               id: "OWASP-A2-003", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-              message: "Cookie set via template literal — verify HttpOnly and Secure flags are present",
+              message: "Cookie set via template literal: verify HttpOnly and Secure flags are present",
               suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
               cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
             });
@@ -292,7 +292,7 @@ const authRules = [
               issues.push({
                 id: "OWASP-A2-003", severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
-                message: "Cookie set via dynamic concatenation — missing HttpOnly or Secure flags",
+                message: "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
                 suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
                 cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
               });
@@ -507,7 +507,7 @@ const accessControlRules = [
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location redirection using dynamic value",
                   suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
+                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
                 });
               }
             }
@@ -550,7 +550,7 @@ const accessControlRules = [
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location.replace() using dynamic value",
                   suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
+                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
                 });
               }
             }
@@ -900,7 +900,7 @@ const deserializationRules = [
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Potential prototype pollution assignment detected",
               suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
-              cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+              cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N'
             });
           }
         }

@@ -5,15 +5,15 @@ import * as Babel from '@babel/standalone';
  * Using @babel/standalone for browser compatibility.
  * 
  * @param {string} code - Raw source code as text.
- * @param {string} fileName - File name to determine if it's TS or JS.
+ * @param {string} fileName - File name to determine if the target is TS or JS.
  * @returns {Object} - Babel AST object.
  */
 export const parseToAST = (code, fileName) => {
   const isTypeScript = fileName.endsWith('.ts') || fileName.endsWith('.tsx');
   
   try {
-    // In @babel/standalone, we can't just call parse(), 
-    // but we can use transform with a custom plugin or access the internal parser if available.
+    // In @babel/standalone, developers cannot just call parse(), 
+    // but can use transform with a custom plugin or access the internal parser if available.
     // However, the cleanest way in the browser is often using the 'parse' method if it exists in the version,
     // or Babel.transform(code, { ast: true }).ast
     

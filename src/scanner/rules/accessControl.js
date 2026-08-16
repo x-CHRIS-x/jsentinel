@@ -68,16 +68,16 @@ export const accessControlRules = [
       PR: 'N',
       UI: 'R',
       S:  'C',
-      C:  'L',
-      I:  'L',
+      C:  'N',
+      I:  'H',
       A:  'N',
       baseScore: 7.4,
       baseSeverity: 'HIGH',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'
+      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
     },
     visitor: (issues) => {
       const cvssBaseScore = 7.4;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N';
+      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N';
       return {
         AssignmentExpression(path) {
           const left = path.node.left;

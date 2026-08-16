@@ -1,5 +1,5 @@
 /**
- * JSentinel VS Code Extension — Main Entry Point
+ * JSentinel VS Code Extension: Main Entry Point
  * 
  * JSENTINEL: A Client-Side Static Analysis System for Detecting JavaScript
  * Security Vulnerabilities Using an Abstract Syntax Tree (AST) Traversal Algorithm
@@ -15,7 +15,7 @@ const { JSentinelSidebarProvider } = require('./sidebarProvider');
 // Diagnostics collection for tracking issues across files in the problems pane
 let diagnosticCollection;
 
-// Shared issues map for hover provider — keyed by file URI string
+// Shared issues map for hover provider, keyed by file URI string
 const issuesMap = new Map();
 
 // Shared in-memory scan state for the Webview Dashboard
@@ -170,7 +170,7 @@ const scanDocument = (document, context) => {
     }
   } catch (error) {
     console.error('JSentinel scan error:', error);
-    vscode.window.setStatusBarMessage(`$(error) JSentinel: Scan failed — ${error.message}`, 5000);
+    vscode.window.setStatusBarMessage(`$(error) JSentinel: Scan failed: ${error.message}`, 5000);
   }
 
   updateSidebarState(context);
@@ -340,7 +340,7 @@ const exportReport = async (context) => {
 };
 
 /**
- * Extension activation — called when the extension is first loaded.
+ * Extension activation, called when the extension is first loaded.
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
@@ -453,7 +453,7 @@ function activate(context) {
 }
 
 /**
- * Extension deactivation — called when the extension is unloaded.
+ * Extension deactivation, called when the extension is unloaded.
  */
 function deactivate() {
   if (diagnosticCollection) {

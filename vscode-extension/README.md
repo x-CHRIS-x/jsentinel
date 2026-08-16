@@ -1,16 +1,16 @@
-# JSentinel — VS Code Extension
+# JSentinel: VS Code Extension
 
 **JSENTINEL: A Client-Side Static Analysis System for Detecting JavaScript Security Vulnerabilities Using an Abstract Syntax Tree (AST) Traversal Algorithm**
 
-A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files for OWASP Top 10 security vulnerabilities using AST traversal — directly in your editor.
+A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files for OWASP Top 10 security vulnerabilities using AST traversal directly in your editor.
 
 ## Features
 
-- **Scan Active File** — Run `JSentinel: Scan Active File` from the command palette to scan the currently open file
-- **Scan Workspace** — Run `JSentinel: Scan Workspace` to scan all JS/TS files in the workspace
-- **Scan on Save** — Automatically scans files when saved (configurable)
-- **27 Detection Rules** — Covers 9 OWASP Top 10 categories with CVSS v3.1 severity scoring
-- **Confidence Levels** — Each finding includes HIGH / MEDIUM / LOW confidence rating
+- **Scan Active File**: Run `JSentinel: Scan Active File` from the command palette to scan the currently open file
+- **Scan Workspace**: Run `JSentinel: Scan Workspace` to scan all JS/TS files in the workspace
+- **Scan on Save**: Automatically scans files when saved (configurable)
+- **27 Detection Rules**: Covers 9 OWASP Top 10 categories with CVSS v3.1 severity scoring
+- **Confidence Levels**: Each finding includes HIGH / MEDIUM / LOW confidence rating
 
 ## OWASP Categories Covered
 
@@ -36,9 +36,9 @@ A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files
 
 ## Commands
 
-- `JSentinel: Scan Active File` — Scan the currently open file
-- `JSentinel: Scan Workspace` — Scan all JS/TS files in the workspace
-- `JSentinel: Clear All Diagnostics` — Clear all JSentinel diagnostics
+- `JSentinel: Scan Active File`: Scan the currently open file
+- `JSentinel: Scan Workspace`: Scan all JS/TS files in the workspace
+- `JSentinel: Clear All Diagnostics`: Clear all JSentinel diagnostics
 
 ## How It Works
 
@@ -57,4 +57,4 @@ Then press `F5` in VS Code to launch the Extension Development Host.
 
 ## Credits
 
-Arellano University Capstone Project — Ledama, Lim, Luchavez, Crispo
+Arellano University - Andres Bonifacio Campus Capstone Project: Ledama, Lim, Luchavez, Crispo

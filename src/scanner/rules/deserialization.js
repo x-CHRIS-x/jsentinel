@@ -112,16 +112,16 @@ export const deserializationRules = [
       PR: 'N',
       UI: 'N',
       S:  'U',
-      C:  'H',
+      C:  'N',
       I:  'H',
       A:  'N',
       baseScore: 7.5,
       baseSeverity: 'HIGH',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N'
     },
     visitor: (issues) => {
       const cvssBaseScore = 7.5;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N';
+      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N';
       const hasProtoPollution = (node) => {
         if (!node || node.type !== 'MemberExpression') return false;
         // Check for __proto__ at any level

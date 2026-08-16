@@ -117,7 +117,7 @@ const codeFixGuide = {
   },
   'OWASP-A9-001': {
     bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Utilize updated or patched utility libraries'
+    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
   },
   'OWASP-A10-001': {
     bad: 'axios.get(dynamicRequestUrl);',
@@ -317,20 +317,22 @@ function App() {
         }, 50);
       }
     }
-  }, [selectedIssueIdx, selectedFileIdx]);
+  }, [selectedIssueIdx, selectedFileIdx, selectedResult]);
 
-  // Log filter alterations
-  useEffect(() => {
-    if (severityFilter !== 'ALL') {
-      addActivityLog(`Applied severity filter: ${severityFilter}`);
+  // Log filter alterations via event handlers
+  const handleSeverityFilterChange = (sev) => {
+    setSeverityFilter(sev);
+    if (sev !== 'ALL') {
+      addActivityLog(`Applied severity filter: ${sev}`);
     }
-  }, [severityFilter]);
+  };
 
-  useEffect(() => {
-    if (owaspFilter !== 'ALL') {
-      addActivityLog(`Applied OWASP category filter: ${owaspFilter}`);
+  const handleOwaspFilterChange = (cat) => {
+    setOwaspFilter(cat);
+    if (cat !== 'ALL') {
+      addActivityLog(`Applied OWASP category filter: ${cat}`);
     }
-  }, [owaspFilter]);
+  };
 
   // Recalculates stats excluding items marked as False Positives (Report 1, 4, 5)
   const stats = useMemo(() => {
@@ -979,7 +981,7 @@ function App() {
                         return (
                           <button
                             key={idx}
-                            onClick={() => setOwaspFilter(isSelected ? 'ALL' : catCode)}
+                            onClick={() => handleOwaspFilterChange(isSelected ? 'ALL' : catCode)}
                             className={`w-full flex flex-col text-left p-2 rounded-xl border transition-all cursor-pointer btn-press ${isSelected ? 'bg-red-500/5 border-red-500/50 shadow-sm' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-zinc-800/30'}`}
                           >
                             <div className="flex justify-between items-center text-xs font-medium w-full">
@@ -1220,7 +1222,7 @@ function App() {
                             return (
                               <button
                                 key={sev}
-                                onClick={() => setSeverityFilter(sev)}
+                                onClick={() => handleSeverityFilterChange(sev)}
                                 className={`px-2 py-0.5 rounded-lg text-[9px] font-black cursor-pointer transition-all btn-press ${severityFilter === sev ? 'bg-red-600 text-white shadow-sm shadow-red-500/20' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 hover:text-slate-900 dark:hover:text-zinc-200'}`}
                               >
                                 {sev} ({count})
@@ -1234,7 +1236,7 @@ function App() {
                           <div className="px-4 py-1.5 bg-red-500/5 dark:bg-zinc-950/20 border-b border-slate-100 dark:border-zinc-800 flex justify-between items-center text-[9px] font-bold text-red-600">
                             <span>Filtering by category: {owaspCategories.find(c => c.name.startsWith(owaspFilter))?.name}</span>
                             <button 
-                              onClick={() => setOwaspFilter('ALL')} 
+                              onClick={() => handleOwaspFilterChange('ALL')} 
                               className="px-1.5 py-0.5 rounded bg-red-600/10 hover:bg-red-600/20 font-black cursor-pointer text-[8px]"
                             >
                               Reset
@@ -1261,9 +1263,6 @@ function App() {
                                         {isFP ? 'FALSE POSITIVE' : issue.severity}
                                       </span>
                                       <span className="text-[8px] font-mono tracking-tighter text-slate-400">{issue.id}</span>
-                                      <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${issue.confidence === 'HIGH' ? 'bg-emerald-600/10 text-emerald-600' : issue.confidence === 'MEDIUM' ? 'bg-amber-600/10 text-amber-600' : 'bg-slate-600/10 text-slate-600'}`}>
-                                        {issue.confidence} Conf.
-                                      </span>
                                     </div>
                                     <span className="text-[9px] font-black text-slate-400 whitespace-nowrap bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full">LINE {issue.line}</span>
                                   </div>

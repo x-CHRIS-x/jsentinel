@@ -1,5 +1,5 @@
 /**
- * Quick verification script — runs the scanner engine against all test samples
+ * Quick verification script: runs the scanner engine against all test samples
  * and reports which files were detected/missed.
  */
 const fs = require('fs');
@@ -45,7 +45,7 @@ for (const file of files) {
       falsePositives.push(`${file}: ${issueIds}`);
     }
   } else {
-    // Realistic test files (admin-dashboard, etc.) — just report
+    // Realistic test files (admin-dashboard, etc.): just report
     const issueCount = result.issues.length;
     console.log(`  [INFO] ${file}: ${issueCount} issues`);
   }

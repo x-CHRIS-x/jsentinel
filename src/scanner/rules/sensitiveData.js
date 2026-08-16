@@ -84,11 +84,16 @@ export const sensitiveDataRules = [
         VariableDeclarator(path) {
           const varName = path.node.id.name?.toLowerCase();
           if (varName && (varName.includes('key') || varName.includes('secret') || varName.includes('token') || varName.includes('api'))) {
+            // Exclude non-key identifiers like apiUrl, endpoint, path, route, host
+            if (varName.includes('url') || varName.includes('uri') || varName.includes('endpoint') || varName.includes('path') || varName.includes('route') || varName.includes('host') || varName.includes('domain')) {
+              return;
+            }
             const init = path.node.init;
             if (init && init.type === 'StringLiteral' && init.value.length > 8) {
-              // Exclude some common non-sensitive strings
               const val = init.value.toLowerCase();
-              if (val.includes('placeholder') || val.includes('dummy') || val.includes('test') || val.includes('example')) {
+              // Exclude non-sensitive placeholders and network URLs/paths
+              if (val.includes('placeholder') || val.includes('dummy') || val.includes('test') || val.includes('example') ||
+                  val.startsWith('http://') || val.startsWith('https://') || val.startsWith('/')) {
                 return;
               }
               issues.push({

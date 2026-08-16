@@ -156,7 +156,7 @@ export const authRules = [
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
-                message: "Cookie set via template literal — verify HttpOnly and Secure flags are present",
+                message: "Cookie set via template literal: verify HttpOnly and Secure flags are present",
                 suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
                 cvssBaseScore,
                 cvssVector
@@ -175,7 +175,7 @@ export const authRules = [
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
-                  message: "Cookie set via dynamic concatenation — missing HttpOnly or Secure flags",
+                  message: "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
                   suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
                   cvssBaseScore,
                   cvssVector
