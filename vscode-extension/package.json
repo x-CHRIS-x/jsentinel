@@ -91,14 +91,15 @@
     }
   },
   "scripts": {
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "package": "npx -y @vscode/vsce package"
   },
   "devDependencies": {
-    "@babel/parser": "^7.27.0",
-    "@babel/traverse": "^7.27.0",
     "@types/vscode": "^1.85.0"
   },
   "dependencies": {
+    "@babel/parser": "^7.27.0",
+    "@babel/traverse": "^7.27.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8"
   }
