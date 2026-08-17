@@ -1,6 +1,24 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Safely parse fpKey with full support for Windows drive letters and colons in file paths
+const parseFpKey = (key) => {
+  if (!key) return { fileName: '', ruleId: '', line: '', col: '' };
+  const lastColon = key.lastIndexOf(':');
+  if (lastColon === -1) return { fileName: key, ruleId: '', line: '', col: '' };
+  const col = key.substring(lastColon + 1);
+  const remainder1 = key.substring(0, lastColon);
+  const secondLastColon = remainder1.lastIndexOf(':');
+  if (secondLastColon === -1) return { fileName: remainder1, ruleId: '', line: col, col: '' };
+  const line = remainder1.substring(secondLastColon + 1);
+  const remainder2 = remainder1.substring(0, secondLastColon);
+  const thirdLastColon = remainder2.lastIndexOf(':');
+  if (thirdLastColon === -1) return { fileName: remainder2, ruleId: line, line: col, col: '' };
+  const ruleId = remainder2.substring(thirdLastColon + 1);
+  const fileName = remainder2.substring(0, thirdLastColon);
+  return { fileName, ruleId, line, col };
+};
+
 // self-contained Code Remediation Guide Dictionary for Section 6
 const pdfCodeFixGuide = {
   'OWASP-A1-001': {
@@ -283,7 +301,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     }
 
     const fileScore = Math.max(0, 100 - filePenalty);
-    const shortName = res.fileName.split('/').pop();
+    const shortName = res.fileName.replace(/\\/g, '/').split('/').pop();
 
     return [
       shortName,
@@ -324,7 +342,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
         if (fpFlags.includes(fpKey)) return;
 
         activeIssuesList.push({
-          file: res.fileName.split('/').pop(),
+          file: res.fileName.replace(/\\/g, '/').split('/').pop(),
           line: issue.line,
           id: issue.id,
           severity: issue.severity,
@@ -393,7 +411,15 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
       const guide = pdfCodeFixGuide[ruleId];
       if (!guide) return;
 
-      y = checkHeightAndPageBreak(doc, 48, y);
+      const badLines = doc.splitTextToSize(guide.bad, 174);
+      const badBoxHeight = Math.max(16, 8 + badLines.length * 4.5);
+
+      const goodLines = doc.splitTextToSize(guide.good, 174);
+      const goodBoxHeight = Math.max(16, 8 + goodLines.length * 4.5);
+
+      const neededHeight = badBoxHeight + goodBoxHeight + 14;
+      y = checkHeightAndPageBreak(doc, neededHeight, y);
+
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...brand.maroon);
@@ -405,21 +431,21 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
       
       // Bad code block
       doc.setFillColor(254, 242, 242);
-      doc.rect(14, y, 182, 16, 'F');
+      doc.rect(14, y, 182, badBoxHeight, 'F');
       doc.setFont('courier', 'normal');
       doc.text('VULNERABLE CODE EXPOSED:', 18, y + 5);
-      doc.text(guide.bad, 18, y + 11);
+      doc.text(badLines, 18, y + 10);
       
-      y += 18;
+      y += badBoxHeight + 3;
 
       // Good code block
       doc.setFillColor(240, 253, 250);
-      doc.rect(14, y, 182, 16, 'F');
+      doc.rect(14, y, 182, goodBoxHeight, 'F');
       doc.setFont('courier', 'bold');
       doc.text('SECURE REMEDIATION CONTEXT:', 18, y + 5);
-      doc.text(guide.good, 18, y + 11);
+      doc.text(goodLines, 18, y + 10);
       
-      y += 22;
+      y += goodBoxHeight + 6;
       doc.setFont('helvetica', 'normal');
     });
     doc.setTextColor(...brand.charcoal);
@@ -453,15 +479,17 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
         const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
         if (fpFlags.includes(fpKey)) return;
 
-        if (issue.id.startsWith('OWASP-A1')) owaspData['A1:2021-Injection']++;
-        else if (issue.id.startsWith('OWASP-A2')) owaspData['A2:2021-Broken Authentication']++;
-        else if (issue.id.startsWith('OWASP-A3')) owaspData['A3:2021-Sensitive Data Exposure']++;
-        else if (issue.id.startsWith('OWASP-A5')) owaspData['A5:2021-Broken Access Control']++;
-        else if (issue.id.startsWith('OWASP-A6')) owaspData['A6:2021-Security Misconfiguration']++;
-        else if (issue.id.startsWith('OWASP-A7')) owaspData['A7:2021-Cross-Site Scripting (XSS)']++;
-        else if (issue.id.startsWith('OWASP-A8')) owaspData['A8:2021-Software and Data Integrity Failures']++;
-        else if (issue.id.startsWith('OWASP-A9')) owaspData['A9:2021-Vulnerable and Outdated Components']++;
-        else if (issue.id.startsWith('OWASP-A10')) owaspData['A10:2021-Server-Side Request Forgery']++;
+        const match = issue.id.match(/^OWASP-(A\d+)/);
+        const catCode = match ? match[1] : '';
+        if (catCode === 'A1') owaspData['A1:2021-Injection']++;
+        else if (catCode === 'A2') owaspData['A2:2021-Broken Authentication']++;
+        else if (catCode === 'A3') owaspData['A3:2021-Sensitive Data Exposure']++;
+        else if (catCode === 'A5') owaspData['A5:2021-Broken Access Control']++;
+        else if (catCode === 'A6') owaspData['A6:2021-Security Misconfiguration']++;
+        else if (catCode === 'A7') owaspData['A7:2021-Cross-Site Scripting (XSS)']++;
+        else if (catCode === 'A8') owaspData['A8:2021-Software and Data Integrity Failures']++;
+        else if (catCode === 'A9') owaspData['A9:2021-Vulnerable and Outdated Components']++;
+        else if (catCode === 'A10') owaspData['A10:2021-Server-Side Request Forgery']++;
       });
     }
   });
@@ -536,12 +564,13 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     doc.setTextColor(...brand.charcoal);
   } else {
     const fpBody = fpFlags.map(key => {
-      const [fileName, ruleId, line] = key.split(':');
+      const { fileName, ruleId, line } = parseFpKey(key);
       const annotation = fpAnnotations[key];
+      const shortName = fileName.replace(/\\/g, '/').split('/').pop();
       return [
-        fileName.split('/').pop(),
+        shortName || fileName,
         ruleId,
-        `Line ${line}`,
+        line ? `Line ${line}` : 'N/A',
         annotation && annotation.reason ? annotation.reason : 'No justification entered'
       ];
     });

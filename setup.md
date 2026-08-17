@@ -7,7 +7,9 @@
 ## 1. Laptop Setup Instructions
 
 ### Prerequisites
+
 Make sure your laptop has the following software installed:
+
 - **Node.js** (v18 LTS or higher recommended)
 - **Git**
 - **VS Code** (Visual Studio Code)
@@ -15,6 +17,7 @@ Make sure your laptop has the following software installed:
 ---
 
 ### Step 1: Clone the Repository & Checkout Branch
+
 Open PowerShell or Command Prompt on your laptop:
 
 ```bash
@@ -26,6 +29,7 @@ git checkout feature/panelist-revisions
 ---
 
 ### Step 2: Install Web Application Dependencies & Start Server
+
 In the root `jsentinel` folder, run:
 
 ```bash
@@ -39,6 +43,7 @@ npm run dev
 ---
 
 ### Step 3: (Optional) Launching the VS Code Extension Demo
+
 If demonstrating the VS Code extension live to panelists or professor:
 
 1. Open VS Code and open the `vscode-extension` subfolder, or navigate to it in your terminal:
@@ -60,10 +65,12 @@ If demonstrating the VS Code extension live to panelists or professor:
 According to professor requirements for the inspection:
 
 ### 🖨️ Required Printed Portions (DO NOT print full documentation):
+
 1. **Specific Objectives**: Print only the page/section listing your specific objectives. Verify that every objective functions properly in the project.
 2. **Respondents of the Study**: Print only the section detailing your target respondents and sample size per group.
 3. **ISO 25010 Evaluation Form**: Print only the evaluation form. Ensure the evaluation criteria align directly with your specific objectives.
 
 ### 🔋 Presentation & Hardware Readiness:
+
 - Make sure your laptop is fully charged and operating reliably.
 - Designated presenter will lead the demonstration; group members attend for compliance and support.

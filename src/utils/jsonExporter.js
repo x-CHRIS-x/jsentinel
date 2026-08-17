@@ -9,7 +9,7 @@ export const generateJSONReport = (results, stats, owaspCategories, fpFlags) => 
   let projectName = "JSentinel Scan";
   const firstResult = results.find(r => r.fileName);
   if (firstResult) {
-    const parts = firstResult.fileName.split('/');
+    const parts = firstResult.fileName.replace(/\\/g, '/').split('/');
     if (parts.length > 1) {
       projectName = parts[0];
     }
