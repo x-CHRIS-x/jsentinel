@@ -11,6 +11,7 @@ const { allRules } = require('./scanner/rules');
 const { createDiagnostics } = require('./diagnosticsProvider');
 const { createHoverProvider } = require('./hoverProvider');
 const { JSentinelSidebarProvider } = require('./sidebarProvider');
+const { generatePDFBuffer } = require('./utils/pdfGenerator');
 
 // Diagnostics collection for tracking issues across files in the problems pane
 let diagnosticCollection;
@@ -181,13 +182,31 @@ const scanDocument = (document, context) => {
  * @param {vscode.ExtensionContext} context
  */
 const scanWorkspace = async (context) => {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (!workspaceFolders || workspaceFolders.length === 0) {
+    const action = await vscode.window.showWarningMessage(
+      'JSentinel: No workspace folder is open. Please open a project folder via File > Open Folder... to scan your workspace.',
+      'Scan Active File'
+    );
+    if (action === 'Scan Active File') {
+      vscode.commands.executeCommand('jsentinel.scanActiveFile');
+    }
+    return;
+  }
+
   const files = await vscode.workspace.findFiles(
     '**/*.{js,jsx,ts,tsx}',
     '{**/node_modules/**,**/dist/**,**/build/**,**/.git/**}'
   );
 
   if (files.length === 0) {
-    vscode.window.showInformationMessage('JSentinel: No JavaScript/TypeScript files found in workspace.');
+    const action = await vscode.window.showInformationMessage(
+      `JSentinel: No JavaScript or TypeScript files (.js, .jsx, .ts, .tsx) found in "${workspaceFolders[0].name}".`,
+      'Scan Active File'
+    );
+    if (action === 'Scan Active File') {
+      vscode.commands.executeCommand('jsentinel.scanActiveFile');
+    }
     return;
   }
 
@@ -195,147 +214,125 @@ const scanWorkspace = async (context) => {
   Object.keys(scannedFiles).forEach(key => delete scannedFiles[key]);
   issuesMap.clear();
 
+  if (sidebarProvider) {
+    sidebarProvider.setScanning(true, {
+      message: 'Scanning workspace...',
+      current: 0,
+      total: files.length
+    });
+  }
+
   // Show progress
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: 'JSentinel: Scanning workspace for vulnerabilities...',
-      cancellable: true
-    },
-    async (progress, token) => {
-      let totalIssues = 0;
-      let scannedCount = 0;
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'JSentinel: Scanning workspace for vulnerabilities...',
+        cancellable: true
+      },
+      async (progress, token) => {
+        let totalIssues = 0;
+        let scannedCount = 0;
 
-      for (const fileUri of files) {
-        if (token.isCancellationRequested) {
-          vscode.window.showInformationMessage('JSentinel: Workspace scan cancelled.');
-          return;
-        }
-
-        try {
-          const document = await vscode.workspace.openTextDocument(fileUri);
-          scanDocument(document, context);
-
-          const diags = diagnosticCollection.get(fileUri);
-          if (diags) {
-            totalIssues += diags.length;
+        for (const fileUri of files) {
+          if (token.isCancellationRequested) {
+            vscode.window.showInformationMessage('JSentinel: Workspace scan cancelled.');
+            if (sidebarProvider) sidebarProvider.setScanning(false);
+            return;
           }
-        } catch (err) {
-          console.warn(`JSentinel: Could not scan ${fileUri.fsPath}:`, err.message);
+
+          try {
+            const document = await vscode.workspace.openTextDocument(fileUri);
+            scanDocument(document, context);
+
+            const diags = diagnosticCollection.get(fileUri);
+            if (diags) {
+              totalIssues += diags.length;
+            }
+          } catch (err) {
+            console.warn(`JSentinel: Could not scan ${fileUri.fsPath}:`, err.message);
+          }
+
+          scannedCount++;
+          if (sidebarProvider) {
+            sidebarProvider.setScanning(true, {
+              message: `Scanning ${scannedCount}/${files.length} files...`,
+              current: scannedCount,
+              total: files.length,
+              currentFile: vscode.workspace.asRelativePath(fileUri)
+            });
+          }
+          progress.report({
+            increment: (100 / files.length),
+            message: `${scannedCount}/${files.length} files scanned...`
+          });
         }
 
-        scannedCount++;
-        progress.report({
-          increment: (100 / files.length),
-          message: `${scannedCount}/${files.length} files scanned...`
-        });
+        vscode.window.showInformationMessage(
+          `JSentinel: Workspace scan complete. ${scannedCount} files scanned, ${totalIssues} issues found.`
+        );
       }
-
-      vscode.window.showInformationMessage(
-        `JSentinel: Workspace scan complete. ${scannedCount} files scanned, ${totalIssues} issues found.`
-      );
+    );
+  } finally {
+    if (sidebarProvider) {
+      sidebarProvider.setScanning(false);
+      updateSidebarState(context);
     }
-  );
+  }
 };
 
 /**
- * Exports a Markdown security report to the workspace root
+ * Exports an Academic PDF security report to the workspace root
  * @param {vscode.ExtensionContext} context
  */
 const exportReport = async (context) => {
   const workspaceFolders = vscode.workspace.workspaceFolders;
-  if (!workspaceFolders || workspaceFolders.length === 0) {
-    vscode.window.showErrorMessage('JSentinel: No workspace folder open to export report.');
-    return;
-  }
+  let targetFolderUri;
+  let projectName = 'JSentinel Workspace';
 
-  const rootPath = workspaceFolders[0].uri;
-  const reportUri = vscode.Uri.joinPath(rootPath, 'jsentinel_report.md');
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    targetFolderUri = workspaceFolders[0].uri;
+    projectName = workspaceFolders[0].name;
+  } else {
+    // If no workspace folder is open, allow user to choose save destination
+    const saveUri = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file('jsentinel_security_report.pdf'),
+      filters: { 'PDF Document': ['pdf'] },
+      title: 'Export JSentinel PDF Security Report'
+    });
+    if (!saveUri) return;
+    targetFolderUri = saveUri;
+  }
 
   const fpFlags = context.workspaceState.get('jsentinel_fpFlags', []);
   const stats = calculateStats(scannedFiles, fpFlags);
 
-  let mdContent = `# JSentinel Security Scan Report\n\n`;
-  mdContent += `*Generated by JSentinel Static Analysis on ${new Date().toLocaleString()}*\n\n`;
-
-  mdContent += `## 📊 Security Metrics\n\n`;
-  
-  let scoreText = 'Vulnerable';
-  if (stats.securityScore > 80) scoreText = 'Compliant';
-  else if (stats.securityScore >= 50) scoreText = 'Warning';
-
-  mdContent += `- **Security Score:** \`${stats.securityScore}%\` (${scoreText})\n`;
-  mdContent += `- **Files Scanned:** ${stats.filesScanned}\n`;
-  mdContent += `- **Active Vulnerabilities:** ${stats.activeIssuesCount}\n`;
-  mdContent += `- **Ignored False Positives:** ${fpFlags.length}\n\n`;
-
-  mdContent += `### Severity Breakdown\n\n`;
-  mdContent += `| Severity | Count |\n`;
-  mdContent += `| :--- | :--- |\n`;
-  mdContent += `| 🔴 CRITICAL | ${stats.criticalIssues} |\n`;
-  mdContent += `| 🟠 HIGH | ${stats.highIssues} |\n`;
-  mdContent += `| 🟡 MEDIUM | ${stats.mediumIssues} |\n`;
-  mdContent += `| 🔵 LOW | ${stats.lowIssues} |\n\n`;
-
-  mdContent += `## 🛡️ Detailed Findings\n\n`;
-
-  let hasActiveIssues = false;
-
-  Object.entries(scannedFiles).forEach(([uriStr, fileData]) => {
-    const activeIssues = (fileData.issues || []).filter(issue => {
-      const fpKey = `${fileData.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-      return !fpFlags.includes(fpKey);
-    });
-
-    if (activeIssues.length > 0) {
-      hasActiveIssues = true;
-      mdContent += `### 📄 File: \`${fileData.relativePath}\`\n\n`;
-      mdContent += `| Line | Severity | Rule ID | Message | Suggestion | Confidence |\n`;
-      mdContent += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
-      
-      activeIssues.forEach(issue => {
-        mdContent += `| L${issue.line} | **${issue.severity}** | \`${issue.id}\` | ${issue.message} | ${issue.suggestion || 'Verify manually.'} | ${issue.confidence || 'MEDIUM'} |\n`;
-      });
-      mdContent += `\n`;
-    }
-  });
-
-  if (!hasActiveIssues) {
-    mdContent += `*No active security vulnerabilities detected! Great job! 🎉*\n\n`;
-  }
-
-  const ignoredIssues = [];
-  Object.entries(scannedFiles).forEach(([uriStr, fileData]) => {
-    (fileData.issues || []).forEach(issue => {
-      const fpKey = `${fileData.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-      if (fpFlags.includes(fpKey)) {
-        ignoredIssues.push({ file: fileData.relativePath, ...issue });
-      }
-    });
-  });
-
-  if (ignoredIssues.length > 0) {
-    mdContent += `## 🏳️ Excluded False Positives\n\n`;
-    mdContent += `The following issues were flagged by scanner but manually marked as False Positives:\n\n`;
-    mdContent += `| File | Line | Rule ID | Message |\n`;
-    mdContent += `| :--- | :--- | :--- | :--- |\n`;
-    ignoredIssues.forEach(issue => {
-      mdContent += `| \`${issue.file}\` | L${issue.line} | \`${issue.id}\` | ${issue.message} |\n`;
-    });
-    mdContent += `\n`;
-  }
-
   try {
-    const writeData = Buffer.from(mdContent, 'utf8');
-    await vscode.workspace.fs.writeFile(reportUri, writeData);
-    
-    // Open markdown report in preview/editor
-    const doc = await vscode.workspace.openTextDocument(reportUri);
-    await vscode.window.showTextDocument(doc);
-    
-    vscode.window.showInformationMessage(`JSentinel: Security report exported to ${vscode.workspace.asRelativePath(reportUri)}`);
+    const pdfBuffer = generatePDFBuffer({
+      scannedFiles,
+      stats,
+      fpFlags,
+      projectName
+    });
+
+    const reportUri = targetFolderUri.fsPath.toLowerCase().endsWith('.pdf')
+      ? targetFolderUri
+      : vscode.Uri.joinPath(targetFolderUri, 'jsentinel_security_report.pdf');
+
+    await vscode.workspace.fs.writeFile(reportUri, pdfBuffer);
+
+    const revealOption = 'Reveal in File Explorer';
+    const selection = await vscode.window.showInformationMessage(
+      `JSentinel: Academic PDF Security Report exported to ${vscode.workspace.asRelativePath(reportUri)}`,
+      revealOption
+    );
+
+    if (selection === revealOption) {
+      vscode.commands.executeCommand('revealFileInOS', reportUri);
+    }
   } catch (err) {
-    vscode.window.showErrorMessage(`JSentinel: Failed to export report: ${err.message}`);
+    console.error('JSentinel PDF Export Error:', err);
+    vscode.window.showErrorMessage(`JSentinel: Failed to export PDF report: ${err.message}`);
   }
 };
 

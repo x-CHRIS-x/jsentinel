@@ -51,7 +51,7 @@ const createDiagnostics = (document, issues, severityFilter = 'ALL', fpFlags = [
     .map(issue => {
       // Convert 1-indexed line numbers to 0-indexed for VS Code
       const line = typeof issue.line === 'number' ? Math.max(0, issue.line - 1) : 0;
-      const column = typeof issue.column === 'number' ? issue.column : 0;
+      const _column = typeof issue.column === 'number' ? issue.column : 0;
 
       // Create a range that highlights the entire line for visibility
       const lineText = document.lineAt(Math.min(line, document.lineCount - 1)).text;
