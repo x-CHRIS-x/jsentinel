@@ -1,5 +1,7 @@
 # JSentinel
 
+> **Live Demo:** [https://jsentinel.vercel.app/](https://jsentinel.vercel.app/)
+
 JSentinel is a browser-based static analysis tool that detects security vulnerabilities in JavaScript and TypeScript source code. It parses source code into an Abstract Syntax Tree (AST) using Babel and scans for security risks locally in the browser without uploading code to an external server.
 
 ## Features
