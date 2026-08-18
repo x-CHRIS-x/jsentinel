@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
-node_modules/**
 .gitignore
 *.vsix
+verify-scan.js
+eslint.config.mjs

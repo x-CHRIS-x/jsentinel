@@ -29,7 +29,7 @@ JSentinel is a browser-based static analysis tool that detects security vulnerab
 - **Node.js** v18 or higher
 - **npm**
 
-### Installation
+### Installation (Web Dashboard)
 
 1. Clone the repository:
    ```bash
@@ -51,6 +51,22 @@ JSentinel is a browser-based static analysis tool that detects security vulnerab
    ```bash
    npm run build
    ```
+
+### Installation (VS Code Extension)
+
+You can run the JSentinel scanner directly inside Visual Studio Code using the pre-built `.vsix` package:
+
+1. **Download the Extension:**
+   - Download the package directly from [`vscode-extension/jsentinel-1.0.0.vsix`](vscode-extension/jsentinel-1.0.0.vsix) or from the [Releases](https://github.com/x-CHRIS-x/jsentinel/releases) tab.
+2. **Install into VS Code:**
+   - Open Visual Studio Code.
+   - Open the Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`).
+   - Click the `...` menu (Views and More Actions) at the top of the Extensions pane.
+   - Select **Install from VSIX...** and select `jsentinel-1.0.0.vsix`.
+   - *Alternative (via command line):*
+     ```bash
+     code --install-extension vscode-extension/jsentinel-1.0.0.vsix
+     ```
 
 ## Project Structure
 
