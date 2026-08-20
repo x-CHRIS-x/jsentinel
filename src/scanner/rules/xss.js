@@ -1,14 +1,14 @@
 /**
- * A7 - XSS Rules
+ * A03 - Injection / XSS Rules
  * Targets: innerHTML, document.write, dangerouslySetInnerHTML
  */
 export const xssRules = [
   {
     name: "inner-html-detection",
-    id: "OWASP-A7-001",
+    id: "OWASP-A03-006",
     severity: "HIGH",
     message: "Use of innerHTML detected. This can lead to Cross-Site Scripting (XSS) if user-provided content is not properly sanitized.",
-    owasp: "A7:2021-Cross-Site Scripting (XSS)",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -29,7 +29,7 @@ export const xssRules = [
         AssignmentExpression(path) {
           if (path.node.left && path.node.left.property && path.node.left.property.name === 'innerHTML') {
             issues.push({
-              id: "OWASP-A7-001",
+              id: "OWASP-A03-006",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
@@ -45,10 +45,10 @@ export const xssRules = [
   },
   {
     name: "document-write-detection",
-    id: "OWASP-A7-002",
+    id: "OWASP-A03-007",
     severity: "CRITICAL",
     message: "Use of document.write() detected. This is a common XSS vector and can break page loading.",
-    owasp: "A7:2021-XSS",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -70,7 +70,7 @@ export const xssRules = [
           const callee = path.node.callee;
           if (callee.type === 'MemberExpression' && callee.object.name === 'document' && callee.property.name === 'write') {
             issues.push({
-              id: "OWASP-A7-002",
+              id: "OWASP-A03-007",
               severity: "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
@@ -86,10 +86,10 @@ export const xssRules = [
   },
   {
     name: "dangerously-set-inner-html-detection",
-    id: "OWASP-A7-003",
+    id: "OWASP-A03-008",
     severity: "HIGH",
     message: "Use of dangerouslySetInnerHTML in React detected. This explicitly tells React to bypass XSS protections.",
-    owasp: "A7:2021-XSS",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -110,7 +110,7 @@ export const xssRules = [
         JSXAttribute(path) {
           if (path.node.name && path.node.name.name === 'dangerouslySetInnerHTML') {
             issues.push({
-              id: "OWASP-A7-003",
+              id: "OWASP-A03-008",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',

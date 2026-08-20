@@ -1,14 +1,14 @@
 /**
- * A1 - Injection Rules
+ * A03 - Injection Rules
  * Targets: eval(), dynamic setTimeout/setInterval, new Function(), innerHTML dynamic assignments
  */
 export const injectionRules = [
   {
     name: "eval-detection",
-    id: "OWASP-A1-001",
+    id: "OWASP-A03-001",
     severity: "CRITICAL",
     message: "Use of eval() detected. This allows execution of arbitrary strings and is highly vulnerable to injection attacks.",
-    owasp: "A1:2021-Injection",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -29,7 +29,7 @@ export const injectionRules = [
         CallExpression(path) {
           if (path.node && path.node.callee && path.node.callee.name === 'eval') {
             issues.push({
-              id: "OWASP-A1-001",
+              id: "OWASP-A03-001",
               severity: "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
@@ -45,10 +45,10 @@ export const injectionRules = [
   },
   {
     name: "dynamic-timer",
-    id: "OWASP-A1-002",
+    id: "OWASP-A03-002",
     severity: "HIGH",
     message: "setTimeout/setInterval with string arguments detected. This functions similarly to eval() and can lead to code injection.",
-    owasp: "A1:2021-Injection",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -74,7 +74,7 @@ export const injectionRules = [
             const firstArg = path.node.arguments[0];
             if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
               issues.push({
-                id: "OWASP-A1-002",
+                id: "OWASP-A03-002",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -91,10 +91,10 @@ export const injectionRules = [
   },
   {
     name: "unsafe-function-constructor",
-    id: "OWASP-A1-003",
+    id: "OWASP-A03-003",
     severity: "CRITICAL",
     message: "new Function() with a string argument detected. This acts similarly to eval() and poses a severe code execution risk.",
-    owasp: "A1:2021-Injection",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -118,7 +118,7 @@ export const injectionRules = [
             const firstArg = path.node.arguments[0];
             if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
               issues.push({
-                id: "OWASP-A1-003",
+                id: "OWASP-A03-003",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -135,10 +135,10 @@ export const injectionRules = [
   },
   {
     name: "innerhtml-template-literal",
-    id: "OWASP-A1-004",
+    id: "OWASP-A03-004",
     severity: "HIGH",
     message: "innerHTML assigned via a template literal containing a variable. This is highly vulnerable to Cross-Site Scripting (XSS) and HTML injection.",
-    owasp: "A1:2021-Injection",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -164,7 +164,7 @@ export const injectionRules = [
               // Ensure the template literal contains at least one variable/expression inside
               if (right.expressions && right.expressions.length > 0) {
                 issues.push({
-                  id: "OWASP-A1-004",
+                  id: "OWASP-A03-004",
                   severity: "HIGH",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -182,10 +182,10 @@ export const injectionRules = [
   },
   {
     name: "innerhtml-function-call",
-    id: "OWASP-A1-005",
+    id: "OWASP-A03-005",
     severity: "HIGH",
     message: "Result of a function call assigned directly to innerHTML. If the function returns unsanitized user input, it creates an injection vulnerability.",
-    owasp: "A1:2021-Injection",
+    owasp: "A03:2021-Injection",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -209,7 +209,7 @@ export const injectionRules = [
             const right = path.node.right;
             if (right && right.type === 'CallExpression') {
               issues.push({
-                id: "OWASP-A1-005",
+                id: "OWASP-A03-005",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',

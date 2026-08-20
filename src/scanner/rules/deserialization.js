@@ -1,14 +1,14 @@
 /**
- * A8 - Software and Data Integrity Failures (Deserialization / Prototype Pollution)
+ * A08 - Software and Data Integrity Failures (Deserialization / Prototype Pollution)
  * Targets: Unsafe JSON.parse(), prototype pollution (__proto__, constructor.prototype), unsafe Object.assign()
  */
 export const deserializationRules = [
   {
     name: "unsafe-json-parse",
-    id: "OWASP-A8-001",
+    id: "OWASP-A08-001",
     severity: "LOW",
     message: "Use of JSON.parse() detected. Ensure the input string is validated and comes from a trusted source.",
-    owasp: "A8:2021-Software and Data Integrity Failures",
+    owasp: "A08:2021-Software and Data Integrity Failures",
     cvss: {
       AV: 'N',
       AC: 'H',
@@ -85,7 +85,7 @@ export const deserializationRules = [
 
             if (!isParsedValidated) {
               issues.push({
-                id: "OWASP-A8-001",
+                id: "OWASP-A08-001",
                 severity: "LOW",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -102,10 +102,10 @@ export const deserializationRules = [
   },
   {
     name: "prototype-pollution",
-    id: "OWASP-A8-002",
+    id: "OWASP-A08-002",
     severity: "HIGH",
     message: "Potential prototype pollution detected via direct modification of __proto__ or constructor.prototype. This can alter object structures globally.",
-    owasp: "A8:2021-Software and Data Integrity Failures",
+    owasp: "A08:2021-Software and Data Integrity Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -139,7 +139,7 @@ export const deserializationRules = [
           if (!left) return;
           if (hasProtoPollution(left)) {
             issues.push({
-              id: "OWASP-A8-002",
+              id: "OWASP-A08-002",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
@@ -155,10 +155,10 @@ export const deserializationRules = [
   },
   {
     name: "unsafe-object-assign",
-    id: "OWASP-A8-003",
+    id: "OWASP-A08-003",
     severity: "MEDIUM",
     message: "Object.assign() used with a dynamic second argument. This can result in prototype pollution or object integrity failures if input is user-controlled.",
-    owasp: "A8:2021-Software and Data Integrity Failures",
+    owasp: "A08:2021-Software and Data Integrity Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -182,7 +182,7 @@ export const deserializationRules = [
             const args = path.node.arguments;
             if (args.length >= 2 && args[0].type === 'Identifier') {
               issues.push({
-                id: "OWASP-A8-003",
+                id: "OWASP-A08-003",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',

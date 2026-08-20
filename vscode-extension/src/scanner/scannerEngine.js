@@ -77,19 +77,19 @@ const scanCode = (code, fileName, rules) => {
  */
 const assignConfidenceLevels = (issues) => {
   const highConfidenceRules = [
-    'OWASP-A2-003', 'OWASP-A6-002', 'OWASP-A7-002', 'OWASP-A8-002'
+    'OWASP-A02-002', 'OWASP-A05-002', 'OWASP-A03-007', 'OWASP-A08-002'
   ];
 
   const mediumConfidenceRules = [
-    'OWASP-A1-001', 'OWASP-A1-002', 'OWASP-A1-003', 'OWASP-A1-004',
-    'OWASP-A1-005', 'OWASP-A2-002', 'OWASP-A2-004', 'OWASP-A2-005',
-    'OWASP-A3-003', 'OWASP-A5-001', 'OWASP-A5-002', 'OWASP-A6-001',
-    'OWASP-A6-003', 'OWASP-A7-001', 'OWASP-A7-003', 'OWASP-A8-003',
+    'OWASP-A03-001', 'OWASP-A03-002', 'OWASP-A03-003', 'OWASP-A03-004',
+    'OWASP-A03-005', 'OWASP-A07-001', 'OWASP-A02-003', 'OWASP-A02-004',
+    'OWASP-A02-007', 'OWASP-A01-001', 'OWASP-A01-002', 'OWASP-A05-001',
+    'OWASP-A05-003', 'OWASP-A03-006', 'OWASP-A03-008', 'OWASP-A08-003',
     'OWASP-A10-001'
   ];
 
   const lowConfidenceRules = [
-    'OWASP-A8-001', 'OWASP-A9-001', 'OWASP-A6-004'
+    'OWASP-A08-001', 'OWASP-A06-001', 'OWASP-A05-004'
   ];
 
   issues.forEach(issue => {
@@ -105,11 +105,11 @@ const assignConfidenceLevels = (issues) => {
       confidence = 'MEDIUM';
     } else if (lowConfidenceRules.includes(ruleId)) {
       confidence = 'LOW';
-    } else if (ruleId === 'OWASP-A2-001' || ruleId === 'OWASP-A3-002') {
+    } else if (ruleId === 'OWASP-A02-001' || ruleId === 'OWASP-A02-006') {
       const matchesStrongIndicator =
         messageLower.includes('password') || messageLower.includes('secret');
       confidence = matchesStrongIndicator ? 'HIGH' : 'MEDIUM';
-    } else if (ruleId === 'OWASP-A3-001') {
+    } else if (ruleId === 'OWASP-A02-005') {
       if (messageLower.includes('jwt') || messageLower.includes('aws')) {
         confidence = 'HIGH';
       } else {

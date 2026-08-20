@@ -4,47 +4,46 @@ const vscode = require('vscode');
  * OWASP Categories Metadata
  */
 const OWASP_CATEGORIES = {
-  'A1': 'Injection',
-  'A2': 'Broken Authentication',
-  'A3': 'Sensitive Data Exposure',
-  'A5': 'Broken Access Control',
-  'A6': 'Security Misconfiguration',
-  'A7': 'Cross-Site Scripting (XSS)',
-  'A8': 'Software & Data Integrity',
-  'A9': 'Vulnerable Components',
-  'A10': 'Server-Side Request Forgery'
+  'A01': 'Broken Access Control',
+  'A02': 'Cryptographic Failures',
+  'A03': 'Injection',
+  'A05': 'Security Misconfiguration',
+  'A06': 'Vulnerable and Outdated Components',
+  'A07': 'Identification and Authentication Failures',
+  'A08': 'Software and Data Integrity Failures',
+  'A10': 'Server-Side Request Forgery (SSRF)'
 };
 
 /**
  * Risk Explanations per Rule ID
  */
 const RISK_EXPLANATIONS = {
-  'OWASP-A1-001': 'eval() executes arbitrary strings as JavaScript code. An attacker controlling the input can run arbitrary code with full application privileges.',
-  'OWASP-A1-002': 'Passing strings to setTimeout/setInterval acts like eval(), dynamically parsing and executing untrusted strings as code.',
-  'OWASP-A1-003': 'The Function constructor compiles dynamic strings into executable functions, creating arbitrary remote code injection risks.',
-  'OWASP-A1-004': 'Assigning dynamic template literals directly to innerHTML allows attackers to inject malicious HTML and script tags into the DOM.',
-  'OWASP-A1-005': 'Setting innerHTML to function return values allows unsanitized dynamic markup to execute arbitrary scripts in the DOM.',
-  'OWASP-A2-001': 'Hardcoded passwords in source code expose static credentials to anyone with repository access and cannot be rotated without redeployment.',
-  'OWASP-A2-002': 'localStorage is accessible to any script on the origin; any cross-site scripting vulnerability allows instant token exfiltration.',
-  'OWASP-A2-003': 'Cookies missing HttpOnly or Secure flags can be stolen via XSS scripts or intercepted across unencrypted HTTP traffic.',
-  'OWASP-A2-004': 'Math.random() is cryptographically weak and predictable. Attackers can forecast future values to forge tokens or session IDs.',
-  'OWASP-A2-005': 'Transmitting authentication credentials over plaintext HTTP exposes them to network sniffing, interception, and MITM attacks.',
-  'OWASP-A3-001': 'Hardcoded cloud credentials (AWS keys, secret tokens) in source code can result in complete cloud infrastructure takeover.',
-  'OWASP-A3-002': 'Exposing API keys in client-side code allows unauthorized users to impersonate your application and abuse backend quotas.',
-  'OWASP-A3-003': 'Credentials in URL parameters leak into browser history, web proxy caches, server access logs, and HTTP Referer headers.',
-  'OWASP-A5-001': 'Unvalidated window.location assignments allow attackers to craft links redirecting victims to malicious phishing pages.',
-  'OWASP-A5-002': 'Client-side role checks can be trivially bypassed via DevTools. Access control must always be enforced on the backend API layer.',
-  'OWASP-A6-001': 'Console.log statements with sensitive credentials persist in browser DevTools and client error tracking services.',
-  'OWASP-A6-002': 'Wildcard CORS headers (Access-Control-Allow-Origin: *) allow any origin to read authenticated responses and sensitive data.',
-  'OWASP-A6-003': 'Logging complete request or session objects can expose authentication tokens, sensitive payload headers, and PII.',
-  'OWASP-A6-004': 'Express without Helmet middleware lacks fundamental security response headers (CSP, HSTS, X-Frame-Options), expanding attack surfaces.',
-  'OWASP-A7-001': 'Direct DOM innerHTML assignment parses raw strings as HTML markup. Untrusted inputs can execute arbitrary client-side scripts.',
-  'OWASP-A7-002': 'document.write() injects raw HTML into the document stream with zero sanitization, enabling severe script execution attacks.',
-  'OWASP-A7-003': 'React dangerouslySetInnerHTML bypasses built-in XSS escaping. If the HTML content contains user input, scripts will execute.',
-  'OWASP-A8-001': 'Unvalidated JSON.parse() on untrusted payloads can produce unexpected schema shapes leading to prototype pollution or logic flaws.',
-  'OWASP-A8-002': 'Modifying __proto__ or constructor.prototype alters property resolution across all objects in the runtime, causing RCE or DoS.',
-  'OWASP-A8-003': 'Object.assign mutating target objects with untrusted input can inject forbidden properties or overwrite critical methods.',
-  'OWASP-A9-001': 'Importing outdated packages with known CVEs or insecure defaults introduces exploitable vulnerabilities into your application.',
+  'OWASP-A01-001': 'Unvalidated window.location assignments allow attackers to craft links redirecting victims to malicious phishing pages.',
+  'OWASP-A01-002': 'Client-side role checks can be trivially bypassed via DevTools. Access control must always be enforced on the backend API layer.',
+  'OWASP-A02-001': 'Hardcoded passwords in source code expose static credentials to anyone with repository access and cannot be rotated without redeployment.',
+  'OWASP-A02-002': 'Cookies missing HttpOnly or Secure flags can be stolen via XSS scripts or intercepted across unencrypted HTTP traffic.',
+  'OWASP-A02-003': 'Math.random() is cryptographically weak and predictable. Attackers can forecast future values to forge tokens or session IDs.',
+  'OWASP-A02-004': 'Transmitting authentication credentials over plaintext HTTP exposes them to network sniffing, interception, and MITM attacks.',
+  'OWASP-A02-005': 'Hardcoded cloud credentials (AWS keys, secret tokens) in source code can result in complete cloud infrastructure takeover.',
+  'OWASP-A02-006': 'Exposing API keys in client-side code allows unauthorized users to impersonate your application and abuse backend quotas.',
+  'OWASP-A02-007': 'Credentials in URL parameters leak into browser history, web proxy caches, server access logs, and HTTP Referer headers.',
+  'OWASP-A03-001': 'eval() executes arbitrary strings as JavaScript code. An attacker controlling the input can run arbitrary code with full application privileges.',
+  'OWASP-A03-002': 'Passing strings to setTimeout/setInterval acts like eval(), dynamically parsing and executing untrusted strings as code.',
+  'OWASP-A03-003': 'The Function constructor compiles dynamic strings into executable functions, creating arbitrary remote code injection risks.',
+  'OWASP-A03-004': 'Assigning dynamic template literals directly to innerHTML allows attackers to inject malicious HTML and script tags into the DOM.',
+  'OWASP-A03-005': 'Setting innerHTML to function return values allows unsanitized dynamic markup to execute arbitrary scripts in the DOM.',
+  'OWASP-A03-006': 'Direct DOM innerHTML assignment parses raw strings as HTML markup. Untrusted inputs can execute arbitrary client-side scripts.',
+  'OWASP-A03-007': 'document.write() injects raw HTML into the document stream with zero sanitization, enabling severe script execution attacks.',
+  'OWASP-A03-008': 'React dangerouslySetInnerHTML bypasses built-in XSS escaping. If the HTML content contains user input, scripts will execute.',
+  'OWASP-A05-001': 'Console.log statements with sensitive credentials persist in browser DevTools and client error tracking services.',
+  'OWASP-A05-002': 'Wildcard CORS headers (Access-Control-Allow-Origin: *) allow any origin to read authenticated responses and sensitive data.',
+  'OWASP-A05-003': 'Logging complete request or session objects can expose authentication tokens, sensitive payload headers, and PII.',
+  'OWASP-A05-004': 'Express without Helmet middleware lacks fundamental security response headers (CSP, HSTS, X-Frame-Options), expanding attack surfaces.',
+  'OWASP-A06-001': 'Importing outdated packages with known CVEs or insecure defaults introduces exploitable vulnerabilities into your application.',
+  'OWASP-A07-001': 'localStorage is accessible to any script on the origin; any cross-site scripting vulnerability allows instant token exfiltration.',
+  'OWASP-A08-001': 'Unvalidated JSON.parse() on untrusted payloads can produce unexpected schema shapes leading to prototype pollution or logic flaws.',
+  'OWASP-A08-002': 'Modifying __proto__ or constructor.prototype alters property resolution across all objects in the runtime, causing RCE or DoS.',
+  'OWASP-A08-003': 'Object.assign mutating target objects with untrusted input can inject forbidden properties or overwrite critical methods.',
   'OWASP-A10-001': 'Passing unvalidated URLs to HTTP clients (fetch/axios) allows attackers to force servers to connect to internal services or cloud metadata.'
 };
 
@@ -52,109 +51,109 @@ const RISK_EXPLANATIONS = {
  * Code Fix Dictionary for Inline Remediation
  */
 const CODE_FIX_GUIDE = {
-  'OWASP-A1-001': {
-    bad: 'eval("const user = " + userInput);',
-    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
-  },
-  'OWASP-A1-002': {
-    bad: 'setTimeout("executeCallback()", 1000);',
-    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
-  },
-  'OWASP-A1-003': {
-    bad: 'const execute = new Function("x", "return " + userInput);',
-    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
-  },
-  'OWASP-A1-004': {
-    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
-    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
-  },
-  'OWASP-A1-005': {
-    bad: 'element.innerHTML = retrieveData(userInput);',
-    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
-  },
-  'OWASP-A2-001': {
-    bad: 'const password = "admin_credential_key_123";',
-    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
-  },
-  'OWASP-A2-002': {
-    bad: 'localStorage.setItem("authToken", jsonWebToken);',
-    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A2-003': {
-    bad: 'document.cookie = "session=" + sessionId;',
-    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A2-004': {
-    bad: 'const securityToken = Math.random().toString();',
-    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Secure CSPRNG'
-  },
-  'OWASP-A2-005': {
-    bad: 'fetch("http://api.internal.service/authenticate");',
-    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
-  },
-  'OWASP-A3-001': {
-    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
-    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure environment variables'
-  },
-  'OWASP-A3-002': {
-    bad: 'const apiKey = "sec_key_xyz123456789abc";',
-    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
-  },
-  'OWASP-A3-003': {
-    bad: 'const authUrl = "/login?password=" + userPassword;',
-    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass credentials in POST body'
-  },
-  'OWASP-A5-001': {
+  'OWASP-A01-001': {
     bad: 'window.location.href = redirectTargetUrl;',
     good: 'if (trustedDomainWhitelist.includes(redirectTargetUrl)) {\n  window.location.href = redirectTargetUrl;\n} // Validate redirect target domain'
   },
-  'OWASP-A5-002': {
+  'OWASP-A01-002': {
     bad: 'if (userData.role === "admin") { renderDashboard(); }',
     good: '// Access control check must be enforced and validated on the backend API layer\nif (session.isAuthenticated) { renderDashboard(); }'
   },
-  'OWASP-A6-001': {
-    bad: 'console.log("User password payload: ", userPassword);',
-    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
+  'OWASP-A02-001': {
+    bad: 'const password = "admin_credential_key_123";',
+    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
   },
-  'OWASP-A6-002': {
-    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
-    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS'
+  'OWASP-A02-002': {
+    bad: 'document.cookie = "session=" + sessionId;',
+    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
   },
-  'OWASP-A6-003': {
-    bad: 'console.log("Full request context logged: ", requestContext);',
-    good: 'console.log("Request context received for path: ", requestContext.path);'
+  'OWASP-A02-003': {
+    bad: 'const securityToken = Math.random().toString();',
+    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Secure CSPRNG'
   },
-  'OWASP-A6-004': {
-    bad: 'const app = express();\napp.listen(3000);',
-    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
+  'OWASP-A02-004': {
+    bad: 'fetch("http://api.internal.service/authenticate");',
+    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
   },
-  'OWASP-A7-001': {
+  'OWASP-A02-005': {
+    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
+    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure environment variables'
+  },
+  'OWASP-A02-006': {
+    bad: 'const apiKey = "sec_key_xyz123456789abc";',
+    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
+  },
+  'OWASP-A02-007': {
+    bad: 'const authUrl = "/login?password=" + userPassword;',
+    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass credentials in POST body'
+  },
+  'OWASP-A03-001': {
+    bad: 'eval("const user = " + userInput);',
+    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
+  },
+  'OWASP-A03-002': {
+    bad: 'setTimeout("executeCallback()", 1000);',
+    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
+  },
+  'OWASP-A03-003': {
+    bad: 'const execute = new Function("x", "return " + userInput);',
+    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
+  },
+  'OWASP-A03-004': {
+    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
+    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
+  },
+  'OWASP-A03-005': {
+    bad: 'element.innerHTML = retrieveData(userInput);',
+    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
+  },
+  'OWASP-A03-006': {
     bad: 'targetDiv.innerHTML = untrustedHTMLString;',
     good: 'targetDiv.textContent = untrustedHTMLString; // Avoid DOM parsing of dynamic strings'
   },
-  'OWASP-A7-002': {
+  'OWASP-A03-007': {
     bad: 'document.write(userInputString);',
     good: 'const textNode = document.createTextNode(userInputString);\ndocument.body.appendChild(textNode);'
   },
-  'OWASP-A7-003': {
+  'OWASP-A03-008': {
     bad: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />',
     good: '<div>{dynamicMarkup}</div> // Rely on React default rendering auto sanitization'
   },
-  'OWASP-A8-001': {
+  'OWASP-A05-001': {
+    bad: 'console.log("User password payload: ", userPassword);',
+    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
+  },
+  'OWASP-A05-002': {
+    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
+    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS'
+  },
+  'OWASP-A05-003': {
+    bad: 'console.log("Full request context logged: ", requestContext);',
+    good: 'console.log("Request context received for path: ", requestContext.path);'
+  },
+  'OWASP-A05-004': {
+    bad: 'const app = express();\napp.listen(3000);',
+    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
+  },
+  'OWASP-A06-001': {
+    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
+    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
+  },
+  'OWASP-A07-001': {
+    bad: 'localStorage.setItem("authToken", jsonWebToken);',
+    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
+  },
+  'OWASP-A08-001': {
     bad: 'const payload = JSON.parse(untrustedJSONInput);',
     good: 'const payload = secureSchemaParse(untrustedJSONInput); // Validate schema layout post deserialization'
   },
-  'OWASP-A8-002': {
+  'OWASP-A08-002': {
     bad: 'targetObject.__proto__.polluted = true;',
     good: 'const targetObject = Object.create(null); // Instantiate prototype-less objects'
   },
-  'OWASP-A8-003': {
+  'OWASP-A08-003': {
     bad: 'Object.assign(baseObject, JSON.parse(userInputPayload));',
     good: 'const sanitized = filterKeys(JSON.parse(userInputPayload));\nObject.assign(baseObject, sanitized); // Filter input keys'
-  },
-  'OWASP-A9-001': {
-    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
   },
   'OWASP-A10-001': {
     bad: 'axios.get(dynamicRequestUrl);',
@@ -1317,16 +1316,15 @@ class JSentinelSidebarProvider {
         <button id="search-clear-btn" class="search-clear-btn" title="Clear search" aria-label="Clear search input">✕</button>
       </div>
       <select id="category-select" class="category-select" title="Filter by OWASP Top 10 Category" aria-label="Filter findings by OWASP category">
-        <option value="ALL">All OWASP Categories (9 categories)</option>
-        <option value="A1">A1: Injection</option>
-        <option value="A2">A2: Broken Authentication</option>
-        <option value="A3">A3: Sensitive Data Exposure</option>
-        <option value="A5">A5: Broken Access Control</option>
-        <option value="A6">A6: Security Misconfiguration</option>
-        <option value="A7">A7: Cross-Site Scripting (XSS)</option>
-        <option value="A8">A8: Software & Data Integrity</option>
-        <option value="A9">A9: Vulnerable Components</option>
-        <option value="A10">A10: Server-Side Request Forgery</option>
+        <option value="ALL">All OWASP Categories (8 categories)</option>
+        <option value="A01">A01: Broken Access Control</option>
+        <option value="A02">A02: Cryptographic Failures</option>
+        <option value="A03">A03: Injection</option>
+        <option value="A05">A05: Security Misconfiguration</option>
+        <option value="A06">A06: Vulnerable and Outdated Components</option>
+        <option value="A07">A07: Identification and Authentication Failures</option>
+        <option value="A08">A08: Software and Data Integrity Failures</option>
+        <option value="A10">A10: Server-Side Request Forgery (SSRF)</option>
       </select>
       <div id="filter-status-ribbon" class="filter-status-ribbon hidden">
         <span id="filter-status-text">Showing filtered findings</span>

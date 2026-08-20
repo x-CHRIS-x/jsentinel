@@ -15,109 +15,109 @@ import './App.css';
 
 // Code Fix Dictionary for Recommended Code Fix Report & Inline Remediation
 const codeFixGuide = {
-  'OWASP-A1-001': {
-    bad: 'eval("const user = " + userInput);',
-    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
-  },
-  'OWASP-A1-002': {
-    bad: 'setTimeout("executeCallback()", 1000);',
-    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
-  },
-  'OWASP-A1-003': {
-    bad: 'const execute = new Function("x", "return " + userInput);',
-    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
-  },
-  'OWASP-A1-004': {
-    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
-    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
-  },
-  'OWASP-A1-005': {
-    bad: 'element.innerHTML = retrieveData(userInput);',
-    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
-  },
-  'OWASP-A2-001': {
-    bad: 'const password = "admin_credential_key_123";',
-    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
-  },
-  'OWASP-A2-002': {
-    bad: 'localStorage.setItem("authToken", jsonWebToken);',
-    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A2-003': {
-    bad: 'document.cookie = "session=" + sessionId;',
-    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A2-004': {
-    bad: 'const securityToken = Math.random().toString();',
-    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Cryptographically secure random number generator'
-  },
-  'OWASP-A2-005': {
-    bad: 'fetch("http://api.internal.service/authenticate");',
-    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
-  },
-  'OWASP-A3-001': {
-    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
-    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure server context'
-  },
-  'OWASP-A3-002': {
-    bad: 'const apiKey = "sec_key_xyz123456789abc";',
-    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
-  },
-  'OWASP-A3-003': {
-    bad: 'const authUrl = "/login?password=" + userPassword;',
-    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass sensitive credentials in post body'
-  },
-  'OWASP-A5-001': {
+  'OWASP-A01-001': {
     bad: 'window.location.href = redirectTargetUrl;',
     good: 'if (trustedDomainWhitelist.includes(redirectTargetUrl)) {\n  window.location.href = redirectTargetUrl;\n} // Validate redirect target domain client side'
   },
-  'OWASP-A5-002': {
+  'OWASP-A01-002': {
     bad: 'if (userData.role === "admin") { renderDashboard(); }',
     good: '// Access control check must be enforced and validated on the backend API layer\nif (session.isAuthenticated) { renderDashboard(); }'
   },
-  'OWASP-A6-001': {
-    bad: 'console.log("User password payload: ", userPassword);',
-    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
+  'OWASP-A02-001': {
+    bad: 'const password = "admin_credential_key_123";',
+    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
   },
-  'OWASP-A6-002': {
-    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
-    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS origins'
+  'OWASP-A02-002': {
+    bad: 'document.cookie = "session=" + sessionId;',
+    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
   },
-  'OWASP-A6-003': {
-    bad: 'console.log("Full request context logged: ", requestContext);',
-    good: 'console.log("Request context received for path: ", requestContext.path);'
+  'OWASP-A02-003': {
+    bad: 'const securityToken = Math.random().toString();',
+    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Cryptographically secure random number generator'
   },
-  'OWASP-A6-004': {
-    bad: 'const app = express();\napp.listen(3000);',
-    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
+  'OWASP-A02-004': {
+    bad: 'fetch("http://api.internal.service/authenticate");',
+    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
   },
-  'OWASP-A7-001': {
+  'OWASP-A02-005': {
+    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
+    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure server context'
+  },
+  'OWASP-A02-006': {
+    bad: 'const apiKey = "sec_key_xyz123456789abc";',
+    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
+  },
+  'OWASP-A02-007': {
+    bad: 'const authUrl = "/login?password=" + userPassword;',
+    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass sensitive credentials in post body'
+  },
+  'OWASP-A03-001': {
+    bad: 'eval("const user = " + userInput);',
+    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
+  },
+  'OWASP-A03-002': {
+    bad: 'setTimeout("executeCallback()", 1000);',
+    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
+  },
+  'OWASP-A03-003': {
+    bad: 'const execute = new Function("x", "return " + userInput);',
+    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
+  },
+  'OWASP-A03-004': {
+    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
+    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
+  },
+  'OWASP-A03-005': {
+    bad: 'element.innerHTML = retrieveData(userInput);',
+    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
+  },
+  'OWASP-A03-006': {
     bad: 'targetDiv.innerHTML = untrustedHTMLString;',
     good: 'targetDiv.textContent = untrustedHTMLString; // Avoid DOM parsing of dynamic strings'
   },
-  'OWASP-A7-002': {
+  'OWASP-A03-007': {
     bad: 'document.write(userInputString);',
     good: 'const textNode = document.createTextNode(userInputString);\ndocument.body.appendChild(textNode);'
   },
-  'OWASP-A7-003': {
+  'OWASP-A03-008': {
     bad: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />',
     good: '<div>{dynamicMarkup}</div> // Rely on React default rendering auto sanitization'
   },
-  'OWASP-A8-001': {
+  'OWASP-A05-001': {
+    bad: 'console.log("User password payload: ", userPassword);',
+    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
+  },
+  'OWASP-A05-002': {
+    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
+    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS origins'
+  },
+  'OWASP-A05-003': {
+    bad: 'console.log("Full request context logged: ", requestContext);',
+    good: 'console.log("Request context received for path: ", requestContext.path);'
+  },
+  'OWASP-A05-004': {
+    bad: 'const app = express();\napp.listen(3000);',
+    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
+  },
+  'OWASP-A06-001': {
+    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
+    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
+  },
+  'OWASP-A07-001': {
+    bad: 'localStorage.setItem("authToken", jsonWebToken);',
+    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
+  },
+  'OWASP-A08-001': {
     bad: 'const payload = JSON.parse(untrustedJSONInput);',
     good: 'const payload = secureSchemaParse(untrustedJSONInput); // Validate schema layout post deserialization'
   },
-  'OWASP-A8-002': {
+  'OWASP-A08-002': {
     bad: 'targetObject.__proto__.polluted = true;',
     good: 'const targetObject = Object.create(null); // Instantiate prototype-less objects'
   },
-  'OWASP-A8-003': {
+  'OWASP-A08-003': {
     bad: 'Object.assign(baseObject, JSON.parse(userInputPayload));',
     good: 'const sanitized = filterKeys(JSON.parse(userInputPayload));\nObject.assign(baseObject, sanitized); // Filter input keys to prevent injection'
-  },
-  'OWASP-A9-001': {
-    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
   },
   'OWASP-A10-001': {
     bad: 'axios.get(dynamicRequestUrl);',
@@ -311,7 +311,7 @@ function App() {
       }
       if (owaspFilter !== 'ALL') {
         const match = issue.id.match(/^OWASP-(A\d+)/);
-        const cat = match ? match[1] : 'A1';
+        const cat = match ? match[1] : 'A01';
         if (cat !== owaspFilter) return false;
       }
       return true;
@@ -449,15 +449,14 @@ function App() {
   // OWASP Categories Mappings
   const owaspCategories = useMemo(() => {
     const list = {
-      'A1': { name: 'A1:2021-Injection', count: 0, severity: 'HIGH' },
-      'A2': { name: 'A2:2021-Broken Authentication', count: 0, severity: 'HIGH' },
-      'A3': { name: 'A3:2021-Sensitive Data Exposure', count: 0, severity: 'CRITICAL' },
-      'A5': { name: 'A5:2021-Broken Access Control', count: 0, severity: 'HIGH' },
-      'A6': { name: 'A6:2021-Security Misconfiguration', count: 0, severity: 'MEDIUM' },
-      'A7': { name: 'A7:2021-Cross-Site Scripting (XSS)', count: 0, severity: 'HIGH' },
-      'A8': { name: 'A8:2021-Software and Data Integrity Failures', count: 0, severity: 'MEDIUM' },
-      'A9': { name: 'A9:2021-Vulnerable and Outdated Components', count: 0, severity: 'MEDIUM' },
-      'A10': { name: 'A10:2021-Server-Side Request Forgery', count: 0, severity: 'HIGH' }
+      'A01': { name: 'A01:2021-Broken Access Control', count: 0, severity: 'HIGH' },
+      'A02': { name: 'A02:2021-Cryptographic Failures', count: 0, severity: 'CRITICAL' },
+      'A03': { name: 'A03:2021-Injection', count: 0, severity: 'HIGH' },
+      'A05': { name: 'A05:2021-Security Misconfiguration', count: 0, severity: 'MEDIUM' },
+      'A06': { name: 'A06:2021-Vulnerable and Outdated Components', count: 0, severity: 'MEDIUM' },
+      'A07': { name: 'A07:2021-Identification and Authentication Failures', count: 0, severity: 'HIGH' },
+      'A08': { name: 'A08:2021-Software and Data Integrity Failures', count: 0, severity: 'MEDIUM' },
+      'A10': { name: 'A10:2021-Server-Side Request Forgery (SSRF)', count: 0, severity: 'HIGH' }
     };
 
     results.forEach(res => {
@@ -467,7 +466,7 @@ function App() {
           if (fpFlags.includes(fpKey)) return;
 
           const match = issue.id.match(/^OWASP-(A\d+)/);
-          const cat = match ? match[1] : 'A1';
+          const cat = match ? match[1] : 'A01';
           if (list[cat]) list[cat].count++;
         });
       }
@@ -1121,7 +1120,7 @@ function App() {
                         }`}
                         title="Filter findings by OWASP category"
                       >
-                        <option value="ALL">All Categories ({compliantCategoriesCount}/9 Compliant)</option>
+                        <option value="ALL">All Categories ({compliantCategoriesCount}/8 Compliant)</option>
                         {owaspCategories.map(cat => {
                           const catCode = cat.name.split(':')[0];
                           return (

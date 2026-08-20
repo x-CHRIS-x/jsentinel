@@ -1,5 +1,5 @@
 /**
- * A5 - Broken Access Control Rules
+ * A01 - Broken Access Control Rules
  * Targets: Open redirects, client-side role checks guarding conditional logic
  */
 function isValidated(path, varName) {
@@ -58,10 +58,10 @@ function isValidated(path, varName) {
 export const accessControlRules = [
   {
     name: "open-redirect",
-    id: "OWASP-A5-001",
+    id: "OWASP-A01-001",
     severity: "HIGH",
     message: "Potential open redirect vulnerability. Assigning window.location or calling location.replace() with dynamic variables can let attackers redirect users to malicious websites.",
-    owasp: "A5:2021-Broken Access Control",
+    owasp: "A01:2021-Broken Access Control",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -115,7 +115,7 @@ export const accessControlRules = [
 
                 if (isUnsafe) {
                   issues.push({
-                    id: "OWASP-A5-001",
+                    id: "OWASP-A01-001",
                     severity: "HIGH",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
@@ -165,7 +165,7 @@ export const accessControlRules = [
 
                 if (isUnsafe) {
                   issues.push({
-                    id: "OWASP-A5-001",
+                    id: "OWASP-A01-001",
                     severity: "HIGH",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
@@ -184,10 +184,10 @@ export const accessControlRules = [
   },
   {
     name: "client-side-role-check",
-    id: "OWASP-A5-002",
+    id: "OWASP-A01-002",
     severity: "MEDIUM",
     message: "Client-side role or authorization check detected. Restricting features in the client browser only can be bypassed. Ensure security checks are enforced on the backend server.",
-    owasp: "A5:2021-Broken Access Control",
+    owasp: "A01:2021-Broken Access Control",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -233,7 +233,7 @@ export const accessControlRules = [
           const test = path.node.test;
           if (test && checkExpression(test)) {
             issues.push({
-              id: "OWASP-A5-002",
+              id: "OWASP-A01-002",
               severity: "MEDIUM",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',

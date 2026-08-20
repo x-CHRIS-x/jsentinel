@@ -1,14 +1,14 @@
 /**
- * A2 - Broken Authentication Rules
+ * A02 / A07 - Cryptographic Failures & Identification and Authentication Failures Rules
  * Targets: Hardcoded passwords, localStorage tokens, insecure cookies, Math.random() secrets, http:// URLs
  */
 export const authRules = [
   {
     name: "hardcoded-password",
-    id: "OWASP-A2-001",
+    id: "OWASP-A02-001",
     severity: "CRITICAL",
     message: "Hardcoded password detected. Credentials should never be hardcoded in the source code.",
-    owasp: "A2:2021-Cryptographic Failures / Broken Auth",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -31,7 +31,7 @@ export const authRules = [
           if (idName && (idName.includes('password') || idName.includes('passwd') || idName.includes('pwd'))) {
             if (path.node.init && path.node.init.type === 'StringLiteral') {
               issues.push({
-                id: "OWASP-A2-001",
+                id: "OWASP-A02-001",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -48,7 +48,7 @@ export const authRules = [
           if (leftName && (leftName.includes('password') || leftName.includes('passwd') || leftName.includes('pwd'))) {
             if (path.node.right && path.node.right.type === 'StringLiteral') {
               issues.push({
-                id: "OWASP-A2-001",
+                id: "OWASP-A02-001",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -65,10 +65,10 @@ export const authRules = [
   },
   {
     name: "localstorage-token",
-    id: "OWASP-A2-002",
+    id: "OWASP-A07-001",
     severity: "HIGH",
     message: "Storing sensitive tokens in localStorage exposes them to XSS attacks.",
-    owasp: "A2:2021-Broken Authentication",
+    owasp: "A07:2021-Identification and Authentication Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -94,7 +94,7 @@ export const authRules = [
               const keyName = firstArg.value.toLowerCase();
               if (keyName.includes('token') || keyName.includes('auth') || keyName.includes('jwt')) {
                 issues.push({
-                  id: "OWASP-A2-002",
+                  id: "OWASP-A07-001",
                   severity: "HIGH",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -112,10 +112,10 @@ export const authRules = [
   },
   {
     name: "insecure-cookie",
-    id: "OWASP-A2-003",
+    id: "OWASP-A02-002",
     severity: "MEDIUM",
     message: "Direct manipulation of document.cookie detected. Ensure cookies are set with HttpOnly and Secure flags.",
-    owasp: "A2:2021-Broken Authentication",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'H',
@@ -140,7 +140,7 @@ export const authRules = [
               const cookieVal = right.value.toLowerCase();
               if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
                  issues.push({
-                  id: "OWASP-A2-003",
+                  id: "OWASP-A02-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -152,7 +152,7 @@ export const authRules = [
               }
             } else if (right.type === 'TemplateLiteral') {
               issues.push({
-                id: "OWASP-A2-003",
+                id: "OWASP-A02-002",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -171,7 +171,7 @@ export const authRules = [
               const fullCookieStr = collectStrings(right).toLowerCase();
               if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
                 issues.push({
-                  id: "OWASP-A2-003",
+                  id: "OWASP-A02-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -189,10 +189,10 @@ export const authRules = [
   },
   {
     name: "insecure-random",
-    id: "OWASP-A2-004",
+    id: "OWASP-A02-003",
     severity: "HIGH",
     message: "Math.random() used to generate a security-sensitive value. This pseudo-random number generator is not cryptographically secure.",
-    owasp: "A2:2021-Broken Authentication",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -233,7 +233,7 @@ export const authRules = [
             const init = path.node.init;
             if (init && hasMathRandom(init)) {
               issues.push({
-                id: "OWASP-A2-004",
+                id: "OWASP-A02-003",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -250,10 +250,10 @@ export const authRules = [
   },
   {
     name: "plaintext-http-url",
-    id: "OWASP-A2-005",
+    id: "OWASP-A02-004",
     severity: "MEDIUM",
     message: "Hardcoded http:// URL detected. Plaintext connections can transmit sensitive information without encryption.",
-    owasp: "A2:2021-Broken Authentication",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'H',
@@ -290,7 +290,7 @@ export const authRules = [
 
             if (isVulnerable) {
               issues.push({
-                id: "OWASP-A2-005",
+                id: "OWASP-A02-004",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',

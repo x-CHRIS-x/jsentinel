@@ -1,19 +1,18 @@
 /**
  * JSentinel Detection Rules - Consolidated for VS Code Extension
  * 
- * All 27 security detection rules across 9 OWASP categories, ported to CommonJS.
+ * All 27 security detection rules across 8 OWASP Top 10:2021 categories, ported to CommonJS.
  * Each rule follows the same visitor pattern as the browser version:
  *   rule.visitor(issues) → returns Babel visitor handlers
  * 
  * Categories covered:
- *   A1 - Injection (5 rules)
- *   A2 - Broken Authentication (5 rules)
- *   A3 - Sensitive Data Exposure (3 rules)
- *   A5 - Broken Access Control (2 rules)
- *   A6 - Security Misconfiguration (4 rules)
- *   A7 - Cross-Site Scripting (3 rules)
- *   A8 - Software and Data Integrity (3 rules)
- *   A9 - Vulnerable and Outdated Components (1 rule)
+ *   A01 - Broken Access Control (2 rules)
+ *   A02 - Cryptographic Failures (7 rules)
+ *   A03 - Injection (8 rules)
+ *   A05 - Security Misconfiguration (4 rules)
+ *   A06 - Vulnerable and Outdated Components (1 rule)
+ *   A07 - Identification and Authentication Failures (1 rule)
+ *   A08 - Software and Data Integrity Failures (3 rules)
  *   A10 - Server-Side Request Forgery (1 rule)
  */
 
@@ -71,18 +70,18 @@ function isValidated(path, varName) {
 }
 
 // ============================================================
-// A1 - Injection Rules
+// A03 - Injection Rules
 // ============================================================
 const injectionRules = [
   {
     name: "eval-detection",
-    id: "OWASP-A1-001",
+    id: "OWASP-A03-001",
     severity: "CRITICAL",
     visitor: (issues) => ({
       CallExpression(path) {
         if (path.node && path.node.callee && path.node.callee.name === 'eval') {
           issues.push({
-            id: "OWASP-A1-001", severity: "CRITICAL",
+            id: "OWASP-A03-001", severity: "CRITICAL",
             line: path.node.loc?.start?.line || 1,
             column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of eval()",
@@ -95,7 +94,7 @@ const injectionRules = [
   },
   {
     name: "dynamic-timer",
-    id: "OWASP-A1-002",
+    id: "OWASP-A03-002",
     severity: "HIGH",
     visitor: (issues) => ({
       CallExpression(path) {
@@ -105,7 +104,7 @@ const injectionRules = [
           const firstArg = path.node.arguments[0];
           if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
             issues.push({
-              id: "OWASP-A1-002", severity: "HIGH",
+              id: "OWASP-A03-002", severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: `Dangerous use of string in ${calleeName}`,
@@ -119,7 +118,7 @@ const injectionRules = [
   },
   {
     name: "unsafe-function-constructor",
-    id: "OWASP-A1-003",
+    id: "OWASP-A03-003",
     severity: "CRITICAL",
     visitor: (issues) => ({
       NewExpression(path) {
@@ -128,7 +127,7 @@ const injectionRules = [
           const firstArg = path.node.arguments[0];
           if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
             issues.push({
-              id: "OWASP-A1-003", severity: "CRITICAL",
+              id: "OWASP-A03-003", severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe use of Function constructor",
@@ -142,7 +141,7 @@ const injectionRules = [
   },
   {
     name: "innerhtml-template-literal",
-    id: "OWASP-A1-004",
+    id: "OWASP-A03-004",
     severity: "HIGH",
     visitor: (issues) => ({
       AssignmentExpression(path) {
@@ -151,7 +150,7 @@ const injectionRules = [
           const right = path.node.right;
           if (right && right.type === 'TemplateLiteral' && right.expressions && right.expressions.length > 0) {
             issues.push({
-              id: "OWASP-A1-004", severity: "HIGH",
+              id: "OWASP-A03-004", severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using dynamic template literal",
@@ -165,7 +164,7 @@ const injectionRules = [
   },
   {
     name: "innerhtml-function-call",
-    id: "OWASP-A1-005",
+    id: "OWASP-A03-005",
     severity: "HIGH",
     visitor: (issues) => ({
       AssignmentExpression(path) {
@@ -174,7 +173,7 @@ const injectionRules = [
           const right = path.node.right;
           if (right && right.type === 'CallExpression') {
             issues.push({
-              id: "OWASP-A1-005", severity: "HIGH",
+              id: "OWASP-A03-005", severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using function return value",
@@ -189,12 +188,12 @@ const injectionRules = [
 ];
 
 // ============================================================
-// A2 - Broken Authentication Rules
+// A02 / A07 - Cryptographic Failures & Auth Rules
 // ============================================================
 const authRules = [
   {
     name: "hardcoded-password",
-    id: "OWASP-A2-001",
+    id: "OWASP-A02-001",
     severity: "CRITICAL",
     visitor: (issues) => ({
       VariableDeclarator(path) {
@@ -202,7 +201,7 @@ const authRules = [
         if (idName && (idName.includes('password') || idName.includes('passwd') || idName.includes('pwd'))) {
           if (path.node.init && path.node.init.type === 'StringLiteral') {
             issues.push({
-              id: "OWASP-A2-001", severity: "CRITICAL",
+              id: "OWASP-A02-001", severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: `Hardcoded password found in variable '${path.node.id.name}'`,
               suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
@@ -216,7 +215,7 @@ const authRules = [
         if (leftName && (leftName.includes('password') || leftName.includes('passwd') || leftName.includes('pwd'))) {
           if (path.node.right && path.node.right.type === 'StringLiteral') {
             issues.push({
-              id: "OWASP-A2-001", severity: "CRITICAL",
+              id: "OWASP-A02-001", severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: `Hardcoded password assigned to '${leftName}'`,
               suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
@@ -229,7 +228,7 @@ const authRules = [
   },
   {
     name: "localstorage-token",
-    id: "OWASP-A2-002",
+    id: "OWASP-A07-001",
     severity: "HIGH",
     visitor: (issues) => ({
       CallExpression(path) {
@@ -240,7 +239,7 @@ const authRules = [
             const keyName = firstArg.value.toLowerCase();
             if (keyName.includes('token') || keyName.includes('auth') || keyName.includes('jwt')) {
               issues.push({
-                id: "OWASP-A2-002", severity: "HIGH",
+                id: "OWASP-A07-001", severity: "HIGH",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                 message: `Sensitive token stored in localStorage (key: '${firstArg.value}')`,
                 suggestion: "Store authentication tokens in HttpOnly cookies to prevent theft via XSS.",
@@ -254,7 +253,7 @@ const authRules = [
   },
   {
     name: "insecure-cookie",
-    id: "OWASP-A2-003",
+    id: "OWASP-A02-002",
     severity: "MEDIUM",
     visitor: (issues) => ({
       AssignmentExpression(path) {
@@ -264,7 +263,7 @@ const authRules = [
             const cookieVal = right.value.toLowerCase();
             if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
               issues.push({
-                id: "OWASP-A2-003", severity: "MEDIUM",
+                id: "OWASP-A02-002", severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                 message: "Insecure cookie assignment (missing HttpOnly/Secure flags)",
                 suggestion: "Always append '; HttpOnly; Secure' when manually setting cookies containing sensitive session data.",
@@ -273,7 +272,7 @@ const authRules = [
             }
           } else if (right.type === 'TemplateLiteral') {
             issues.push({
-              id: "OWASP-A2-003", severity: "MEDIUM",
+              id: "OWASP-A02-002", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Cookie set via template literal: verify HttpOnly and Secure flags are present",
               suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
@@ -290,7 +289,7 @@ const authRules = [
             const fullCookieStr = collectStrings(right).toLowerCase();
             if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
               issues.push({
-                id: "OWASP-A2-003", severity: "MEDIUM",
+                id: "OWASP-A02-002", severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                 message: "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
                 suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
@@ -304,7 +303,7 @@ const authRules = [
   },
   {
     name: "insecure-random",
-    id: "OWASP-A2-004",
+    id: "OWASP-A02-003",
     severity: "HIGH",
     visitor: (issues) => {
       const hasMathRandom = (node) => {
@@ -331,7 +330,7 @@ const authRules = [
             const init = path.node.init;
             if (init && hasMathRandom(init)) {
               issues.push({
-                id: "OWASP-A2-004", severity: "HIGH",
+                id: "OWASP-A02-003", severity: "HIGH",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                 message: `Insecure pseudo-random number generator used for sensitive variable '${path.node.id.name}'`,
                 suggestion: "Use window.crypto.getRandomValues() or the Web Crypto API to generate cryptographically secure random values.",
@@ -345,7 +344,7 @@ const authRules = [
   },
   {
     name: "plaintext-http-url",
-    id: "OWASP-A2-005",
+    id: "OWASP-A02-004",
     severity: "MEDIUM",
     visitor: (issues) => ({
       StringLiteral(path) {
@@ -364,7 +363,7 @@ const authRules = [
           }
           if (isVulnerable) {
             issues.push({
-              id: "OWASP-A2-005", severity: "MEDIUM",
+              id: "OWASP-A02-004", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: `Insecure plaintext connection URL hardcoded: '${val}'`,
               suggestion: "Use HTTPS connection URLs to secure transmissions and protect data integrity.",
@@ -378,12 +377,12 @@ const authRules = [
 ];
 
 // ============================================================
-// A3 - Sensitive Data Exposure Rules
+// A02 - Sensitive Data Exposure Rules
 // ============================================================
 const sensitiveDataRules = [
   {
     name: "hardcoded-secret-patterns",
-    id: "OWASP-A3-001",
+    id: "OWASP-A02-005",
     severity: "CRITICAL",
     visitor: (issues) => ({
       StringLiteral(path) {
@@ -398,7 +397,7 @@ const sensitiveDataRules = [
         else if (ipPattern.test(val) && val !== '127.0.0.1' && val !== '0.0.0.0') type = "IP Address";
         if (type) {
           issues.push({
-            id: "OWASP-A3-001",
+            id: "OWASP-A02-005",
             severity: type === "IP Address" ? "MEDIUM" : "CRITICAL",
             line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
             message: `Hardcoded ${type} detected in string.`,
@@ -412,7 +411,7 @@ const sensitiveDataRules = [
   },
   {
     name: "hardcoded-api-key",
-    id: "OWASP-A3-002",
+    id: "OWASP-A02-006",
     severity: "CRITICAL",
     visitor: (issues) => ({
       VariableDeclarator(path) {
@@ -424,7 +423,7 @@ const sensitiveDataRules = [
             if (val.includes('placeholder') || val.includes('dummy') || val.includes('test') || val.includes('example')) return;
             if (val.startsWith('http://') || val.startsWith('https://')) return; // Ignore URLs to prevent false positives
             issues.push({
-              id: "OWASP-A3-002", severity: "CRITICAL",
+              id: "OWASP-A02-006", severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: `Hardcoded API key or secret found in variable '${path.node.id.name}'`,
               suggestion: "Retrieve keys and secrets dynamically from a secure backend or environment storage instead of hardcoding.",
@@ -437,7 +436,7 @@ const sensitiveDataRules = [
   },
   {
     name: "sensitive-query-string",
-    id: "OWASP-A3-003",
+    id: "OWASP-A02-007",
     severity: "MEDIUM",
     visitor: (issues) => ({
       StringLiteral(path) {
@@ -449,7 +448,7 @@ const sensitiveDataRules = [
               lowerVal.includes('?key=') || lowerVal.includes('&key=') ||
               lowerVal.includes('?secret=') || lowerVal.includes('&secret=')) {
             issues.push({
-              id: "OWASP-A3-003", severity: "MEDIUM",
+              id: "OWASP-A02-007", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Sensitive credentials embedded in URL query string",
               suggestion: "Pass sensitive credentials inside HTTP request bodies or headers instead of query parameters.",
@@ -461,14 +460,13 @@ const sensitiveDataRules = [
     })
   }
 ];
-
-// ============================================================
-// A5 - Broken Access Control Rules
+// ============================================================
+// A01 - Broken Access Control Rules
 // ============================================================
 const accessControlRules = [
   {
     name: "open-redirect",
-    id: "OWASP-A5-001",
+    id: "OWASP-A01-001",
     severity: "HIGH",
     visitor: (issues) => ({
       AssignmentExpression(path) {
@@ -503,7 +501,7 @@ const accessControlRules = [
 
               if (isUnsafe) {
                 issues.push({
-                  id: "OWASP-A5-001", severity: "HIGH",
+                  id: "OWASP-A01-001", severity: "HIGH",
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location redirection using dynamic value",
                   suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
@@ -546,7 +544,7 @@ const accessControlRules = [
 
               if (isUnsafe) {
                 issues.push({
-                  id: "OWASP-A5-001", severity: "HIGH",
+                  id: "OWASP-A01-001", severity: "HIGH",
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location.replace() using dynamic value",
                   suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
@@ -561,7 +559,7 @@ const accessControlRules = [
   },
   {
     name: "client-side-role-check",
-    id: "OWASP-A5-002",
+    id: "OWASP-A01-002",
     severity: "MEDIUM",
     visitor: (issues) => {
       const isSensitiveProperty = (name) => {
@@ -582,7 +580,7 @@ const accessControlRules = [
           const test = path.node.test;
           if (test && checkExpression(test)) {
             issues.push({
-              id: "OWASP-A5-002", severity: "MEDIUM",
+              id: "OWASP-A01-002", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Client-side role or authorization check in condition statement",
               suggestion: "Never rely purely on client-side state for access control. Enforce all role-based authorization checks on a secure server.",
@@ -596,12 +594,12 @@ const accessControlRules = [
 ];
 
 // ============================================================
-// A6 - Security Misconfiguration Rules
+// A05 - Security Misconfiguration Rules
 // ============================================================
 const misconfigRules = [
   {
     name: "console-log-secrets",
-    id: "OWASP-A6-001",
+    id: "OWASP-A05-001",
     severity: "MEDIUM",
     visitor: (issues) => {
       // Recursively search an expression tree for sensitive Identifier names
@@ -630,7 +628,7 @@ const misconfigRules = [
               const sensitiveNames = findSensitiveIdentifiers(arg);
               sensitiveNames.forEach(name => {
                 issues.push({
-                  id: "OWASP-A6-001", severity: "MEDIUM",
+                  id: "OWASP-A05-001", severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: `Sensitive variable '${name}' logged to console`,
                   suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
@@ -645,7 +643,7 @@ const misconfigRules = [
   },
   {
     name: "cors-wildcard",
-    id: "OWASP-A6-002",
+    id: "OWASP-A05-002",
     severity: "MEDIUM",
     visitor: (issues) => ({
       CallExpression(path) {
@@ -655,7 +653,7 @@ const misconfigRules = [
           if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
             if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
               issues.push({
-                id: "OWASP-A6-002", severity: "MEDIUM",
+                id: "OWASP-A05-002", severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                 message: "Wildcard (*) used in Access-Control-Allow-Origin header",
                 suggestion: "Specify exact trusted domains instead of using a wildcard.",
@@ -669,7 +667,7 @@ const misconfigRules = [
   },
   {
     name: "console-log-objects",
-    id: "OWASP-A6-003",
+    id: "OWASP-A05-003",
     severity: "MEDIUM",
     visitor: (issues) => {
       const sensitiveObjects = ['req', 'user', 'session', 'credentials', 'config'];
@@ -680,7 +678,7 @@ const misconfigRules = [
             path.node.arguments.forEach(arg => {
               if (arg.type === 'Identifier' && sensitiveObjects.includes(arg.name.toLowerCase())) {
                 issues.push({
-                  id: "OWASP-A6-003", severity: "MEDIUM",
+                  id: "OWASP-A05-003", severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
                   message: `Sensitive object variable '${arg.name}' logged to console`,
                   suggestion: "Avoid logging complete request, session, or credential objects. Log only specific non-sensitive attributes.",
@@ -695,7 +693,7 @@ const misconfigRules = [
   },
   {
     name: "missing-helmet-middleware",
-    id: "OWASP-A6-004",
+    id: "OWASP-A05-004",
     severity: "LOW",
     visitor: (issues) => {
       let hasExpress = false;
@@ -719,7 +717,7 @@ const misconfigRules = [
           exit() {
             if (hasExpress && !hasHelmet) {
               issues.push({
-                id: "OWASP-A6-004", severity: "LOW",
+                id: "OWASP-A05-004", severity: "LOW",
                 line: expressNode?.loc?.start?.line || 1, column: expressNode?.loc?.start?.column || 0,
                 message: "Express framework imported without protective helmet middleware",
                 suggestion: "Install helmet (npm install helmet) and integrate it using app.use(helmet()).",
@@ -734,18 +732,18 @@ const misconfigRules = [
 ];
 
 // ============================================================
-// A7 - Cross-Site Scripting (XSS) Rules
+// A03 - Cross-Site Scripting (XSS) Rules
 // ============================================================
 const xssRules = [
   {
     name: "inner-html-detection",
-    id: "OWASP-A7-001",
+    id: "OWASP-A03-006",
     severity: "HIGH",
     visitor: (issues) => ({
       AssignmentExpression(path) {
         if (path.node.left && path.node.left.property && path.node.left.property.name === 'innerHTML') {
           issues.push({
-            id: "OWASP-A7-001", severity: "HIGH",
+            id: "OWASP-A03-006", severity: "HIGH",
             line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of innerHTML",
             suggestion: "Use .textContent or .innerText to set text, or use a sanitization library like DOMPurify.",
@@ -757,14 +755,14 @@ const xssRules = [
   },
   {
     name: "document-write-detection",
-    id: "OWASP-A7-002",
+    id: "OWASP-A03-007",
     severity: "CRITICAL",
     visitor: (issues) => ({
       CallExpression(path) {
         const callee = path.node.callee;
         if (callee.type === 'MemberExpression' && callee.object.name === 'document' && callee.property.name === 'write') {
           issues.push({
-            id: "OWASP-A7-002", severity: "CRITICAL",
+            id: "OWASP-A03-007", severity: "CRITICAL",
             line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of document.write()",
             suggestion: "Use DOM manipulation methods like document.createElement() and appendChild() instead.",
@@ -776,13 +774,13 @@ const xssRules = [
   },
   {
     name: "dangerously-set-inner-html-detection",
-    id: "OWASP-A7-003",
+    id: "OWASP-A03-008",
     severity: "HIGH",
     visitor: (issues) => ({
       JSXAttribute(path) {
         if (path.node.name && path.node.name.name === 'dangerouslySetInnerHTML') {
           issues.push({
-            id: "OWASP-A7-003", severity: "HIGH",
+            id: "OWASP-A03-008", severity: "HIGH",
             line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of dangerouslySetInnerHTML",
             suggestion: "Avoid setting raw HTML from user input. Use safer alternatives or a sanitization library.",
@@ -795,12 +793,12 @@ const xssRules = [
 ];
 
 // ============================================================
-// A8 - Software and Data Integrity Rules
+// A08 - Software and Data Integrity Rules
 // ============================================================
 const deserializationRules = [
   {
     name: "unsafe-json-parse",
-    id: "OWASP-A8-001",
+    id: "OWASP-A08-001",
     severity: "LOW",
     visitor: (issues) => ({
       CallExpression(path) {
@@ -862,7 +860,7 @@ const deserializationRules = [
 
           if (!isParsedValidated) {
             issues.push({
-              id: "OWASP-A8-001", severity: "LOW",
+              id: "OWASP-A08-001", severity: "LOW",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "JSON.parse() usage detected",
               suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
@@ -875,7 +873,7 @@ const deserializationRules = [
   },
   {
     name: "prototype-pollution",
-    id: "OWASP-A8-002",
+    id: "OWASP-A08-002",
     severity: "HIGH",
     visitor: (issues) => {
       // Recursively check if any MemberExpression in the chain references __proto__ or constructor.prototype
@@ -896,7 +894,7 @@ const deserializationRules = [
           if (!left) return;
           if (hasProtoPollution(left)) {
             issues.push({
-              id: "OWASP-A8-002", severity: "HIGH",
+              id: "OWASP-A08-002", severity: "HIGH",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Potential prototype pollution assignment detected",
               suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
@@ -909,7 +907,7 @@ const deserializationRules = [
   },
   {
     name: "unsafe-object-assign",
-    id: "OWASP-A8-003",
+    id: "OWASP-A08-003",
     severity: "MEDIUM",
     visitor: (issues) => ({
       CallExpression(path) {
@@ -918,7 +916,7 @@ const deserializationRules = [
           const args = path.node.arguments;
           if (args.length >= 2 && args[0].type === 'Identifier') {
             issues.push({
-              id: "OWASP-A8-003", severity: "MEDIUM",
+              id: "OWASP-A08-003", severity: "MEDIUM",
               line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
               message: "Unsafe use of Object.assign() mutating target object",
               suggestion: "Validate and sanitize dynamic input arguments, or merge properties into a safe new object Object.assign({}, target, ...).",
@@ -932,12 +930,12 @@ const deserializationRules = [
 ];
 
 // ============================================================
-// A9 - Vulnerable and Outdated Components
+// A06 - Vulnerable and Outdated Components
 // ============================================================
 const knownVulnsRules = [
   {
     name: "risky-library-import",
-    id: "OWASP-A9-001",
+    id: "OWASP-A06-001",
     severity: "MEDIUM",
     visitor: (issues) => {
       const cvssBaseScore = 4.8;
@@ -999,7 +997,7 @@ const knownVulnsRules = [
               if (imp.name === 'express') {
                 if (!hasHelmet) {
                   issues.push({
-                    id: "OWASP-A9-001",
+                    id: "OWASP-A06-001",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
@@ -1044,11 +1042,11 @@ const knownVulnsRules = [
 
                 if (hasUnsafeAxiosCall) {
                   issues.push({
-                    id: "OWASP-A9-001",
+                    id: "OWASP-A06-001",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
-                    message: imp.type === 'import'
+                    message: imp.type === 'import' 
                       ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
                       : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
                     suggestion: "Avoid dynamic user-controlled URLs in axios calls or validate target URLs against a strict safelist.",
@@ -1058,7 +1056,7 @@ const knownVulnsRules = [
                 }
               } else {
                 issues.push({
-                  id: "OWASP-A9-001",
+                  id: "OWASP-A06-001",
                   severity: "MEDIUM",
                   line: imp.line,
                   column: imp.column,

@@ -1,14 +1,14 @@
 /**
- * A3 - Sensitive Data Exposure Rules
+ * A02 - Cryptographic Failures / Sensitive Data Exposure Rules
  * Targets: Hardcoded API keys, IPs, AWS Keys, JWTs, secret variables, sensitive query strings
  */
 export const sensitiveDataRules = [
   {
     name: "hardcoded-secret-patterns",
-    id: "OWASP-A3-001",
+    id: "OWASP-A02-005",
     severity: "CRITICAL",
     message: "Potential sensitive data or secret key hardcoded in string.",
-    owasp: "A3:2021-Sensitive Data Exposure",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -44,7 +44,7 @@ export const sensitiveDataRules = [
               : 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N';
             
             issues.push({
-              id: "OWASP-A3-001",
+              id: "OWASP-A02-005",
               severity: type === "IP Address" ? "MEDIUM" : "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
@@ -60,10 +60,10 @@ export const sensitiveDataRules = [
   },
   {
     name: "hardcoded-api-key",
-    id: "OWASP-A3-002",
+    id: "OWASP-A02-006",
     severity: "CRITICAL",
     message: "Potential sensitive API key or secret hardcoded in variable declaration.",
-    owasp: "A3:2021-Sensitive Data Exposure",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -97,7 +97,7 @@ export const sensitiveDataRules = [
                 return;
               }
               issues.push({
-                id: "OWASP-A3-002",
+                id: "OWASP-A02-006",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
@@ -114,10 +114,10 @@ export const sensitiveDataRules = [
   },
   {
     name: "sensitive-query-string",
-    id: "OWASP-A3-003",
+    id: "OWASP-A02-007",
     severity: "MEDIUM",
     message: "Sensitive information embedded in URL query parameters. This can expose secrets through browser history or server logs.",
-    owasp: "A3:2021-Sensitive Data Exposure",
+    owasp: "A02:2021-Cryptographic Failures",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -144,7 +144,7 @@ export const sensitiveDataRules = [
                 lowerVal.includes('?key=') || lowerVal.includes('&key=') ||
                 lowerVal.includes('?secret=') || lowerVal.includes('&secret=')) {
               issues.push({
-                id: "OWASP-A3-003",
+                id: "OWASP-A02-007",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',

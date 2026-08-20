@@ -1,5 +1,5 @@
 /**
- * A9 - Vulnerable and Outdated Components (Known Vulns)
+ * A06 - Vulnerable and Outdated Components (Known Vulns)
  * Targets: Imports of known risky libraries
  */
 function isValidated(path, varName) {
@@ -58,10 +58,10 @@ function isValidated(path, varName) {
 export const knownVulnsRules = [
   {
     name: "risky-library-import",
-    id: "OWASP-A9-001",
+    id: "OWASP-A06-001",
     severity: "MEDIUM",
     message: "Import of a potentially risky or often-vulnerable library detected.",
-    owasp: "A9:2021-Vulnerable and Outdated Components",
+    owasp: "A06:2021-Vulnerable and Outdated Components",
     cvss: {
       AV: 'N',
       AC: 'H',
@@ -138,7 +138,7 @@ export const knownVulnsRules = [
               if (imp.name === 'express') {
                 if (!hasHelmet) {
                   issues.push({
-                    id: "OWASP-A9-001",
+                    id: "OWASP-A06-001",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
@@ -183,7 +183,7 @@ export const knownVulnsRules = [
 
                 if (hasUnsafeAxiosCall) {
                   issues.push({
-                    id: "OWASP-A9-001",
+                    id: "OWASP-A06-001",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
@@ -197,7 +197,7 @@ export const knownVulnsRules = [
                 }
               } else {
                 issues.push({
-                  id: "OWASP-A9-001",
+                  id: "OWASP-A06-001",
                   severity: "MEDIUM",
                   line: imp.line,
                   column: imp.column,

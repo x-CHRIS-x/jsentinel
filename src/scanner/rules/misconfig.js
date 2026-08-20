@@ -1,14 +1,14 @@
 /**
- * A6 - Security Misconfiguration Rules
+ * A05 - Security Misconfiguration Rules
  * Targets: console.log of secrets/sensitive variables, permissive CORS, logging sensitive objects, Express without helmet
  */
 export const misconfigRules = [
   {
     name: "console-log-secrets",
-    id: "OWASP-A6-001",
+    id: "OWASP-A05-001",
     severity: "MEDIUM",
     message: "Logging sensitive variables to the console can expose secrets in production environments.",
-    owasp: "A6:2021-Security Misconfiguration",
+    owasp: "A05:2021-Security Misconfiguration",
     cvss: {
       AV: 'L',
       AC: 'L',
@@ -51,7 +51,7 @@ export const misconfigRules = [
               const sensitiveNames = findSensitiveIdentifiers(arg);
               sensitiveNames.forEach(name => {
                 issues.push({
-                  id: "OWASP-A6-001",
+                  id: "OWASP-A05-001",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -69,10 +69,10 @@ export const misconfigRules = [
   },
   {
     name: "cors-wildcard",
-    id: "OWASP-A6-002",
+    id: "OWASP-A05-002",
     severity: "MEDIUM",
     message: "Permissive CORS policy detected (Access-Control-Allow-Origin: *).",
-    owasp: "A6:2021-Security Misconfiguration",
+    owasp: "A05:2021-Security Misconfiguration",
     cvss: {
       AV: 'N',
       AC: 'L',
@@ -97,7 +97,7 @@ export const misconfigRules = [
             if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
               if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
                 issues.push({
-                  id: "OWASP-A6-002",
+                  id: "OWASP-A05-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
@@ -115,10 +115,10 @@ export const misconfigRules = [
   },
   {
     name: "console-log-objects",
-    id: "OWASP-A6-003",
+    id: "OWASP-A05-003",
     severity: "MEDIUM",
     message: "Logging potentially sensitive objects to the console can expose session details, configurations, or credentials in production environments.",
-    owasp: "A6:2021-Security Misconfiguration",
+    owasp: "A05:2021-Security Misconfiguration",
     cvss: {
       AV: 'L',
       AC: 'L',
@@ -144,7 +144,7 @@ export const misconfigRules = [
               if (arg.type === 'Identifier') {
                 if (sensitiveObjects.includes(arg.name.toLowerCase())) {
                   issues.push({
-                    id: "OWASP-A6-003",
+                    id: "OWASP-A05-003",
                     severity: "MEDIUM",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
@@ -163,10 +163,10 @@ export const misconfigRules = [
   },
   {
     name: "missing-helmet-middleware",
-    id: "OWASP-A6-004",
+    id: "OWASP-A05-004",
     severity: "LOW",
     message: "Express application detected without helmet middleware integration. Use helmet to set secure HTTP headers.",
-    owasp: "A6:2021-Security Misconfiguration",
+    owasp: "A05:2021-Security Misconfiguration",
     cvss: {
       AV: 'L',
       AC: 'L',
@@ -215,7 +215,7 @@ export const misconfigRules = [
           exit() {
             if (hasExpress && !hasHelmet) {
               issues.push({
-                id: "OWASP-A6-004",
+                id: "OWASP-A05-004",
                 severity: "LOW",
                 line: expressNode?.loc?.start?.line || 1,
                 column: expressNode?.loc?.start?.column || 0,
