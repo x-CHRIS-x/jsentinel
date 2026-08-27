@@ -28,4 +28,6 @@ skills-lock.json
 # Local research and documentation
 documents/
 tests/
+scripts/
+vscode-extension/verify-scan.js
 cvss_metrics_reference.html
