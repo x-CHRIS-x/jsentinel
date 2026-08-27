@@ -30,11 +30,12 @@ export const xssRules = [
           if (path.node.left && path.node.left.property && path.node.left.property.name === 'innerHTML') {
             issues.push({
               id: "OWASP-A03-006",
+              guidanceId: "OWASP-A03-006",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Dangerous use of innerHTML",
-              suggestion: "Use .textContent or .innerText to set text, or use a sanitization library like DOMPurify.",
+              suggestion: "Prefer safe text/DOM APIs unless a documented HTML policy requires markup.",
               cvssBaseScore,
               cvssVector
             });
@@ -71,11 +72,12 @@ export const xssRules = [
           if (callee.type === 'MemberExpression' && callee.object.name === 'document' && callee.property.name === 'write') {
             issues.push({
               id: "OWASP-A03-007",
+              guidanceId: "OWASP-A03-007",
               severity: "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Dangerous use of document.write()",
-              suggestion: "Use DOM manipulation methods like document.createElement() and appendChild() instead.",
+              suggestion: "Replace the page-writing strategy according to load timing and intended output.",
               cvssBaseScore,
               cvssVector
             });
@@ -111,11 +113,12 @@ export const xssRules = [
           if (path.node.name && path.node.name.name === 'dangerouslySetInnerHTML') {
             issues.push({
               id: "OWASP-A03-008",
+              guidanceId: "OWASP-A03-008",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Dangerous use of dangerouslySetInnerHTML",
-              suggestion: "Avoid setting raw HTML from user input. Use safer alternatives or a sanitization library.",
+              suggestion: "Prefer React's normal escaped rendering; use a vetted sanitizer only for intentional HTML.",
               cvssBaseScore,
               cvssVector
             });

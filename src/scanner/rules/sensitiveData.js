@@ -38,18 +38,24 @@ export const sensitiveDataRules = [
           else if (ipPattern.test(val) && val !== '127.0.0.1' && val !== '0.0.0.0') type = "IP Address";
 
           if (type) {
-            const cvssBaseScore = type === "IP Address" ? 5.3 : 9.1;
-            const cvssVector = type === "IP Address"
+            const isNetworkAddress = type === "IP Address";
+            const guidanceId = isNetworkAddress ? "OWASP-A02-005:network-address" : "OWASP-A02-005:credential";
+            const cvssBaseScore = isNetworkAddress ? 5.3 : 9.1;
+            const cvssVector = isNetworkAddress
               ? 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
               : 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N';
+            const suggestion = isNetworkAddress
+              ? "Review whether the endpoint address is sensitive configuration before changing it."
+              : "Revoke, rotate, and move genuine secrets out of source and client bundles.";
             
             issues.push({
               id: "OWASP-A02-005",
-              severity: type === "IP Address" ? "MEDIUM" : "CRITICAL",
+              guidanceId,
+              severity: isNetworkAddress ? "MEDIUM" : "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: `Hardcoded ${type} detected in string.`,
-              suggestion: `Never hardcode ${type}s. Use environment variables (e.g., process.env or import.meta.env).`,
+              suggestion,
               cvssBaseScore,
               cvssVector
             });
@@ -98,11 +104,12 @@ export const sensitiveDataRules = [
               }
               issues.push({
                 id: "OWASP-A02-006",
+                guidanceId: "OWASP-A02-006",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Hardcoded API key or secret found in variable '${path.node.id.name}'`,
-                suggestion: "Retrieve keys and secrets dynamically from a secure backend or environment storage instead of hardcoding.",
+                suggestion: "Determine whether the key is public/restricted or secret, then protect and rotate it accordingly.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -145,11 +152,12 @@ export const sensitiveDataRules = [
                 lowerVal.includes('?secret=') || lowerVal.includes('&secret=')) {
               issues.push({
                 id: "OWASP-A02-007",
+                guidanceId: "OWASP-A02-007",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Sensitive credentials embedded in URL query string",
-                suggestion: "Pass sensitive credentials inside HTTP request bodies or headers instead of query parameters.",
+                suggestion: "Remove credentials from URLs and use the protocol's secure body/header mechanism over TLS.",
                 cvssBaseScore,
                 cvssVector
               });

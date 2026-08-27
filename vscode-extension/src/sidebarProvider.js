@@ -1,4 +1,5 @@
 const vscode = require('vscode');
+const { getGuidance: _getGuidance, getAllGuidance, GUIDANCE_DISCLAIMER } = require('./data/guidanceCatalog');
 
 /**
  * OWASP Categories Metadata
@@ -12,153 +13,6 @@ const OWASP_CATEGORIES = {
   'A07': 'Identification and Authentication Failures',
   'A08': 'Software and Data Integrity Failures',
   'A10': 'Server-Side Request Forgery (SSRF)'
-};
-
-/**
- * Risk Explanations per Rule ID
- */
-const RISK_EXPLANATIONS = {
-  'OWASP-A01-001': 'Unvalidated window.location assignments allow attackers to craft links redirecting victims to malicious phishing pages.',
-  'OWASP-A01-002': 'Client-side role checks can be trivially bypassed via DevTools. Access control must always be enforced on the backend API layer.',
-  'OWASP-A02-001': 'Hardcoded passwords in source code expose static credentials to anyone with repository access and cannot be rotated without redeployment.',
-  'OWASP-A02-002': 'Cookies missing HttpOnly or Secure flags can be stolen via XSS scripts or intercepted across unencrypted HTTP traffic.',
-  'OWASP-A02-003': 'Math.random() is cryptographically weak and predictable. Attackers can forecast future values to forge tokens or session IDs.',
-  'OWASP-A02-004': 'Transmitting authentication credentials over plaintext HTTP exposes them to network sniffing, interception, and MITM attacks.',
-  'OWASP-A02-005': 'Hardcoded cloud credentials (AWS keys, secret tokens) in source code can result in complete cloud infrastructure takeover.',
-  'OWASP-A02-006': 'Exposing API keys in client-side code allows unauthorized users to impersonate your application and abuse backend quotas.',
-  'OWASP-A02-007': 'Credentials in URL parameters leak into browser history, web proxy caches, server access logs, and HTTP Referer headers.',
-  'OWASP-A03-001': 'eval() executes arbitrary strings as JavaScript code. An attacker controlling the input can run arbitrary code with full application privileges.',
-  'OWASP-A03-002': 'Passing strings to setTimeout/setInterval acts like eval(), dynamically parsing and executing untrusted strings as code.',
-  'OWASP-A03-003': 'The Function constructor compiles dynamic strings into executable functions, creating arbitrary remote code injection risks.',
-  'OWASP-A03-004': 'Assigning dynamic template literals directly to innerHTML allows attackers to inject malicious HTML and script tags into the DOM.',
-  'OWASP-A03-005': 'Setting innerHTML to function return values allows unsanitized dynamic markup to execute arbitrary scripts in the DOM.',
-  'OWASP-A03-006': 'Direct DOM innerHTML assignment parses raw strings as HTML markup. Untrusted inputs can execute arbitrary client-side scripts.',
-  'OWASP-A03-007': 'document.write() injects raw HTML into the document stream with zero sanitization, enabling severe script execution attacks.',
-  'OWASP-A03-008': 'React dangerouslySetInnerHTML bypasses built-in XSS escaping. If the HTML content contains user input, scripts will execute.',
-  'OWASP-A05-001': 'Console.log statements with sensitive credentials persist in browser DevTools and client error tracking services.',
-  'OWASP-A05-002': 'Wildcard CORS headers (Access-Control-Allow-Origin: *) allow any origin to read authenticated responses and sensitive data.',
-  'OWASP-A05-003': 'Logging complete request or session objects can expose authentication tokens, sensitive payload headers, and PII.',
-  'OWASP-A05-004': 'Express without Helmet middleware lacks fundamental security response headers (CSP, HSTS, X-Frame-Options), expanding attack surfaces.',
-  'OWASP-A06-001': 'Importing outdated packages with known CVEs or insecure defaults introduces exploitable vulnerabilities into your application.',
-  'OWASP-A07-001': 'localStorage is accessible to any script on the origin; any cross-site scripting vulnerability allows instant token exfiltration.',
-  'OWASP-A08-001': 'Unvalidated JSON.parse() on untrusted payloads can produce unexpected schema shapes leading to prototype pollution or logic flaws.',
-  'OWASP-A08-002': 'Modifying __proto__ or constructor.prototype alters property resolution across all objects in the runtime, causing RCE or DoS.',
-  'OWASP-A08-003': 'Object.assign mutating target objects with untrusted input can inject forbidden properties or overwrite critical methods.',
-  'OWASP-A10-001': 'Passing unvalidated URLs to HTTP clients (fetch/axios) allows attackers to force servers to connect to internal services or cloud metadata.'
-};
-
-/**
- * Code Fix Dictionary for Inline Remediation
- */
-const CODE_FIX_GUIDE = {
-  'OWASP-A01-001': {
-    bad: 'window.location.href = redirectTargetUrl;',
-    good: 'if (trustedDomainWhitelist.includes(redirectTargetUrl)) {\n  window.location.href = redirectTargetUrl;\n} // Validate redirect target domain'
-  },
-  'OWASP-A01-002': {
-    bad: 'if (userData.role === "admin") { renderDashboard(); }',
-    good: '// Access control check must be enforced and validated on the backend API layer\nif (session.isAuthenticated) { renderDashboard(); }'
-  },
-  'OWASP-A02-001': {
-    bad: 'const password = "admin_credential_key_123";',
-    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
-  },
-  'OWASP-A02-002': {
-    bad: 'document.cookie = "session=" + sessionId;',
-    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A02-003': {
-    bad: 'const securityToken = Math.random().toString();',
-    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Secure CSPRNG'
-  },
-  'OWASP-A02-004': {
-    bad: 'fetch("http://api.internal.service/authenticate");',
-    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
-  },
-  'OWASP-A02-005': {
-    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
-    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure environment variables'
-  },
-  'OWASP-A02-006': {
-    bad: 'const apiKey = "sec_key_xyz123456789abc";',
-    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
-  },
-  'OWASP-A02-007': {
-    bad: 'const authUrl = "/login?password=" + userPassword;',
-    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass credentials in POST body'
-  },
-  'OWASP-A03-001': {
-    bad: 'eval("const user = " + userInput);',
-    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
-  },
-  'OWASP-A03-002': {
-    bad: 'setTimeout("executeCallback()", 1000);',
-    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
-  },
-  'OWASP-A03-003': {
-    bad: 'const execute = new Function("x", "return " + userInput);',
-    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
-  },
-  'OWASP-A03-004': {
-    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
-    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
-  },
-  'OWASP-A03-005': {
-    bad: 'element.innerHTML = retrieveData(userInput);',
-    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
-  },
-  'OWASP-A03-006': {
-    bad: 'targetDiv.innerHTML = untrustedHTMLString;',
-    good: 'targetDiv.textContent = untrustedHTMLString; // Avoid DOM parsing of dynamic strings'
-  },
-  'OWASP-A03-007': {
-    bad: 'document.write(userInputString);',
-    good: 'const textNode = document.createTextNode(userInputString);\ndocument.body.appendChild(textNode);'
-  },
-  'OWASP-A03-008': {
-    bad: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />',
-    good: '<div>{dynamicMarkup}</div> // Rely on React default rendering auto sanitization'
-  },
-  'OWASP-A05-001': {
-    bad: 'console.log("User password payload: ", userPassword);',
-    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
-  },
-  'OWASP-A05-002': {
-    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
-    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS'
-  },
-  'OWASP-A05-003': {
-    bad: 'console.log("Full request context logged: ", requestContext);',
-    good: 'console.log("Request context received for path: ", requestContext.path);'
-  },
-  'OWASP-A05-004': {
-    bad: 'const app = express();\napp.listen(3000);',
-    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
-  },
-  'OWASP-A06-001': {
-    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
-  },
-  'OWASP-A07-001': {
-    bad: 'localStorage.setItem("authToken", jsonWebToken);',
-    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A08-001': {
-    bad: 'const payload = JSON.parse(untrustedJSONInput);',
-    good: 'const payload = secureSchemaParse(untrustedJSONInput); // Validate schema layout post deserialization'
-  },
-  'OWASP-A08-002': {
-    bad: 'targetObject.__proto__.polluted = true;',
-    good: 'const targetObject = Object.create(null); // Instantiate prototype-less objects'
-  },
-  'OWASP-A08-003': {
-    bad: 'Object.assign(baseObject, JSON.parse(userInputPayload));',
-    good: 'const sanitized = filterKeys(JSON.parse(userInputPayload));\nObject.assign(baseObject, sanitized); // Filter input keys'
-  },
-  'OWASP-A10-001': {
-    bad: 'axios.get(dynamicRequestUrl);',
-    good: 'if (isValidInternalEndpoint(dynamicRequestUrl)) {\n  axios.get(dynamicRequestUrl);\n} // Restrict connection targets to whitelist'
-  }
 };
 
 class JSentinelSidebarProvider {
@@ -242,11 +96,6 @@ class JSentinelSidebarProvider {
             this._exportReportCallback();
           }
           break;
-        case 'copyToClipboard':
-          if (data.text) {
-            await vscode.env.clipboard.writeText(data.text);
-          }
-          break;
         case 'requestState':
           this.updateWebview();
           break;
@@ -317,8 +166,8 @@ class JSentinelSidebarProvider {
   }
 
   _getHtmlForWebview(_webview) {
-    const codeFixJson = JSON.stringify(CODE_FIX_GUIDE).replace(/</g, '\\u003c');
-    const riskJson = JSON.stringify(RISK_EXPLANATIONS).replace(/</g, '\\u003c');
+    const guidanceCatalogJson = JSON.stringify(getAllGuidance()).replace(/</g, '\\u003c');
+    const disclaimerJson = JSON.stringify(GUIDANCE_DISCLAIMER).replace(/</g, '\\u003c');
     const owaspJson = JSON.stringify(OWASP_CATEGORIES).replace(/</g, '\\u003c');
 
     return `<!DOCTYPE html>
@@ -1038,14 +887,14 @@ class JSentinelSidebarProvider {
     }
 
     .remediation-box {
-      margin-top: 4px;
-      padding: 6px;
+      margin-top: 6px;
+      padding: 8px;
       background: var(--surface-tint);
       border: 1px solid var(--card-border);
-      border-radius: 4px;
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 8px;
       font-size: 9.5px;
       animation: fadeIn 0.2s ease;
     }
@@ -1053,63 +902,168 @@ class JSentinelSidebarProvider {
       from { opacity: 0; transform: translateY(-3px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .code-pattern-block {
-      border-radius: 4px;
-      padding: 4px 5px;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      line-height: 1.35;
-      position: relative;
+    .guidance-section {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
-    .code-pattern-block.bad {
-      background: var(--js-critical-bg);
-      border: 1px solid var(--js-critical-border);
-      color: var(--js-critical);
+    .guidance-section-label {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--vscode-descriptionForeground);
     }
-    .code-pattern-block.good {
-      background: var(--js-success-bg);
-      border: 1px solid var(--js-success-border);
-      color: var(--js-success);
-    }
-    .code-label-row {
+    .guidance-header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 2px;
+      gap: 4px;
     }
-    .code-label {
+    .scope-badge {
+      font-size: 7.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .guidance-code-box {
+      border-radius: 4px;
+      padding: 4px 6px;
+      background: var(--vscode-editor-background, #1e1e1e);
+      border: 1px solid var(--card-border);
+      font-family: var(--font-mono);
+      font-size: 9px;
+      line-height: 1.35;
+      overflow-x: auto;
+    }
+    .guidance-unavailable-box {
+      border-radius: 4px;
+      padding: 4px 6px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--card-border);
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      font-style: italic;
+      color: var(--vscode-descriptionForeground);
+    }
+    .guidance-code-snippet {
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--vscode-editor-foreground, #d4d4d4);
+    }
+    .guidance-text {
+      font-size: 9.5px;
+      line-height: 1.4;
+      color: var(--vscode-foreground);
+      margin: 0;
+    }
+    .guidance-action-text {
+      font-weight: 600;
+    }
+    .cannot-infer-box {
+      padding: 6px;
+      border-radius: 4px;
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cannot-infer-label {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #eab308;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .cannot-infer-text {
+      font-size: 9px;
+      line-height: 1.35;
+      color: var(--vscode-foreground);
+      margin: 0;
+    }
+    .guidance-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .guidance-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 9px;
+      line-height: 1.35;
+    }
+    .guidance-bullet {
+      color: #818cf8;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .illustrative-box {
+      margin-top: 4px;
+      padding: 5px 6px;
+      border-radius: 4px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .illustrative-label {
       font-size: 7.5px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.3px;
+      color: var(--vscode-descriptionForeground);
     }
-    .copy-fix-btn {
-      background: rgba(16, 185, 129, 0.2);
-      color: var(--js-success);
-      border: 1px solid var(--js-success-border);
-      font-size: 8px;
-      font-weight: 700;
-      font-family: inherit;
-      padding: 1px 4px;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: all 0.15s;
-      outline: none;
-    }
-    .copy-fix-btn:hover {
-      background: rgba(16, 185, 129, 0.35);
-    }
-    .copy-fix-btn:focus-visible {
-      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
-      outline-offset: 1px;
-    }
-    .copy-fix-btn:active {
-      transform: scale(0.96);
-    }
-    .code-snippet {
+    .illustrative-code {
+      font-family: var(--font-mono);
+      font-size: 8.5px;
+      line-height: 1.3;
       white-space: pre-wrap;
       word-break: break-all;
-      display: block;
+      color: var(--vscode-editor-foreground, #d4d4d4);
+    }
+    .verify-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .verify-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      font-size: 9px;
+      line-height: 1.35;
+    }
+    .verify-check {
+      color: var(--js-success, #10b981);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .disclaimer-banner {
+      padding: 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      font-size: 8.5px;
+      font-style: italic;
+      line-height: 1.35;
+      color: var(--vscode-descriptionForeground);
     }
     .cvss-vector-footer {
       font-size: 8px;
@@ -1361,9 +1315,34 @@ class JSentinelSidebarProvider {
     const vscode = acquireVsCodeApi();
 
     // Dictionaries passed from extension backend
-    const codeFixGuide = ${codeFixJson};
-    const riskExplanations = ${riskJson};
+    const guidanceCatalog = ${guidanceCatalogJson};
+    const guidanceDisclaimer = ${disclaimerJson};
     const owaspCategories = ${owaspJson};
+
+    function getGuidanceForIssue(issue) {
+      const key = (issue && (issue.guidanceId || issue.id)) || '';
+      if (key && Object.prototype.hasOwnProperty.call(guidanceCatalog, key)) return guidanceCatalog[key];
+      if (issue && issue.id && Object.prototype.hasOwnProperty.call(guidanceCatalog, issue.id)) return guidanceCatalog[issue.id];
+      return {
+        guidanceId: issue ? (issue.guidanceId || issue.id || 'UNKNOWN') : 'UNKNOWN',
+        ruleId: issue ? (issue.id || 'UNKNOWN') : 'UNKNOWN',
+        title: 'Security Review Recommendation',
+        category: 'General Security Practice',
+        recommendedAction: 'Review the flagged code against project security requirements.',
+        shortAction: 'Review the flagged code against project security requirements.',
+        risk: 'Static analysis flagged an unclassified code pattern that may warrant security review.',
+        cannotInfer: 'JSentinel cannot determine application intent, runtime context, or environmental security controls.',
+        scope: 'cross-boundary',
+        approaches: [
+          'Architecture Review: Review code behavior with development and security team members to ensure safe handling.',
+          'Defensive Controls: Apply least-privilege principles and input validation tailored to the application architecture.'
+        ],
+        verifySteps: [
+          'Verify that the flagged pattern adheres to application security policies.',
+          'Test edge cases and unexpected inputs in automated test suites.'
+        ]
+      };
+    }
 
     // Client state
     let currentState = {
@@ -1730,13 +1709,15 @@ class JSentinelSidebarProvider {
             const id = issueId.toLowerCase();
             const catName = (owaspCategories[catPrefix] || '').toLowerCase();
             const sugg = (issue.suggestion || '').toLowerCase();
-            const risk = (riskExplanations[issueId] || '').toLowerCase();
+            const gRecord = getGuidanceForIssue(issue);
+            const gRisk = (gRecord.risk || '').toLowerCase();
+            const gAction = (gRecord.recommendedAction || gRecord.shortAction || '').toLowerCase();
+            const gCannot = (gRecord.cannotInfer || '').toLowerCase();
+            const gApproaches = (gRecord.approaches || []).map(a => typeof a === 'string' ? a : \`\${a.title} \${a.description}\`).join(' ').toLowerCase();
             const sev = issueSeverity.toLowerCase();
             const locStr = \`l\${issueLine}:c\${issueCol} \${issueLine}\`.toLowerCase();
-            const fixBad = (codeFixGuide[issueId]?.bad || '').toLowerCase();
-            const fixGood = (codeFixGuide[issueId]?.good || '').toLowerCase();
             
-            const combinedSearchString = \`\${rel} \${msg} \${id} \${catName} \${sugg} \${risk} \${sev} \${locStr} \${fixBad} \${fixGood}\`;
+            const combinedSearchString = \`\${rel} \${msg} \${id} \${catName} \${sugg} \${gRisk} \${gAction} \${gCannot} \${gApproaches} \${sev} \${locStr}\`;
 
             const queryMatch = searchTerms.every(term => combinedSearchString.includes(term));
             if (!queryMatch) {
@@ -1918,26 +1899,23 @@ class JSentinelSidebarProvider {
           msgEl.textContent = issue.message;
           issueItem.appendChild(msgEl);
 
-          const riskText = riskExplanations[issue.id] || issue.suggestion || '';
-          if (riskText) {
+          const guidanceRec = getGuidanceForIssue(issue);
+          if (guidanceRec && guidanceRec.risk) {
             const riskEl = document.createElement('div');
             riskEl.className = 'issue-risk-text';
-            riskEl.textContent = riskText;
+            riskEl.textContent = guidanceRec.risk;
             issueItem.appendChild(riskEl);
           }
 
           // Remediation Accordion
           const isExpanded = expandedIssues.has(issue.fpKey);
-          const remediationId = \`remediation-\${issue.fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}\`;
+          const remediationId = 'remediation-' + issue.fpKey.replace(/[^a-zA-Z0-9_-]/g, '_');
 
           const accordionToggle = document.createElement('button');
           accordionToggle.className = 'accordion-toggle';
           accordionToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
           accordionToggle.setAttribute('aria-controls', remediationId);
-          accordionToggle.innerHTML = \`
-            <span class="accordion-arrow \${isExpanded ? 'expanded' : ''}" aria-hidden="true">▶</span>
-            <span>\${isExpanded ? 'Hide Remediation' : '💡 Remediation Guide'}</span>
-          \`;
+          accordionToggle.innerHTML = '<span class="accordion-arrow ' + (isExpanded ? 'expanded' : '') + '" aria-hidden="true">▶</span> <span>' + (isExpanded ? 'Hide Guidance' : '💡 Remediation Guidance') + '</span>';
 
           const remediationContainer = document.createElement('div');
           remediationContainer.id = remediationId;
@@ -1953,19 +1931,13 @@ class JSentinelSidebarProvider {
               expandedIssues.delete(issue.fpKey);
               accordionToggle.setAttribute('aria-expanded', 'false');
               remediationContainer.style.display = 'none';
-              accordionToggle.innerHTML = \`
-                <span class="accordion-arrow" aria-hidden="true">▶</span>
-                <span>💡 Remediation Guide</span>
-              \`;
+              accordionToggle.innerHTML = '<span class="accordion-arrow" aria-hidden="true">▶</span> <span>💡 Remediation Guidance</span>';
             } else {
               expandedIssues.add(issue.fpKey);
               accordionToggle.setAttribute('aria-expanded', 'true');
               renderRemediationContent(remediationContainer, issue);
               remediationContainer.style.display = 'flex';
-              accordionToggle.innerHTML = \`
-                <span class="accordion-arrow expanded" aria-hidden="true">▶</span>
-                <span>Hide Remediation</span>
-              \`;
+              accordionToggle.innerHTML = '<span class="accordion-arrow expanded" aria-hidden="true">▶</span> <span>Hide Guidance</span>';
             }
             persistClientState();
           });
@@ -1992,7 +1964,7 @@ class JSentinelSidebarProvider {
           actionsRow.appendChild(revealBtn);
 
           const fpBtn = document.createElement('button');
-          fpBtn.className = \`issue-action-btn \${type === 'active' ? 'fp-btn' : 'restore-btn'}\`;
+          fpBtn.className = 'issue-action-btn ' + (type === 'active' ? 'fp-btn' : 'restore-btn');
           if (type === 'active') {
             fpBtn.innerHTML = '🏳️ Ignore';
             fpBtn.title = 'Mark as False Positive (restores security score)';
@@ -2018,99 +1990,181 @@ class JSentinelSidebarProvider {
 
     function renderRemediationContent(container, issue) {
       container.innerHTML = '';
-      const fix = codeFixGuide[issue.id];
+      const guidance = getGuidanceForIssue(issue);
+      const detectedLine = issue.sourceLine;
 
-      if (fix) {
-        // Bad pattern
-        const badBlock = document.createElement('div');
-        badBlock.className = 'code-pattern-block bad';
-        badBlock.innerHTML = \`
-          <div class="code-label-row">
-            <span class="code-label">❌ Vulnerable Pattern</span>
-          </div>
-          <code class="code-snippet">\${escapeHtml(fix.bad)}</code>
-        \`;
-        container.appendChild(badBlock);
+      // 1. Detected in your code
+      const sec1 = document.createElement('div');
+      sec1.className = 'guidance-section';
+      const label1 = document.createElement('span');
+      label1.className = 'guidance-section-label';
+      label1.textContent = '1. Detected in your code (Line ' + issue.line + ')';
+      sec1.appendChild(label1);
 
-        // Good pattern
-        const goodBlock = document.createElement('div');
-        goodBlock.className = 'code-pattern-block good';
-        
-        const goodHeader = document.createElement('div');
-        goodHeader.className = 'code-label-row';
-        goodHeader.innerHTML = \`<span class="code-label">✓ Recommended Fix</span>\`;
-
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-fix-btn';
-        copyBtn.setAttribute('aria-label', 'Copy recommended fix code snippet');
-        copyBtn.textContent = 'Copy Fix';
-        copyBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          copyToClipboard(fix.good);
-          copyBtn.textContent = '✓ Copied!';
-          setTimeout(() => { copyBtn.textContent = 'Copy Fix'; }, 1500);
-        });
-
-        goodHeader.appendChild(copyBtn);
-        goodBlock.appendChild(goodHeader);
-
+      if (detectedLine !== undefined && detectedLine !== null && detectedLine !== '') {
+        const codeBox = document.createElement('div');
+        codeBox.className = 'guidance-code-box';
         const codeEl = document.createElement('code');
-        codeEl.className = 'code-snippet';
-        codeEl.textContent = fix.good;
-        goodBlock.appendChild(codeEl);
-
-        container.appendChild(goodBlock);
-      } else if (issue.suggestion) {
-        const suggBlock = document.createElement('div');
-        suggBlock.className = 'code-pattern-block good';
-        suggBlock.innerHTML = \`
-          <div class="code-label-row">
-            <span class="code-label">✓ Remediation Strategy</span>
-          </div>
-          <div class="code-snippet">\${escapeHtml(issue.suggestion)}</div>
-        \`;
-        container.appendChild(suggBlock);
+        codeEl.className = 'guidance-code-snippet';
+        codeEl.textContent = detectedLine.trim() || ('Line ' + issue.line);
+        codeBox.appendChild(codeEl);
+        sec1.appendChild(codeBox);
       } else {
-        const fallbackBlock = document.createElement('div');
-        fallbackBlock.className = 'code-snippet';
-        fallbackBlock.textContent = 'Review and remediate according to secure coding guidelines.';
-        container.appendChild(fallbackBlock);
+        const unavailBox = document.createElement('div');
+        unavailBox.className = 'guidance-unavailable-box';
+        unavailBox.textContent = 'Source code line is unavailable for this archived scan record.';
+        sec1.appendChild(unavailBox);
       }
+      container.appendChild(sec1);
+
+      // 2. Why review this
+      const sec2 = document.createElement('div');
+      sec2.className = 'guidance-section';
+      const label2 = document.createElement('span');
+      label2.className = 'guidance-section-label';
+      label2.textContent = '2. Why review this';
+      sec2.appendChild(label2);
+      const pRisk = document.createElement('p');
+      pRisk.className = 'guidance-text';
+      pRisk.textContent = guidance.risk || 'Review the flagged pattern for potential security impact.';
+      sec2.appendChild(pRisk);
+      container.appendChild(sec2);
+
+      // 3. Recommended action
+      const sec3 = document.createElement('div');
+      sec3.className = 'guidance-section';
+      const actionHeader = document.createElement('div');
+      actionHeader.className = 'guidance-header-row';
+      const label3 = document.createElement('span');
+      label3.className = 'guidance-section-label';
+      label3.textContent = '3. Recommended action';
+      actionHeader.appendChild(label3);
+
+      if (guidance.scope) {
+        const scopeBadge = document.createElement('span');
+        scopeBadge.className = 'scope-badge';
+        scopeBadge.textContent = guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope';
+        actionHeader.appendChild(scopeBadge);
+      }
+      sec3.appendChild(actionHeader);
+
+      const pAction = document.createElement('p');
+      pAction.className = 'guidance-text guidance-action-text';
+      pAction.textContent = guidance.recommendedAction || guidance.shortAction || 'Review according to security best practices.';
+      sec3.appendChild(pAction);
+      container.appendChild(sec3);
+
+      // 4. What JSentinel cannot determine
+      const sec4 = document.createElement('div');
+      sec4.className = 'cannot-infer-box';
+      const label4 = document.createElement('span');
+      label4.className = 'cannot-infer-label';
+      label4.innerHTML = '<span>⚠️</span> 4. What JSentinel cannot determine';
+      sec4.appendChild(label4);
+      const pCannot = document.createElement('p');
+      pCannot.className = 'cannot-infer-text';
+      pCannot.textContent = guidance.cannotInfer || 'JSentinel cannot determine application intent, runtime context, or environmental controls.';
+      sec4.appendChild(pCannot);
+      container.appendChild(sec4);
+
+      // 5. Possible approaches
+      const sec5 = document.createElement('div');
+      sec5.className = 'guidance-section';
+      const label5 = document.createElement('span');
+      label5.className = 'guidance-section-label';
+      label5.textContent = '5. Possible approaches';
+      sec5.appendChild(label5);
+
+      if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'guidance-list';
+        guidance.approaches.forEach(appr => {
+          const li = document.createElement('li');
+          li.className = 'guidance-list-item';
+          const bullet = document.createElement('span');
+          bullet.className = 'guidance-bullet';
+          bullet.textContent = '•';
+          li.appendChild(bullet);
+
+          const contentSpan = document.createElement('span');
+          if (typeof appr === 'string') {
+            const colonIdx = appr.indexOf(':');
+            if (colonIdx !== -1) {
+              const strong = document.createElement('strong');
+              strong.textContent = appr.slice(0, colonIdx) + ': ';
+              contentSpan.appendChild(strong);
+              contentSpan.appendChild(document.createTextNode(appr.slice(colonIdx + 1).trim()));
+            } else {
+              contentSpan.textContent = appr;
+            }
+          } else if (typeof appr === 'object' && appr !== null) {
+            const strong = document.createElement('strong');
+            strong.textContent = (appr.title || '') + ': ';
+            contentSpan.appendChild(strong);
+            contentSpan.appendChild(document.createTextNode(appr.description || ''));
+          }
+          li.appendChild(contentSpan);
+          ul.appendChild(li);
+        });
+        sec5.appendChild(ul);
+      }
+
+      if (guidance.illustrativePattern) {
+        const patternBox = document.createElement('div');
+        patternBox.className = 'illustrative-box';
+        const patternLabel = document.createElement('span');
+        patternLabel.className = 'illustrative-label';
+        patternLabel.textContent = 'Illustrative Pattern (Non-Prescriptive)';
+        patternBox.appendChild(patternLabel);
+
+        const patternCode = document.createElement('code');
+        patternCode.className = 'illustrative-code';
+        patternCode.textContent = guidance.illustrativePattern;
+        patternBox.appendChild(patternCode);
+        sec5.appendChild(patternBox);
+      }
+      container.appendChild(sec5);
+
+      // 6. How to verify
+      const sec6 = document.createElement('div');
+      sec6.className = 'guidance-section';
+      const label6 = document.createElement('span');
+      label6.className = 'guidance-section-label';
+      label6.textContent = '6. How to verify';
+      sec6.appendChild(label6);
+
+      if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
+        const ulVerify = document.createElement('ul');
+        ulVerify.className = 'verify-list';
+        guidance.verifySteps.forEach(step => {
+          const li = document.createElement('li');
+          li.className = 'verify-list-item';
+          const check = document.createElement('span');
+          check.className = 'verify-check';
+          check.textContent = '✓';
+          li.appendChild(check);
+
+          const stepText = document.createElement('span');
+          stepText.textContent = step;
+          li.appendChild(stepText);
+          ulVerify.appendChild(li);
+        });
+        sec6.appendChild(ulVerify);
+      }
+      container.appendChild(sec6);
+
+      // Mandatory Educational Disclaimer Banner
+      const disclaimerEl = document.createElement('div');
+      disclaimerEl.className = 'disclaimer-banner';
+      disclaimerEl.textContent = guidanceDisclaimer;
+      container.appendChild(disclaimerEl);
 
       if (issue.cvssVector) {
         const cvssFooter = document.createElement('div');
         cvssFooter.className = 'cvss-vector-footer';
-        cvssFooter.textContent = \`Vector: \${issue.cvssVector}\`;
+        cvssFooter.textContent = 'Vector: ' + issue.cvssVector;
         container.appendChild(cvssFooter);
       }
-    }
-
-    function copyToClipboard(text) {
-      // 1. Post message to VS Code host (natively supported via vscode.env.clipboard.writeText)
-      vscode.postMessage({ type: 'copyToClipboard', text });
-
-      // 2. Direct browser clipboard attempt
-      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
-      } else {
-        fallbackCopy(text);
-      }
-    }
-
-    function fallbackCopy(text) {
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      try {
-        document.execCommand('copy');
-      } catch {
-        // ignore
-      }
-      document.body.removeChild(textarea);
     }
   </script>
 </body>

@@ -11,119 +11,8 @@ import { accessControlRules } from './scanner/rules/accessControl';
 import { ssrfRules } from './scanner/rules/ssrf';
 import { generatePDFReport } from './utils/pdfGenerator';
 import { generateJSONReport } from './utils/jsonExporter';
+import { getGuidance, GUIDANCE_DISCLAIMER } from './data/guidanceCatalog';
 import './App.css';
-
-// Code Fix Dictionary for Recommended Code Fix Report & Inline Remediation
-const codeFixGuide = {
-  'OWASP-A01-001': {
-    bad: 'window.location.href = redirectTargetUrl;',
-    good: 'if (trustedDomainWhitelist.includes(redirectTargetUrl)) {\n  window.location.href = redirectTargetUrl;\n} // Validate redirect target domain client side'
-  },
-  'OWASP-A01-002': {
-    bad: 'if (userData.role === "admin") { renderDashboard(); }',
-    good: '// Access control check must be enforced and validated on the backend API layer\nif (session.isAuthenticated) { renderDashboard(); }'
-  },
-  'OWASP-A02-001': {
-    bad: 'const password = "admin_credential_key_123";',
-    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
-  },
-  'OWASP-A02-002': {
-    bad: 'document.cookie = "session=" + sessionId;',
-    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A02-003': {
-    bad: 'const securityToken = Math.random().toString();',
-    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Cryptographically secure random number generator'
-  },
-  'OWASP-A02-004': {
-    bad: 'fetch("http://api.internal.service/authenticate");',
-    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
-  },
-  'OWASP-A02-005': {
-    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
-    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure server context'
-  },
-  'OWASP-A02-006': {
-    bad: 'const apiKey = "sec_key_xyz123456789abc";',
-    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
-  },
-  'OWASP-A02-007': {
-    bad: 'const authUrl = "/login?password=" + userPassword;',
-    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass sensitive credentials in post body'
-  },
-  'OWASP-A03-001': {
-    bad: 'eval("const user = " + userInput);',
-    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
-  },
-  'OWASP-A03-002': {
-    bad: 'setTimeout("executeCallback()", 1000);',
-    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
-  },
-  'OWASP-A03-003': {
-    bad: 'const execute = new Function("x", "return " + userInput);',
-    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
-  },
-  'OWASP-A03-004': {
-    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
-    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
-  },
-  'OWASP-A03-005': {
-    bad: 'element.innerHTML = retrieveData(userInput);',
-    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
-  },
-  'OWASP-A03-006': {
-    bad: 'targetDiv.innerHTML = untrustedHTMLString;',
-    good: 'targetDiv.textContent = untrustedHTMLString; // Avoid DOM parsing of dynamic strings'
-  },
-  'OWASP-A03-007': {
-    bad: 'document.write(userInputString);',
-    good: 'const textNode = document.createTextNode(userInputString);\ndocument.body.appendChild(textNode);'
-  },
-  'OWASP-A03-008': {
-    bad: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />',
-    good: '<div>{dynamicMarkup}</div> // Rely on React default rendering auto sanitization'
-  },
-  'OWASP-A05-001': {
-    bad: 'console.log("User password payload: ", userPassword);',
-    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
-  },
-  'OWASP-A05-002': {
-    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
-    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS origins'
-  },
-  'OWASP-A05-003': {
-    bad: 'console.log("Full request context logged: ", requestContext);',
-    good: 'console.log("Request context received for path: ", requestContext.path);'
-  },
-  'OWASP-A05-004': {
-    bad: 'const app = express();\napp.listen(3000);',
-    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
-  },
-  'OWASP-A06-001': {
-    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
-  },
-  'OWASP-A07-001': {
-    bad: 'localStorage.setItem("authToken", jsonWebToken);',
-    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A08-001': {
-    bad: 'const payload = JSON.parse(untrustedJSONInput);',
-    good: 'const payload = secureSchemaParse(untrustedJSONInput); // Validate schema layout post deserialization'
-  },
-  'OWASP-A08-002': {
-    bad: 'targetObject.__proto__.polluted = true;',
-    good: 'const targetObject = Object.create(null); // Instantiate prototype-less objects'
-  },
-  'OWASP-A08-003': {
-    bad: 'Object.assign(baseObject, JSON.parse(userInputPayload));',
-    good: 'const sanitized = filterKeys(JSON.parse(userInputPayload));\nObject.assign(baseObject, sanitized); // Filter input keys to prevent injection'
-  },
-  'OWASP-A10-001': {
-    bad: 'axios.get(dynamicRequestUrl);',
-    good: 'if (isValidInternalEndpoint(dynamicRequestUrl)) {\n  axios.get(dynamicRequestUrl);\n} // Restrict connection targets to authenticated APIs'
-  }
-};
 
 // Safely parse fpKey with full support for Windows drive letters and colons in file paths
 const parseFpKey = (key) => {
@@ -318,13 +207,13 @@ function App() {
     });
   }, [selectedResult, severityFilter, owaspFilter]);
 
-  // Fixes Available Counter
-  const fixesAvailableCount = useMemo(() => {
+  // Guidance Available Counter
+  const guidanceAvailableCount = useMemo(() => {
     if (!selectedResult || !filteredIssues) return 0;
     return filteredIssues.filter(issue => {
       const fpKey = `${selectedResult.fileName}:${issue.id}:${issue.line}:${issue.column}`;
       const isFP = fpFlags.includes(fpKey);
-      return !isFP && !!codeFixGuide[issue.id];
+      return !isFP && !!getGuidance(issue);
     }).length;
   }, [selectedResult, filteredIssues, fpFlags]);
 
@@ -976,9 +865,9 @@ function App() {
 
                     <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs space-y-1.5">
                       <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 flex items-center justify-center text-sm font-bold">⚡</div>
-                      <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Automated Fix Guides</h3>
+                      <h3 className="text-xs font-bold text-slate-800 dark:text-zinc-200">Security Remediation Guidance</h3>
                       <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-relaxed">
-                        Interactive code remediation suggestions with one-click copy and CVSS-inspired compliance scoring.
+                        Contextual remediation guidance with risk analysis, analyzer limitations, and verification checklists.
                       </p>
                     </div>
                   </div>
@@ -1348,14 +1237,14 @@ function App() {
                       {/* Findings Header */}
                       <div className="p-3 border-b border-slate-200/80 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Findings & Fixes</span>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Findings & Guidance</span>
                           <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-slate-200/60 dark:bg-zinc-800 rounded-md text-slate-500">
                             {filteredIssues.length}
                           </span>
                         </div>
-                        {fixesAvailableCount > 0 && (
-                          <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-semibold border border-emerald-200/60 dark:border-emerald-900/40">
-                            {fixesAvailableCount} fixes available
+                        {guidanceAvailableCount > 0 && (
+                          <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-semibold border border-indigo-200/60 dark:border-indigo-900/40">
+                            {guidanceAvailableCount} guidance available
                           </span>
                         )}
                       </div>
@@ -1445,9 +1334,9 @@ function App() {
                                 <div className="mt-3 flex justify-between items-center gap-2 border-t border-slate-100 dark:border-zinc-800 pt-2 text-[10px]">
                                   <button 
                                     onClick={() => setSelectedIssueIdx(isSelected ? null : originalIdx)}
-                                    className="font-bold text-red-600 dark:text-red-400 hover:underline cursor-pointer flex items-center gap-1"
+                                    className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center gap-1"
                                   >
-                                    <span>{isSelected ? 'Hide Fix Guide' : 'Remediation Guide'}</span>
+                                    <span>{isSelected ? 'Hide Guidance' : 'View Guidance'}</span>
                                   </button>
                                   
                                   <button 
@@ -1470,38 +1359,141 @@ function App() {
                                   </button>
                                 </div>
 
-                                {/* Inline Remediation Code Guide */}
-                                {isSelected && codeFixGuide[issue.id] && (
-                                  <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800 space-y-2 animate-reveal text-[10px]">
-                                    <div className="p-2.5 rounded-lg bg-red-50/60 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 font-mono">
-                                      <span className="text-[8px] font-bold uppercase tracking-wider text-red-600 dark:text-red-400 block mb-1">Vulnerable Code Pattern</span>
-                                      <code className="text-red-600 dark:text-red-400 block break-words whitespace-pre-wrap">{codeFixGuide[issue.id].bad}</code>
-                                    </div>
-                                    
-                                    <div className="p-2.5 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30 font-mono relative">
-                                      <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Recommended Remediation</span>
-                                        <button 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (navigator?.clipboard?.writeText) {
-                                              navigator.clipboard.writeText(codeFixGuide[issue.id].good).catch(() => {});
-                                            }
-                                            addActivityLog(`Copied secure code fix for rule ${issue.id} to clipboard.`);
-                                            const btn = e.currentTarget;
-                                            const originalText = btn.innerHTML;
-                                            btn.innerHTML = 'Copied!';
-                                            setTimeout(() => btn.innerHTML = originalText, 1500);
-                                          }}
-                                          className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-200 dark:hover:bg-emerald-800/60 px-2 py-0.5 rounded cursor-pointer transition-all active:scale-95 shrink-0"
-                                        >
-                                          Copy Fix
-                                        </button>
+                                {/* Expandable 6-Part Guidance Panel */}
+                                {isSelected && (() => {
+                                  const guidance = getGuidance(issue);
+                                  const detectedLine = issue.sourceLine || (selectedResult?.rawCode ? selectedResult.rawCode.split('\n')[issue.line - 1] : null);
+
+                                  return (
+                                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-zinc-800 space-y-3 animate-reveal text-left">
+                                      {/* 1. Detected in your code */}
+                                      <div className="space-y-1">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                          1. Detected in your code (Line {issue.line})
+                                        </span>
+                                        {detectedLine !== null && detectedLine !== undefined ? (
+                                          <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
+                                            <code className="whitespace-pre-wrap break-all">{detectedLine.trim() || `Line ${issue.line}`}</code>
+                                          </div>
+                                        ) : (
+                                          <div className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800/60 text-slate-500 dark:text-zinc-400 font-mono text-[10px] italic border border-slate-200 dark:border-zinc-700">
+                                            Source code line is unavailable for this archived scan record.
+                                          </div>
+                                        )}
                                       </div>
-                                      <code className="text-emerald-700 dark:text-emerald-300 block break-words whitespace-pre-wrap">{codeFixGuide[issue.id].good}</code>
+
+                                      {/* 2. Why review this */}
+                                      <div className="space-y-1">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                          2. Why review this
+                                        </span>
+                                        <p className="text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed">
+                                          {guidance.risk}
+                                        </p>
+                                      </div>
+
+                                      {/* 3. Recommended action */}
+                                      <div className="space-y-1">
+                                        <div className="flex items-center justify-between gap-1">
+                                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                            3. Recommended action
+                                          </span>
+                                          {guidance.scope && (
+                                            <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
+                                              {guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[11px] font-semibold text-slate-900 dark:text-zinc-100 leading-relaxed">
+                                          {guidance.recommendedAction}
+                                        </p>
+                                      </div>
+
+                                      {/* 4. What JSentinel cannot determine */}
+                                      <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 space-y-1">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block flex items-center gap-1">
+                                          <span>⚠️</span> 4. What JSentinel cannot determine
+                                        </span>
+                                        <p className="text-[10.5px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
+                                          {guidance.cannotInfer}
+                                        </p>
+                                      </div>
+
+                                      {/* 5. Possible approaches */}
+                                      <div className="space-y-1.5">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                          5. Possible approaches
+                                        </span>
+                                        <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                          {guidance.approaches && guidance.approaches.map((appr, idx) => {
+                                            if (typeof appr === 'string') {
+                                              const colonIdx = appr.indexOf(':');
+                                              if (colonIdx !== -1) {
+                                                const title = appr.slice(0, colonIdx);
+                                                const desc = appr.slice(colonIdx + 1).trim();
+                                                return (
+                                                  <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                    <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                    <span>
+                                                      <strong className="text-slate-900 dark:text-zinc-100">{title}:</strong> {desc}
+                                                    </span>
+                                                  </li>
+                                                );
+                                              }
+                                              return (
+                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                  <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                  <span>{appr}</span>
+                                                </li>
+                                              );
+                                            }
+                                            if (typeof appr === 'object' && appr !== null) {
+                                              return (
+                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                  <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                  <span>
+                                                    <strong className="text-slate-900 dark:text-zinc-100">{appr.title}:</strong> {appr.description}
+                                                  </span>
+                                                </li>
+                                              );
+                                            }
+                                            return null;
+                                          })}
+                                        </ul>
+                                        {guidance.illustrativePattern && (
+                                          <div className="mt-1.5 p-2 rounded-lg bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700">
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-1">
+                                              Illustrative Pattern (Non-Prescriptive)
+                                            </span>
+                                            <code className="text-[10px] font-mono text-slate-800 dark:text-zinc-200 block whitespace-pre-wrap break-all">
+                                              {guidance.illustrativePattern}
+                                            </code>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      {/* 6. How to verify */}
+                                      <div className="space-y-1.5">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                          6. How to verify
+                                        </span>
+                                        <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                          {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
+                                            <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                              <span className="text-emerald-500 dark:text-emerald-400 font-bold shrink-0">✓</span>
+                                              <span>{step}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+
+                                      {/* Mandatory Educational Disclaimer Banner */}
+                                      <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-[9.5px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
+                                        {GUIDANCE_DISCLAIMER}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  );
+                                })()}
                               </div>
                             );
                           })

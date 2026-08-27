@@ -32,11 +32,12 @@ export const authRules = [
             if (path.node.init && path.node.init.type === 'StringLiteral') {
               issues.push({
                 id: "OWASP-A02-001",
+                guidanceId: "OWASP-A02-001",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Hardcoded password found in variable '${path.node.id.name}'`,
-                suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
+                suggestion: "Revoke or rotate exposed credentials and move real secrets to a server-side secret store.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -49,11 +50,12 @@ export const authRules = [
             if (path.node.right && path.node.right.type === 'StringLiteral') {
               issues.push({
                 id: "OWASP-A02-001",
+                guidanceId: "OWASP-A02-001",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Hardcoded password assigned to '${leftName}'`,
-                suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
+                suggestion: "Revoke or rotate exposed credentials and move real secrets to a server-side secret store.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -95,11 +97,12 @@ export const authRules = [
               if (keyName.includes('token') || keyName.includes('auth') || keyName.includes('jwt')) {
                 issues.push({
                   id: "OWASP-A07-001",
+                  guidanceId: "OWASP-A07-001",
                   severity: "HIGH",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: `Sensitive token stored in localStorage (key: '${firstArg.value}')`,
-                  suggestion: "Store authentication tokens in HttpOnly cookies to prevent theft via XSS.",
+                  suggestion: "Design the authentication flow so scripts cannot read long-lived credentials where possible.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -141,11 +144,12 @@ export const authRules = [
               if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
                  issues.push({
                   id: "OWASP-A02-002",
+                  guidanceId: "OWASP-A02-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: "Insecure cookie assignment (missing HttpOnly/Secure flags)",
-                  suggestion: "Always append '; HttpOnly; Secure' when manually setting cookies containing sensitive session data.",
+                  suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -153,11 +157,12 @@ export const authRules = [
             } else if (right.type === 'TemplateLiteral') {
               issues.push({
                 id: "OWASP-A02-002",
+                guidanceId: "OWASP-A02-002",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Cookie set via template literal: verify HttpOnly and Secure flags are present",
-                suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
+                suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -172,11 +177,12 @@ export const authRules = [
               if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
                 issues.push({
                   id: "OWASP-A02-002",
+                  guidanceId: "OWASP-A02-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
-                  suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
+                  suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -234,11 +240,12 @@ export const authRules = [
             if (init && hasMathRandom(init)) {
               issues.push({
                 id: "OWASP-A02-003",
+                guidanceId: "OWASP-A02-003",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Insecure pseudo-random number generator used for sensitive variable '${path.node.id.name}'`,
-                suggestion: "Use window.crypto.getRandomValues() or the Web Crypto API to generate cryptographically secure random values.",
+                suggestion: "Use a cryptographically strong generator appropriate to the token's security purpose.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -291,11 +298,12 @@ export const authRules = [
             if (isVulnerable) {
               issues.push({
                 id: "OWASP-A02-004",
+                guidanceId: "OWASP-A02-004",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Insecure plaintext connection URL hardcoded: '${val}'`,
-                suggestion: "Use HTTPS connection URLs to secure transmissions and protect data integrity.",
+                suggestion: "Migrate only to a TLS endpoint that the service actually supports.",
                 cvssBaseScore,
                 cvssVector
               });

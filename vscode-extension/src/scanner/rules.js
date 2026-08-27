@@ -81,12 +81,15 @@ const injectionRules = [
       CallExpression(path) {
         if (path.node && path.node.callee && path.node.callee.name === 'eval') {
           issues.push({
-            id: "OWASP-A03-001", severity: "CRITICAL",
+            id: "OWASP-A03-001",
+            guidanceId: "OWASP-A03-001",
+            severity: "CRITICAL",
             line: path.node.loc?.start?.line || 1,
             column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of eval()",
-            suggestion: "Use JSON.parse() or access object properties directly instead of eval().",
-            cvssBaseScore: 10.0, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'
+            suggestion: "Remove dynamic evaluation and choose a parser or fixed behavior that matches the intended input format.",
+            cvssBaseScore: 10.0,
+            cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'
           });
         }
       }
@@ -104,12 +107,15 @@ const injectionRules = [
           const firstArg = path.node.arguments[0];
           if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
             issues.push({
-              id: "OWASP-A03-002", severity: "HIGH",
+              id: "OWASP-A03-002",
+              guidanceId: "OWASP-A03-002",
+              severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: `Dangerous use of string in ${calleeName}`,
-              suggestion: "Pass a function or arrow function as the first argument instead of a string.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
+              suggestion: "Replace runtime code strings with a function or closure that preserves intended arguments and timing.",
+              cvssBaseScore: 8.8,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -127,12 +133,15 @@ const injectionRules = [
           const firstArg = path.node.arguments[0];
           if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
             issues.push({
-              id: "OWASP-A03-003", severity: "CRITICAL",
+              id: "OWASP-A03-003",
+              guidanceId: "OWASP-A03-003",
+              severity: "CRITICAL",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe use of Function constructor",
-              suggestion: "Avoid dynamic code execution. Pass standard functions or structured modules instead of strings.",
-              cvssBaseScore: 10.0, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'
+              suggestion: "Redesign dynamic code execution into fixed functions, a restricted interpreter, or structured input.",
+              cvssBaseScore: 10.0,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'
             });
           }
         }
@@ -150,12 +159,15 @@ const injectionRules = [
           const right = path.node.right;
           if (right && right.type === 'TemplateLiteral' && right.expressions && right.expressions.length > 0) {
             issues.push({
-              id: "OWASP-A03-004", severity: "HIGH",
+              id: "OWASP-A03-004",
+              guidanceId: "OWASP-A03-004",
+              severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using dynamic template literal",
-              suggestion: "Use DOM manipulation methods such as document.createElement() and textContent, or apply a sanitization library.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
+              suggestion: "Use DOM/text rendering when markup is unnecessary; otherwise sanitize under a defined HTML policy.",
+              cvssBaseScore: 8.8,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -173,12 +185,15 @@ const injectionRules = [
           const right = path.node.right;
           if (right && right.type === 'CallExpression') {
             issues.push({
-              id: "OWASP-A03-005", severity: "HIGH",
+              id: "OWASP-A03-005",
+              guidanceId: "OWASP-A03-005",
+              severity: "HIGH",
               line: path.node.loc?.start?.line || 1,
               column: path.node.loc?.start?.column || 0,
               message: "Unsafe innerHTML assignment using function return value",
-              suggestion: "Ensure the returned string is properly sanitized before assignment, or use textContent instead of innerHTML.",
-              cvssBaseScore: 8.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
+              suggestion: "Trace the returned data and use safe rendering or context-appropriate sanitization.",
+              cvssBaseScore: 8.8,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -201,11 +216,15 @@ const authRules = [
         if (idName && (idName.includes('password') || idName.includes('passwd') || idName.includes('pwd'))) {
           if (path.node.init && path.node.init.type === 'StringLiteral') {
             issues.push({
-              id: "OWASP-A02-001", severity: "CRITICAL",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-001",
+              guidanceId: "OWASP-A02-001",
+              severity: "CRITICAL",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: `Hardcoded password found in variable '${path.node.id.name}'`,
-              suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
-              cvssBaseScore: 9.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+              suggestion: "Revoke or rotate exposed credentials and move real secrets to a server-side secret store.",
+              cvssBaseScore: 9.8,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -215,11 +234,15 @@ const authRules = [
         if (leftName && (leftName.includes('password') || leftName.includes('passwd') || leftName.includes('pwd'))) {
           if (path.node.right && path.node.right.type === 'StringLiteral') {
             issues.push({
-              id: "OWASP-A02-001", severity: "CRITICAL",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-001",
+              guidanceId: "OWASP-A02-001",
+              severity: "CRITICAL",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: `Hardcoded password assigned to '${leftName}'`,
-              suggestion: "Use environment variables or a secure secret management system instead of hardcoding credentials.",
-              cvssBaseScore: 9.8, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+              suggestion: "Revoke or rotate exposed credentials and move real secrets to a server-side secret store.",
+              cvssBaseScore: 9.8,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
             });
           }
         }
@@ -239,11 +262,15 @@ const authRules = [
             const keyName = firstArg.value.toLowerCase();
             if (keyName.includes('token') || keyName.includes('auth') || keyName.includes('jwt')) {
               issues.push({
-                id: "OWASP-A07-001", severity: "HIGH",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                id: "OWASP-A07-001",
+                guidanceId: "OWASP-A07-001",
+                severity: "HIGH",
+                line: path.node.loc?.start?.line || 1,
+                column: path.node.loc?.start?.column || 0,
                 message: `Sensitive token stored in localStorage (key: '${firstArg.value}')`,
-                suggestion: "Store authentication tokens in HttpOnly cookies to prevent theft via XSS.",
-                cvssBaseScore: 8.2, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
+                suggestion: "Design the authentication flow so scripts cannot read long-lived credentials where possible.",
+                cvssBaseScore: 8.2,
+                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
               });
             }
           }
@@ -263,20 +290,28 @@ const authRules = [
             const cookieVal = right.value.toLowerCase();
             if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
               issues.push({
-                id: "OWASP-A02-002", severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                id: "OWASP-A02-002",
+                guidanceId: "OWASP-A02-002",
+                severity: "MEDIUM",
+                line: path.node.loc?.start?.line || 1,
+                column: path.node.loc?.start?.column || 0,
                 message: "Insecure cookie assignment (missing HttpOnly/Secure flags)",
-                suggestion: "Always append '; HttpOnly; Secure' when manually setting cookies containing sensitive session data.",
-                cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
+                suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
+                cvssBaseScore: 4.2,
+                cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
               });
             }
           } else if (right.type === 'TemplateLiteral') {
             issues.push({
-              id: "OWASP-A02-002", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-002",
+              guidanceId: "OWASP-A02-002",
+              severity: "MEDIUM",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Cookie set via template literal: verify HttpOnly and Secure flags are present",
-              suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
-              cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
+              suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
+              cvssBaseScore: 4.2,
+              cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
             });
           } else if (right.type === 'BinaryExpression') {
             // Check if the concatenation chain contains both HttpOnly and Secure flags
@@ -289,11 +324,15 @@ const authRules = [
             const fullCookieStr = collectStrings(right).toLowerCase();
             if (!fullCookieStr.includes('httponly') || !fullCookieStr.includes('secure')) {
               issues.push({
-                id: "OWASP-A02-002", severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                id: "OWASP-A02-002",
+                guidanceId: "OWASP-A02-002",
+                severity: "MEDIUM",
+                line: path.node.loc?.start?.line || 1,
+                column: path.node.loc?.start?.column || 0,
                 message: "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
-                suggestion: "Ensure cookies include '; HttpOnly; Secure' for sensitive data.",
-                cvssBaseScore: 4.2, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
+                suggestion: "Have the server issue the session cookie with the appropriate secure attributes.",
+                cvssBaseScore: 4.2,
+                cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N'
               });
             }
           }
@@ -330,11 +369,15 @@ const authRules = [
             const init = path.node.init;
             if (init && hasMathRandom(init)) {
               issues.push({
-                id: "OWASP-A02-003", severity: "HIGH",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                id: "OWASP-A02-003",
+                guidanceId: "OWASP-A02-003",
+                severity: "HIGH",
+                line: path.node.loc?.start?.line || 1,
+                column: path.node.loc?.start?.column || 0,
                 message: `Insecure pseudo-random number generator used for sensitive variable '${path.node.id.name}'`,
-                suggestion: "Use window.crypto.getRandomValues() or the Web Crypto API to generate cryptographically secure random values.",
-                cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N'
+                suggestion: "Use a cryptographically strong generator appropriate to the token's security purpose.",
+                cvssBaseScore: 7.5,
+                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N'
               });
             }
           }
@@ -363,11 +406,15 @@ const authRules = [
           }
           if (isVulnerable) {
             issues.push({
-              id: "OWASP-A02-004", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-004",
+              guidanceId: "OWASP-A02-004",
+              severity: "MEDIUM",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: `Insecure plaintext connection URL hardcoded: '${val}'`,
-              suggestion: "Use HTTPS connection URLs to secure transmissions and protect data integrity.",
-              cvssBaseScore: 5.9, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N'
+              suggestion: "Migrate only to a TLS endpoint that the service actually supports.",
+              cvssBaseScore: 5.9,
+              cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N'
             });
           }
         }
@@ -375,8 +422,7 @@ const authRules = [
     })
   }
 ];
-
-// ============================================================
+// ============================================================
 // A02 - Sensitive Data Exposure Rules
 // ============================================================
 const sensitiveDataRules = [
@@ -396,14 +442,26 @@ const sensitiveDataRules = [
         else if (awsKeyPattern.test(val)) type = "AWS Access Key";
         else if (ipPattern.test(val) && val !== '127.0.0.1' && val !== '0.0.0.0') type = "IP Address";
         if (type) {
+          const isNetworkAddress = type === "IP Address";
+          const guidanceId = isNetworkAddress ? "OWASP-A02-005:network-address" : "OWASP-A02-005:credential";
+          const cvssBaseScore = isNetworkAddress ? 5.3 : 9.1;
+          const cvssVector = isNetworkAddress
+            ? 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+            : 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N';
+          const suggestion = isNetworkAddress
+            ? "Review whether the endpoint address is sensitive configuration before changing it."
+            : "Revoke, rotate, and move genuine secrets out of source and client bundles.";
+
           issues.push({
             id: "OWASP-A02-005",
-            severity: type === "IP Address" ? "MEDIUM" : "CRITICAL",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+            guidanceId,
+            severity: isNetworkAddress ? "MEDIUM" : "CRITICAL",
+            line: path.node.loc?.start?.line || 1,
+            column: path.node.loc?.start?.column || 0,
             message: `Hardcoded ${type} detected in string.`,
-            suggestion: `Never hardcode ${type}s. Use environment variables (e.g., process.env or import.meta.env).`,
-            cvssBaseScore: type === "IP Address" ? 5.3 : 9.1,
-            cvssVector: type === "IP Address" ? 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N' : 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+            suggestion,
+            cvssBaseScore,
+            cvssVector
           });
         }
       }
@@ -423,11 +481,15 @@ const sensitiveDataRules = [
             if (val.includes('placeholder') || val.includes('dummy') || val.includes('test') || val.includes('example')) return;
             if (val.startsWith('http://') || val.startsWith('https://')) return; // Ignore URLs to prevent false positives
             issues.push({
-              id: "OWASP-A02-006", severity: "CRITICAL",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-006",
+              guidanceId: "OWASP-A02-006",
+              severity: "CRITICAL",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: `Hardcoded API key or secret found in variable '${path.node.id.name}'`,
-              suggestion: "Retrieve keys and secrets dynamically from a secure backend or environment storage instead of hardcoding.",
-              cvssBaseScore: 9.1, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
+              suggestion: "Determine whether the key is public/restricted or secret, then protect and rotate it accordingly.",
+              cvssBaseScore: 9.1,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N'
             });
           }
         }
@@ -448,11 +510,15 @@ const sensitiveDataRules = [
               lowerVal.includes('?key=') || lowerVal.includes('&key=') ||
               lowerVal.includes('?secret=') || lowerVal.includes('&secret=')) {
             issues.push({
-              id: "OWASP-A02-007", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A02-007",
+              guidanceId: "OWASP-A02-007",
+              severity: "MEDIUM",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Sensitive credentials embedded in URL query string",
-              suggestion: "Pass sensitive credentials inside HTTP request bodies or headers instead of query parameters.",
-              cvssBaseScore: 5.3, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+              suggestion: "Remove credentials from URLs and use the protocol's secure body/header mechanism over TLS.",
+              cvssBaseScore: 5.3,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
             });
           }
         }
@@ -460,7 +526,7 @@ const sensitiveDataRules = [
     })
   }
 ];
-// ============================================================
+// ============================================================
 // A01 - Broken Access Control Rules
 // ============================================================
 const accessControlRules = [
@@ -501,11 +567,15 @@ const accessControlRules = [
 
               if (isUnsafe) {
                 issues.push({
-                  id: "OWASP-A01-001", severity: "HIGH",
-                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  id: "OWASP-A01-001",
+                  guidanceId: "OWASP-A01-001",
+                  severity: "HIGH",
+                  line: path.node.loc?.start?.line || 1,
+                  column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location redirection using dynamic value",
-                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
+                  suggestion: "Allow only configured, trusted destinations.",
+                  cvssBaseScore: 7.4,
+                  cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
                 });
               }
             }
@@ -544,11 +614,15 @@ const accessControlRules = [
 
               if (isUnsafe) {
                 issues.push({
-                  id: "OWASP-A01-001", severity: "HIGH",
-                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  id: "OWASP-A01-001",
+                  guidanceId: "OWASP-A01-001",
+                  severity: "HIGH",
+                  line: path.node.loc?.start?.line || 1,
+                  column: path.node.loc?.start?.column || 0,
                   message: "Unsafe location.replace() using dynamic value",
-                  suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains.",
-                  cvssBaseScore: 7.4, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
+                  suggestion: "Allow only configured, trusted destinations.",
+                  cvssBaseScore: 7.4,
+                  cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:N/I:H/A:N'
                 });
               }
             }
@@ -580,11 +654,15 @@ const accessControlRules = [
           const test = path.node.test;
           if (test && checkExpression(test)) {
             issues.push({
-              id: "OWASP-A01-002", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A01-002",
+              guidanceId: "OWASP-A01-002",
+              severity: "MEDIUM",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Client-side role or authorization check in condition statement",
-              suggestion: "Never rely purely on client-side state for access control. Enforce all role-based authorization checks on a secure server.",
-              cvssBaseScore: 5.3, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+              suggestion: "Enforce authorization for every protected action on the server/API.",
+              cvssBaseScore: 5.3,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
             });
           }
         }
@@ -628,11 +706,15 @@ const misconfigRules = [
               const sensitiveNames = findSensitiveIdentifiers(arg);
               sensitiveNames.forEach(name => {
                 issues.push({
-                  id: "OWASP-A05-001", severity: "MEDIUM",
-                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  id: "OWASP-A05-001",
+                  guidanceId: "OWASP-A05-001",
+                  severity: "MEDIUM",
+                  line: path.node.loc?.start?.line || 1,
+                  column: path.node.loc?.start?.column || 0,
                   message: `Sensitive variable '${name}' logged to console`,
-                  suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
-                  cvssBaseScore: 5.5, cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
+                  suggestion: "Remove or redact sensitive values before logging.",
+                  cvssBaseScore: 5.5,
+                  cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
                 });
               });
             });
@@ -653,11 +735,15 @@ const misconfigRules = [
           if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
             if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
               issues.push({
-                id: "OWASP-A05-002", severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                id: "OWASP-A05-002",
+                guidanceId: "OWASP-A05-002",
+                severity: "MEDIUM",
+                line: path.node.loc?.start?.line || 1,
+                column: path.node.loc?.start?.column || 0,
                 message: "Wildcard (*) used in Access-Control-Allow-Origin header",
-                suggestion: "Specify exact trusted domains instead of using a wildcard.",
-                cvssBaseScore: 6.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N'
+                suggestion: "Configure server CORS for the actual trusted origins and credential policy.",
+                cvssBaseScore: 6.5,
+                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N'
               });
             }
           }
@@ -678,11 +764,15 @@ const misconfigRules = [
             path.node.arguments.forEach(arg => {
               if (arg.type === 'Identifier' && sensitiveObjects.includes(arg.name.toLowerCase())) {
                 issues.push({
-                  id: "OWASP-A05-003", severity: "MEDIUM",
-                  line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+                  id: "OWASP-A05-003",
+                  guidanceId: "OWASP-A05-003",
+                  severity: "MEDIUM",
+                  line: path.node.loc?.start?.line || 1,
+                  column: path.node.loc?.start?.column || 0,
                   message: `Sensitive object variable '${arg.name}' logged to console`,
-                  suggestion: "Avoid logging complete request, session, or credential objects. Log only specific non-sensitive attributes.",
-                  cvssBaseScore: 5.5, cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
+                  suggestion: "Log an allowlisted, non-sensitive subset rather than whole request/session objects.",
+                  cvssBaseScore: 5.5,
+                  cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N'
                 });
               }
             });
@@ -717,11 +807,15 @@ const misconfigRules = [
           exit() {
             if (hasExpress && !hasHelmet) {
               issues.push({
-                id: "OWASP-A05-004", severity: "LOW",
-                line: expressNode?.loc?.start?.line || 1, column: expressNode?.loc?.start?.column || 0,
+                id: "OWASP-A05-004",
+                guidanceId: "OWASP-A05-004",
+                severity: "LOW",
+                line: expressNode?.loc?.start?.line || 1,
+                column: expressNode?.loc?.start?.column || 0,
                 message: "Express framework imported without protective helmet middleware",
-                suggestion: "Install helmet (npm install helmet) and integrate it using app.use(helmet()).",
-                cvssBaseScore: 3.3, cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
+                suggestion: "Review server response-header policy and apply the appropriate Express/server hardening.",
+                cvssBaseScore: 3.3,
+                cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
               });
             }
           }
@@ -743,11 +837,15 @@ const xssRules = [
       AssignmentExpression(path) {
         if (path.node.left && path.node.left.property && path.node.left.property.name === 'innerHTML') {
           issues.push({
-            id: "OWASP-A03-006", severity: "HIGH",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+            id: "OWASP-A03-006",
+            guidanceId: "OWASP-A03-006",
+            severity: "HIGH",
+            line: path.node.loc?.start?.line || 1,
+            column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of innerHTML",
-            suggestion: "Use .textContent or .innerText to set text, or use a sanitization library like DOMPurify.",
-            cvssBaseScore: 8.2, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
+            suggestion: "Prefer safe text/DOM APIs unless a documented HTML policy requires markup.",
+            cvssBaseScore: 8.2,
+            cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
           });
         }
       }
@@ -762,11 +860,15 @@ const xssRules = [
         const callee = path.node.callee;
         if (callee.type === 'MemberExpression' && callee.object.name === 'document' && callee.property.name === 'write') {
           issues.push({
-            id: "OWASP-A03-007", severity: "CRITICAL",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+            id: "OWASP-A03-007",
+            guidanceId: "OWASP-A03-007",
+            severity: "CRITICAL",
+            line: path.node.loc?.start?.line || 1,
+            column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of document.write()",
-            suggestion: "Use DOM manipulation methods like document.createElement() and appendChild() instead.",
-            cvssBaseScore: 9.3, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
+            suggestion: "Replace the page-writing strategy according to load timing and intended output.",
+            cvssBaseScore: 9.3,
+            cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N'
           });
         }
       }
@@ -780,11 +882,15 @@ const xssRules = [
       JSXAttribute(path) {
         if (path.node.name && path.node.name.name === 'dangerouslySetInnerHTML') {
           issues.push({
-            id: "OWASP-A03-008", severity: "HIGH",
-            line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+            id: "OWASP-A03-008",
+            guidanceId: "OWASP-A03-008",
+            severity: "HIGH",
+            line: path.node.loc?.start?.line || 1,
+            column: path.node.loc?.start?.column || 0,
             message: "Dangerous use of dangerouslySetInnerHTML",
-            suggestion: "Avoid setting raw HTML from user input. Use safer alternatives or a sanitization library.",
-            cvssBaseScore: 8.2, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
+            suggestion: "Prefer React's normal escaped rendering; use a vetted sanitizer only for intentional HTML.",
+            cvssBaseScore: 8.2,
+            cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N'
           });
         }
       }
@@ -860,11 +966,15 @@ const deserializationRules = [
 
           if (!isParsedValidated) {
             issues.push({
-              id: "OWASP-A08-001", severity: "LOW",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A08-001",
+              guidanceId: "OWASP-A08-001",
+              severity: "LOW",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "JSON.parse() usage detected",
-              suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
-              cvssBaseScore: 3.7, cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N'
+              suggestion: "Validate untrusted parsed data against the expected structure before sensitive use.",
+              cvssBaseScore: 3.7,
+              cvssVector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N'
             });
           }
         }
@@ -894,11 +1004,15 @@ const deserializationRules = [
           if (!left) return;
           if (hasProtoPollution(left)) {
             issues.push({
-              id: "OWASP-A08-002", severity: "HIGH",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A08-002",
+              guidanceId: "OWASP-A08-002",
+              severity: "HIGH",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Potential prototype pollution assignment detected",
-              suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
-              cvssBaseScore: 7.5, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N'
+              suggestion: "Stop direct prototype mutation and reject dangerous property names in untrusted data.",
+              cvssBaseScore: 7.5,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N'
             });
           }
         }
@@ -916,11 +1030,15 @@ const deserializationRules = [
           const args = path.node.arguments;
           if (args.length >= 2 && args[0].type === 'Identifier') {
             issues.push({
-              id: "OWASP-A08-003", severity: "MEDIUM",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A08-003",
+              guidanceId: "OWASP-A08-003",
+              severity: "MEDIUM",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Unsafe use of Object.assign() mutating target object",
-              suggestion: "Validate and sanitize dynamic input arguments, or merge properties into a safe new object Object.assign({}, target, ...).",
-              cvssBaseScore: 5.3, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
+              suggestion: "Construct or merge only allowlisted data into an appropriate target object.",
+              cvssBaseScore: 5.3,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N'
             });
           }
         }
@@ -998,13 +1116,14 @@ const knownVulnsRules = [
                 if (!hasHelmet) {
                   issues.push({
                     id: "OWASP-A06-001",
+                    guidanceId: "OWASP-A06-001:express-headers",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
                     message: imp.type === 'import' 
                       ? "Risky library imported: 'express' (missing helmet protection)"
                       : "Risky library required: 'express' (missing helmet protection)",
-                    suggestion: "Ensure helmet middleware is required and used (app.use(helmet())) to secure Express HTTP headers.",
+                    suggestion: "Review the Express header-hardening configuration.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -1043,13 +1162,14 @@ const knownVulnsRules = [
                 if (hasUnsafeAxiosCall) {
                   issues.push({
                     id: "OWASP-A06-001",
+                    guidanceId: "OWASP-A06-001:dynamic-request-target",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
                     message: imp.type === 'import' 
                       ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
                       : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
-                    suggestion: "Avoid dynamic user-controlled URLs in axios calls or validate target URLs against a strict safelist.",
+                    suggestion: "Restrict outbound request targets using the application's approved destination policy.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -1057,13 +1177,14 @@ const knownVulnsRules = [
               } else {
                 issues.push({
                   id: "OWASP-A06-001",
+                  guidanceId: "OWASP-A06-001:component-review",
                   severity: "MEDIUM",
                   line: imp.line,
                   column: imp.column,
                   message: imp.type === 'import'
                     ? `Risky library imported: '${imp.name}'`
                     : `Risky library required: '${imp.name}'`,
-                  suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
+                  suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -1125,11 +1246,15 @@ const ssrfRules = [
 
           if (isUnsafe) {
             issues.push({
-              id: "OWASP-A10-001", severity: "HIGH",
-              line: path.node.loc?.start?.line || 1, column: path.node.loc?.start?.column || 0,
+              id: "OWASP-A10-001",
+              guidanceId: "OWASP-A10-001",
+              severity: "HIGH",
+              line: path.node.loc?.start?.line || 1,
+              column: path.node.loc?.start?.column || 0,
               message: "Dynamic request target passed to HTTP client (SSRF risk)",
-              suggestion: "Do not allow user-supplied input to directly construct connection URLs. Use a strict request whitelist.",
-              cvssBaseScore: 8.6, cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N'
+              suggestion: "On the server, enforce a destination policy before making outbound requests.",
+              cvssBaseScore: 8.6,
+              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N'
             });
           }
         }
@@ -1154,3 +1279,4 @@ const allRules = [
 ];
 
 module.exports = { allRules };
+

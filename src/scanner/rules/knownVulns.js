@@ -139,13 +139,14 @@ export const knownVulnsRules = [
                 if (!hasHelmet) {
                   issues.push({
                     id: "OWASP-A06-001",
+                    guidanceId: "OWASP-A06-001:express-headers",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
                     message: imp.type === 'import' 
                       ? "Risky library imported: 'express' (missing helmet protection)"
                       : "Risky library required: 'express' (missing helmet protection)",
-                    suggestion: "Ensure helmet middleware is required and used (app.use(helmet())) to secure Express HTTP headers.",
+                    suggestion: "Review the Express header-hardening configuration.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -184,13 +185,14 @@ export const knownVulnsRules = [
                 if (hasUnsafeAxiosCall) {
                   issues.push({
                     id: "OWASP-A06-001",
+                    guidanceId: "OWASP-A06-001:dynamic-request-target",
                     severity: "MEDIUM",
                     line: imp.line,
                     column: imp.column,
                     message: imp.type === 'import'
                       ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
                       : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
-                    suggestion: "Avoid dynamic user-controlled URLs in axios calls or validate target URLs against a strict safelist.",
+                    suggestion: "Restrict outbound request targets using the application's approved destination policy.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -198,13 +200,14 @@ export const knownVulnsRules = [
               } else {
                 issues.push({
                   id: "OWASP-A06-001",
+                  guidanceId: "OWASP-A06-001:component-review",
                   severity: "MEDIUM",
                   line: imp.line,
                   column: imp.column,
                   message: imp.type === 'import'
                     ? `Risky library imported: '${imp.name}'`
                     : `Risky library required: '${imp.name}'`,
-                  suggestion: "Ensure this library is kept strictly up-to-date and its inputs are heavily sanitized.",
+                  suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
                   cvssBaseScore,
                   cvssVector
                 });

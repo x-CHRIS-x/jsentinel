@@ -52,11 +52,12 @@ export const misconfigRules = [
               sensitiveNames.forEach(name => {
                 issues.push({
                   id: "OWASP-A05-001",
+                  guidanceId: "OWASP-A05-001",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: `Sensitive variable '${name}' logged to console`,
-                  suggestion: "Remove console.log statements containing sensitive data before deploying to production.",
+                  suggestion: "Remove or redact sensitive values before logging.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -98,11 +99,12 @@ export const misconfigRules = [
               if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
                 issues.push({
                   id: "OWASP-A05-002",
+                  guidanceId: "OWASP-A05-002",
                   severity: "MEDIUM",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: "Wildcard (*) used in Access-Control-Allow-Origin header",
-                  suggestion: "Specify exact trusted domains instead of using a wildcard to prevent unauthorized cross-origin requests.",
+                  suggestion: "Configure server CORS for the actual trusted origins and credential policy.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -145,11 +147,12 @@ export const misconfigRules = [
                 if (sensitiveObjects.includes(arg.name.toLowerCase())) {
                   issues.push({
                     id: "OWASP-A05-003",
+                    guidanceId: "OWASP-A05-003",
                     severity: "MEDIUM",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
                     message: `Sensitive object variable '${arg.name}' logged to console`,
-                    suggestion: "Avoid logging complete request, session, or credential objects. Log only specific non-sensitive attributes.",
+                    suggestion: "Log an allowlisted, non-sensitive subset rather than whole request/session objects.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -216,11 +219,12 @@ export const misconfigRules = [
             if (hasExpress && !hasHelmet) {
               issues.push({
                 id: "OWASP-A05-004",
+                guidanceId: "OWASP-A05-004",
                 severity: "LOW",
                 line: expressNode?.loc?.start?.line || 1,
                 column: expressNode?.loc?.start?.column || 0,
                 message: "Express framework imported without protective helmet middleware",
-                suggestion: "Install helmet (npm install helmet) and integrate it using app.use(helmet()) to enable secure HTTP response headers.",
+                suggestion: "Review server response-header policy and apply the appropriate Express/server hardening.",
                 cvssBaseScore,
                 cvssVector
               });

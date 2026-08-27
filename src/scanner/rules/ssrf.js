@@ -127,11 +127,12 @@ export const ssrfRules = [
             if (isUnsafe) {
               issues.push({
                 id: "OWASP-A10-001",
+                guidanceId: "OWASP-A10-001",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Dynamic request target passed to HTTP client (SSRF risk)",
-                suggestion: "Do not allow user-supplied input to directly construct connection URLs. Use a strict request whitelist.",
+                suggestion: "On the server, enforce a destination policy before making outbound requests.",
                 cvssBaseScore,
                 cvssVector
               });

@@ -86,11 +86,12 @@ export const deserializationRules = [
             if (!isParsedValidated) {
               issues.push({
                 id: "OWASP-A08-001",
+                guidanceId: "OWASP-A08-001",
                 severity: "LOW",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "JSON.parse() usage detected",
-                suggestion: "If the input comes from an untrusted user, validate the structure of the resulting object immediately.",
+                suggestion: "Validate untrusted parsed data against the expected structure before sensitive use.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -140,11 +141,12 @@ export const deserializationRules = [
           if (hasProtoPollution(left)) {
             issues.push({
               id: "OWASP-A08-002",
+              guidanceId: "OWASP-A08-002",
               severity: "HIGH",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Potential prototype pollution assignment detected",
-              suggestion: "Avoid direct modification of __proto__ or constructor.prototype. Use Map objects, or use Object.create(null).",
+              suggestion: "Stop direct prototype mutation and reject dangerous property names in untrusted data.",
               cvssBaseScore,
               cvssVector
             });
@@ -183,11 +185,12 @@ export const deserializationRules = [
             if (args.length >= 2 && args[0].type === 'Identifier') {
               issues.push({
                 id: "OWASP-A08-003",
+                guidanceId: "OWASP-A08-003",
                 severity: "MEDIUM",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Unsafe use of Object.assign() mutating target object",
-                suggestion: "Validate and sanitize dynamic input arguments, or merge properties into a safe new object Object.assign({}, target, ...).",
+                suggestion: "Construct or merge only allowlisted data into an appropriate target object.",
                 cvssBaseScore,
                 cvssVector
               });

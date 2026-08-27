@@ -116,11 +116,12 @@ export const accessControlRules = [
                 if (isUnsafe) {
                   issues.push({
                     id: "OWASP-A01-001",
+                    guidanceId: "OWASP-A01-001",
                     severity: "HIGH",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
                     message: "Unsafe location redirection using dynamic value",
-                    suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
+                    suggestion: "Allow only configured, trusted destinations.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -166,11 +167,12 @@ export const accessControlRules = [
                 if (isUnsafe) {
                   issues.push({
                     id: "OWASP-A01-001",
+                    guidanceId: "OWASP-A01-001",
                     severity: "HIGH",
                     line: path.node.loc?.start?.line || 'unknown',
                     column: path.node.loc?.start?.column || 'unknown',
                     message: "Unsafe location.replace() using dynamic value",
-                    suggestion: "Validate dynamic redirect targets against a whitelist of trusted domains, or avoid dynamic redirections entirely.",
+                    suggestion: "Allow only configured, trusted destinations.",
                     cvssBaseScore,
                     cvssVector
                   });
@@ -234,11 +236,12 @@ export const accessControlRules = [
           if (test && checkExpression(test)) {
             issues.push({
               id: "OWASP-A01-002",
+              guidanceId: "OWASP-A01-002",
               severity: "MEDIUM",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Client-side role or authorization check in condition statement",
-              suggestion: "Never rely purely on client-side state for access control. Enforce all role-based authorization checks on a secure server.",
+              suggestion: "Enforce authorization for every protected action on the server/API.",
               cvssBaseScore,
               cvssVector
             });

@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getGuidance, GUIDANCE_DISCLAIMER } from '../data/guidanceCatalog';
 
 // Safely parse fpKey with full support for Windows drive letters and colons in file paths
 const parseFpKey = (key) => {
@@ -17,118 +18,6 @@ const parseFpKey = (key) => {
   const ruleId = remainder2.substring(thirdLastColon + 1);
   const fileName = remainder2.substring(0, thirdLastColon);
   return { fileName, ruleId, line, col };
-};
-
-// self-contained Code Remediation Guide Dictionary for Section 6
-const pdfCodeFixGuide = {
-  'OWASP-A01-001': {
-    bad: 'window.location.href = redirectTargetUrl;',
-    good: 'if (trustedDomainWhitelist.includes(redirectTargetUrl)) {\n  window.location.href = redirectTargetUrl;\n} // Validate redirect target domain client side'
-  },
-  'OWASP-A01-002': {
-    bad: 'if (userData.role === "admin") { renderDashboard(); }',
-    good: '// Access control check must be enforced and validated on the backend API layer\nif (session.isAuthenticated) { renderDashboard(); }'
-  },
-  'OWASP-A02-001': {
-    bad: 'const password = "admin_credential_key_123";',
-    good: 'const password = process.env.DATABASE_PASSWORD; // Retrieve credentials from environment context'
-  },
-  'OWASP-A02-002': {
-    bad: 'document.cookie = "session=" + sessionId;',
-    good: 'document.cookie = "session=" + sessionId + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A02-003': {
-    bad: 'const securityToken = Math.random().toString();',
-    good: 'const securityToken = window.crypto.getRandomValues(new Uint32Array(1))[0].toString(); // Cryptographically secure random number generator'
-  },
-  'OWASP-A02-004': {
-    bad: 'fetch("http://api.internal.service/authenticate");',
-    good: 'fetch("https://api.internal.service/authenticate"); // Enforce encrypted HTTPS connections'
-  },
-  'OWASP-A02-005': {
-    bad: 'const AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE";',
-    good: 'const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY_ID; // Store secrets in secure server context'
-  },
-  'OWASP-A02-006': {
-    bad: 'const apiKey = "sec_key_xyz123456789abc";',
-    good: 'const apiKey = process.env.APP_SECRET_API_KEY; // Never expose authorization keys in source code'
-  },
-  'OWASP-A02-007': {
-    bad: 'const authUrl = "/login?password=" + userPassword;',
-    good: 'const response = await axios.post("/login", { password: userPassword }); // Pass sensitive credentials in post body'
-  },
-  'OWASP-A03-001': {
-    bad: 'eval("const user = " + userInput);',
-    good: 'const user = JSON.parse(userInput); // Parse structural data safely'
-  },
-  'OWASP-A03-002': {
-    bad: 'setTimeout("executeCallback()", 1000);',
-    good: 'setTimeout(executeCallback, 1000); // Pass function reference directly'
-  },
-  'OWASP-A03-003': {
-    bad: 'const execute = new Function("x", "return " + userInput);',
-    good: 'const execute = (x) => { return safeCallback(userInput, x); }; // Avoid dynamic code construction'
-  },
-  'OWASP-A03-004': {
-    bad: 'element.innerHTML = `<p>${userInput}</p>`;',
-    good: 'element.textContent = userInput; // Automatically sanitizes content to plaintext'
-  },
-  'OWASP-A03-005': {
-    bad: 'element.innerHTML = retrieveData(userInput);',
-    good: 'element.textContent = retrieveData(userInput); // Prevent execution of nested script tags'
-  },
-  'OWASP-A03-006': {
-    bad: 'targetDiv.innerHTML = untrustedHTMLString;',
-    good: 'targetDiv.textContent = untrustedHTMLString; // Avoid DOM parsing of dynamic strings'
-  },
-  'OWASP-A03-007': {
-    bad: 'document.write(userInputString);',
-    good: 'const textNode = document.createTextNode(userInputString);\ndocument.body.appendChild(textNode);'
-  },
-  'OWASP-A03-008': {
-    bad: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />',
-    good: '<div>{dynamicMarkup}</div> // Rely on React default rendering auto sanitization'
-  },
-  'OWASP-A05-001': {
-    bad: 'console.log("User password payload: ", userPassword);',
-    good: 'console.log("User login lifecycle triggered."); // Log non-sensitive transaction indicators only'
-  },
-  'OWASP-A05-002': {
-    bad: 'response.setHeader("Access-Control-Allow-Origin", "*");',
-    good: 'response.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain"); // Enforce restrictive CORS origins'
-  },
-  'OWASP-A05-003': {
-    bad: 'console.log("Full request context logged: ", requestContext);',
-    good: 'console.log("Request context received for path: ", requestContext.path);'
-  },
-  'OWASP-A05-004': {
-    bad: 'const app = express();\napp.listen(3000);',
-    good: 'const app = express();\nconst helmet = require("helmet");\napp.use(helmet()); // Enforce helmet secure response headers'
-  },
-  'OWASP-A06-001': {
-    bad: 'import lodash from "lodash"; // CVE-2019-10744 prototype pollution',
-    good: 'import lodash from "lodash-es"; // Use updated or patched utility libraries'
-  },
-  'OWASP-A07-001': {
-    bad: 'localStorage.setItem("authToken", jsonWebToken);',
-    good: 'document.cookie = "authToken=" + jsonWebToken + "; Secure; HttpOnly; SameSite=Strict;";'
-  },
-  'OWASP-A08-001': {
-    bad: 'const payload = JSON.parse(untrustedJSONInput);',
-    good: 'const payload = secureSchemaParse(untrustedJSONInput); // Validate schema layout post deserialization'
-  },
-  'OWASP-A08-002': {
-    bad: 'targetObject.__proto__.polluted = true;',
-    good: 'const targetObject = Object.create(null); // Instantiate prototype-less objects'
-  },
-  'OWASP-A08-003': {
-    bad: 'Object.assign(baseObject, JSON.parse(userInputPayload));',
-    good: 'const sanitized = filterKeys(JSON.parse(userInputPayload));\nObject.assign(baseObject, sanitized); // Filter input keys to prevent injection'
-  },
-  'OWASP-A10-001': {
-    bad: 'axios.get(dynamicRequestUrl);',
-    good: 'if (isValidInternalEndpoint(dynamicRequestUrl)) {\n  axios.get(dynamicRequestUrl);\n} // Restrict connection targets to authenticated APIs'
-  }
 };
 
 // Check height bounds and append new pages dynamically
@@ -333,7 +222,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
   y += 5;
 
   const activeIssuesList = [];
-  const triggeredRuleIds = new Set();
+  const triggeredGuidanceMap = new Map();
 
   results.forEach(res => {
     if (res.issues) {
@@ -345,11 +234,15 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
           file: res.fileName.replace(/\\/g, '/').split('/').pop(),
           line: issue.line,
           id: issue.id,
+          guidanceId: issue.guidanceId || issue.id,
           severity: issue.severity,
           message: issue.message
         });
 
-        triggeredRuleIds.add(issue.id);
+        const gId = issue.guidanceId || issue.id;
+        if (!triggeredGuidanceMap.has(gId)) {
+          triggeredGuidanceMap.set(gId, getGuidance(issue));
+        }
       });
     }
   });
@@ -391,64 +284,166 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
   }
 
   // ==========================================
-  // SECTION 6: RECOMMENDED CODE REMEDIATION GUIDES
+  // SECTION 6: SECURITY REMEDIATION GUIDANCE
   // ==========================================
   y = checkHeightAndPageBreak(doc, 60, y);
   doc.setTextColor(...brand.charcoal);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('6. RECOMMENDED CODE REMEDIATION GUIDES', 14, y);
-  y += 5;
+  doc.text('6. SECURITY REMEDIATION GUIDANCE', 14, y);
+  y += 6;
 
-  if (triggeredRuleIds.size === 0) {
+  if (triggeredGuidanceMap.size === 0) {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...brand.gray);
     doc.text('No remediation guidelines are required. The active codebase does not trigger unmitigated rules.', 14, y);
     y += 10;
   } else {
-    triggeredRuleIds.forEach(ruleId => {
-      const guide = pdfCodeFixGuide[ruleId];
-      if (!guide) return;
+    triggeredGuidanceMap.forEach((record) => {
+      if (!record) return;
 
-      const badLines = doc.splitTextToSize(guide.bad, 174);
-      const badBoxHeight = Math.max(16, 8 + badLines.length * 4.5);
+      y = checkHeightAndPageBreak(doc, 55, y);
 
-      const goodLines = doc.splitTextToSize(guide.good, 174);
-      const goodBoxHeight = Math.max(16, 8 + goodLines.length * 4.5);
-
-      const neededHeight = badBoxHeight + goodBoxHeight + 14;
-      y = checkHeightAndPageBreak(doc, neededHeight, y);
-
-      doc.setFontSize(9);
+      // Header Banner / Title
+      doc.setFontSize(9.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...brand.maroon);
-      doc.text(`REMEDIATION TEMPLATE FOR RULE ID: ${ruleId}`, 14, y);
-      y += 4;
+      const guidanceId = record?.guidanceId || 'GENERAL';
+      const recordTitle = (record?.title || 'Security Recommendation').toUpperCase();
+      const headerTitle = `REMEDIATION GUIDANCE: ${guidanceId} - ${recordTitle}`;
+      doc.text(headerTitle, 14, y);
+      y += 4.5;
 
+      // Metadata: Category and Scope
       doc.setFontSize(8);
-      doc.setTextColor(...brand.charcoal);
-      
-      // Bad code block
-      doc.setFillColor(254, 242, 242);
-      doc.rect(14, y, 182, badBoxHeight, 'F');
-      doc.setFont('courier', 'normal');
-      doc.text('VULNERABLE CODE EXPOSED:', 18, y + 5);
-      doc.text(badLines, 18, y + 10);
-      
-      y += badBoxHeight + 3;
-
-      // Good code block
-      doc.setFillColor(240, 253, 250);
-      doc.rect(14, y, 182, goodBoxHeight, 'F');
-      doc.setFont('courier', 'bold');
-      doc.text('SECURE REMEDIATION CONTEXT:', 18, y + 5);
-      doc.text(goodLines, 18, y + 10);
-      
-      y += goodBoxHeight + 6;
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...brand.gray);
+      const categoryStr = record?.category || 'General Security';
+      const scopeStr = (record?.scope || 'cross-boundary').toUpperCase();
+      doc.text(`Category: ${categoryStr} | Scope: ${scopeStr}`, 14, y);
+      y += 5.5;
+
+      // Recommended Action
+      y = checkHeightAndPageBreak(doc, 20, y);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...brand.charcoal);
+      doc.text('RECOMMENDED ACTION:', 14, y);
+      y += 3.5;
+      doc.setFont('helvetica', 'normal');
+      const actionText = record?.recommendedAction || record?.shortAction || 'Review the flagged code against project security requirements.';
+      const actionLines = doc.splitTextToSize(actionText, 182);
+      doc.text(actionLines, 14, y);
+      y += (actionLines.length * 3.8) + 3;
+
+      // Why review this / Risk Context
+      y = checkHeightAndPageBreak(doc, 25, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text('WHY REVIEW THIS (SECURITY RISK):', 14, y);
+      y += 3.5;
+      doc.setFont('helvetica', 'normal');
+      const riskText = record?.risk || 'Static analysis flagged an unclassified code pattern that may warrant security review.';
+      const riskLines = doc.splitTextToSize(riskText, 182);
+      doc.text(riskLines, 14, y);
+      y += (riskLines.length * 3.8) + 3;
+
+      // Static Analysis Limitations (cannotInfer)
+      y = checkHeightAndPageBreak(doc, 25, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...brand.maroon);
+      doc.text('STATIC ANALYSIS LIMITATIONS (WHAT JSENTINEL CANNOT DETERMINE):', 14, y);
+      y += 3.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...brand.charcoal);
+      const cannotInferText = record?.cannotInfer || 'JSentinel cannot determine application intent, runtime context, or environmental security controls.';
+      const cannotInferLines = doc.splitTextToSize(cannotInferText, 182);
+      doc.text(cannotInferLines, 14, y);
+      y += (cannotInferLines.length * 3.8) + 3;
+
+      // Remediation Approaches
+      if (record.approaches && record.approaches.length > 0) {
+        y = checkHeightAndPageBreak(doc, 25, y);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REMEDIATION APPROACHES:', 14, y);
+        y += 3.5;
+        doc.setFont('helvetica', 'normal');
+        record.approaches.forEach(appr => {
+          const apprText = typeof appr === 'string' ? appr : `${appr.title}: ${appr.description}`;
+          const apprLines = doc.splitTextToSize(`• ${apprText}`, 178);
+          y = checkHeightAndPageBreak(doc, (apprLines.length * 3.8) + 2, y);
+          doc.text(apprLines, 16, y);
+          y += (apprLines.length * 3.8) + 1.5;
+        });
+        y += 1.5;
+      }
+
+      // Illustrative Pattern (if present)
+      if (record.illustrativePattern) {
+        const patternLines = doc.splitTextToSize(record.illustrativePattern, 174);
+        const patternBoxHeight = Math.max(14, 8 + (patternLines.length * 4));
+        y = checkHeightAndPageBreak(doc, patternBoxHeight + 6, y);
+
+        doc.setFillColor(248, 250, 252);
+        doc.rect(14, y, 182, patternBoxHeight, 'F');
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...brand.slate);
+        doc.text('Illustrative rule pattern — not the detected source', 18, y + 4.5);
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...brand.charcoal);
+        doc.text(patternLines, 18, y + 9);
+        y += patternBoxHeight + 3.5;
+        doc.setFont('helvetica', 'normal');
+      }
+
+      // Verification Procedures
+      if (record.verifySteps && record.verifySteps.length > 0) {
+        y = checkHeightAndPageBreak(doc, 20, y);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...brand.charcoal);
+        doc.text('VERIFICATION PROCEDURES:', 14, y);
+        y += 3.5;
+        doc.setFont('helvetica', 'normal');
+        record.verifySteps.forEach(step => {
+          const stepLines = doc.splitTextToSize(`[ ] ${step}`, 178);
+          y = checkHeightAndPageBreak(doc, (stepLines.length * 3.8) + 2, y);
+          doc.text(stepLines, 16, y);
+          y += (stepLines.length * 3.8) + 1.5;
+        });
+        y += 1.5;
+      }
+
+      // Authoritative References (if present)
+      if (record.references && record.references.length > 0) {
+        y = checkHeightAndPageBreak(doc, 15, y);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AUTHORITATIVE REFERENCES:', 14, y);
+        y += 3.5;
+        doc.setFont('helvetica', 'normal');
+        record.references.forEach(ref => {
+          const refLines = doc.splitTextToSize(`- ${ref.title}: ${ref.url}`, 178);
+          y = checkHeightAndPageBreak(doc, (refLines.length * 3.5) + 2, y);
+          doc.text(refLines, 16, y);
+          y += (refLines.length * 3.5) + 1.2;
+        });
+        y += 1.5;
+      }
+
+      // Mandatory Educational Disclaimer
+      y = checkHeightAndPageBreak(doc, 14, y);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7);
+      doc.setTextColor(...brand.gray);
+      const discLines = doc.splitTextToSize(GUIDANCE_DISCLAIMER, 182);
+      doc.text(discLines, 14, y);
+      y += (discLines.length * 3.2) + 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...brand.charcoal);
     });
-    doc.setTextColor(...brand.charcoal);
   }
 
   // ==========================================

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:guidance": "node scripts/verify-guidance.js",
+    "test:e2e": "node tests/e2e/run-all-tests.js"
   },
   "dependencies": {
     "@babel/parser": "^7.29.2",

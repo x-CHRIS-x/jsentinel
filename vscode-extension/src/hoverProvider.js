@@ -17,6 +17,7 @@
  */
 
 const vscode = require('vscode');
+const { getGuidance, GUIDANCE_DISCLAIMER } = require('./data/guidanceCatalog');
 
 // ──────────────────────────────────────────────
 // OWASP Category Metadata
@@ -52,40 +53,6 @@ const confidenceConfig = {
   'LOW':    { emoji: '⚪', description: 'Informational: verify manually' },
 };
 
-// ──────────────────────────────────────────────
-// Risk explanations per rule ID
-// Explains WHY this pattern is dangerous
-// ──────────────────────────────────────────────
-const riskExplanations = {
-  'OWASP-A01-001': 'Setting location.href to a user-controlled variable lets attackers craft URLs that redirect victims to phishing sites or malicious pages.',
-  'OWASP-A01-002': 'Client-side role checks can be trivially bypassed using browser DevTools. An attacker can modify variables or skip conditions to access restricted features.',
-  'OWASP-A02-001': 'Hardcoded passwords in source code are exposed to anyone with repository access. They cannot be rotated without a code change and deployment.',
-  'OWASP-A02-002': 'Cookies without HttpOnly flag can be read by JavaScript (enabling XSS theft). Without Secure flag, they transmit over unencrypted HTTP connections.',
-  'OWASP-A02-003': 'Math.random() produces predictable pseudo-random numbers. An attacker can predict future values and forge tokens, OTPs, or session identifiers.',
-  'OWASP-A02-004': 'HTTP transmits data as plaintext. Anyone on the network path (WiFi, ISP, proxy) can read or modify the traffic, including credentials and session tokens.',
-  'OWASP-A02-005': 'Hardcoded secrets (JWT tokens, AWS keys, IPs) in source code are permanently exposed in version control history, even if later removed.',
-  'OWASP-A02-006': 'API keys and secrets hardcoded in variables can be extracted from client-side bundles, version control, or build artifacts by anyone with access.',
-  'OWASP-A02-007': 'Credentials in URL query strings are logged in browser history, server logs, proxy logs, and the Referer header, creating multiple exposure vectors.',
-  'OWASP-A03-001': 'eval() executes arbitrary strings as JavaScript code. An attacker who controls the input can run any code in the application context, leading to full compromise.',
-  'OWASP-A03-002': 'When setTimeout/setInterval receives a string, it acts like eval(), parsing and executing the string as code. This opens the same arbitrary code execution risks.',
-  'OWASP-A03-003': 'The Function constructor creates a new function from a string argument, identical in risk to eval(). Attackers can inject executable code through the string parameter.',
-  'OWASP-A03-004': 'Assigning a template literal with variables to innerHTML allows attackers to inject malicious HTML/JavaScript if they control any of the interpolated values.',
-  'OWASP-A03-005': 'Setting innerHTML to a function\'s return value is dangerous if the function processes any user input. The returned HTML could contain injected script tags.',
-  'OWASP-A03-006': 'Direct innerHTML assignment interprets the string as HTML markup. If any part of the string comes from user input, it can execute arbitrary scripts.',
-  'OWASP-A03-007': 'document.write() injects raw HTML into the page during parsing. It has no sanitization and can completely overwrite page content with malicious code.',
-  'OWASP-A03-008': 'React\'s dangerouslySetInnerHTML bypasses React\'s built-in XSS protection. If the HTML content is user-controlled, scripts will execute in the browser.',
-  'OWASP-A05-001': 'Console.log statements with sensitive variables persist in production browser consoles. Any user or attacker can open DevTools and read the logged secrets.',
-  'OWASP-A05-002': 'A wildcard CORS policy allows any website to make authenticated requests to your API, enabling cross-site data theft from any malicious page.',
-  'OWASP-A05-003': 'Logging entire request, user, or session objects to the console may expose passwords, tokens, personal data, and internal system details.',
-  'OWASP-A05-004': 'Express without helmet middleware leaves the application missing critical security headers (CSP, X-Frame-Options, HSTS, etc.), increasing attack surface.',
-  'OWASP-A06-001': 'This library has known CVEs or common misuse patterns. Using outdated or misconfigured versions can introduce exploitable vulnerabilities into your application.',
-  'OWASP-A07-001': 'localStorage is accessible to any JavaScript on the page. If an XSS vulnerability exists, an attacker\'s script can steal all stored tokens instantly.',
-  'OWASP-A08-001': 'JSON.parse() on untrusted input can produce unexpected object shapes. Without validation, downstream code may behave unpredictably or insecurely.',
-  'OWASP-A08-002': 'Modifying __proto__ or constructor.prototype changes the behavior of all objects sharing that prototype, enabling denial of service or code execution.',
-  'OWASP-A08-003': 'Object.assign() merges all properties from the source. If the source is user-controlled, attackers can inject __proto__ or other dangerous properties.',
-  'OWASP-A10-001': 'When fetch/axios URLs are user-controlled, attackers can make your server request internal resources (databases, admin panels, cloud metadata endpoints).'
-};
-
 /**
  * Extracts the OWASP category prefix from a rule ID.
  * e.g., 'OWASP-A01-001' → 'A01', 'OWASP-A10-001' → 'A10'
@@ -115,17 +82,18 @@ const buildHoverCard = (issue) => {
   const confidence = confidenceConfig[issue.confidence] || confidenceConfig['MEDIUM'];
   const categoryPrefix = getCategoryPrefix(issue.id);
   const category = categoryPrefix ? owaspCategories[categoryPrefix] : null;
-  const riskExplanation = riskExplanations[issue.id] || '';
+  const guidance = getGuidance(issue);
+  const scopeLabel = guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope';
 
   const lines = [];
 
-  // ── Header: Severity + Rule ID ──
-  lines.push(`## ${severity.emoji} ${severity.label}: \`${issue.id}\``);
+  // ── Header: Severity + Rule ID + Title ──
+  lines.push(`## ${severity.emoji} ${severity.label}: \`${issue.id}\` - ${guidance.title}`);
   lines.push('');
 
-  // ── OWASP Category ──
+  // ── OWASP Category & Scope ──
   if (category) {
-    lines.push(`${category.icon} **OWASP Category:** [${category.name}](${category.url})`);
+    lines.push(`${category.icon} **OWASP Category:** [${category.name}](${category.url}) | **Scope:** \`${scopeLabel}\``);
     lines.push('');
   }
 
@@ -133,48 +101,83 @@ const buildHoverCard = (issue) => {
   lines.push('---');
   lines.push('');
 
-  // ── What was detected ──
-  lines.push(`### 🔎 What was detected`);
+  // ── Summary & Risk Analysis ──
+  lines.push('### 🔎 Summary & Risk Analysis');
   lines.push('');
-  lines.push(issue.message);
+  lines.push(`**Detected:** ${issue.message}`);
+  lines.push('');
+  lines.push(guidance.risk);
   lines.push('');
 
-  // ── Why this is dangerous ──
-  if (riskExplanation) {
-    lines.push(`### ⚠️ Why this is dangerous`);
+  // ── Recommended Action ──
+  lines.push('### 💡 Recommended Action');
+  lines.push('');
+  lines.push(guidance.recommendedAction || guidance.shortAction);
+  lines.push('');
+
+  // ── Analysis Limitations ──
+  lines.push('### ⚠️ What JSentinel Cannot Determine');
+  lines.push('');
+  lines.push(guidance.cannotInfer);
+  lines.push('');
+
+  // ── Safe Approaches ──
+  if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
+    lines.push('### 🛠️ Safe Approaches');
     lines.push('');
-    lines.push(riskExplanation);
+    guidance.approaches.forEach(appr => {
+      if (typeof appr === 'string') {
+        const colonIdx = appr.indexOf(':');
+        if (colonIdx !== -1) {
+          const title = appr.slice(0, colonIdx);
+          const desc = appr.slice(colonIdx + 1).trim();
+          lines.push(`- **${title}:** ${desc}`);
+        } else {
+          lines.push(`- ${appr}`);
+        }
+      } else if (typeof appr === 'object' && appr !== null) {
+        lines.push(`- **${appr.title}:** ${appr.description}`);
+      }
+    });
     lines.push('');
   }
 
-  // ── How to fix it ──
-  if (issue.suggestion) {
-    lines.push(`### 💡 How to fix`);
-    lines.push('');
-    lines.push(issue.suggestion);
+  // ── Optional Illustrative Pattern ──
+  if (guidance.illustrativePattern) {
+    lines.push('**Illustrative Pattern (Non-Prescriptive):**');
+    lines.push('```javascript');
+    lines.push(guidance.illustrativePattern);
+    lines.push('```');
     lines.push('');
   }
 
-  // ── Divider ──
+  // ── Verification Steps ──
+  if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
+    lines.push('### 🧪 Verification Steps');
+    lines.push('');
+    guidance.verifySteps.forEach(step => {
+      lines.push(`- [ ] ${step}`);
+    });
+    lines.push('');
+  }
+
+  // ── Mandatory Educational Disclaimer ──
   lines.push('---');
   lines.push('');
+  lines.push(`*${GUIDANCE_DISCLAIMER}*`);
+  lines.push('');
 
-  // ── Metrics row ──
+  // ── Metrics Footer ──
+  lines.push('---');
+  lines.push('');
   const metricsRow = [];
-
-  // Confidence
   metricsRow.push(`${confidence.emoji} **Confidence:** ${issue.confidence}: *${confidence.description}*`);
-
-  // CVSS Score
   if (issue.cvssBaseScore !== undefined) {
     metricsRow.push(`📊 **CVSS Score:** ${formatCvssScore(issue.cvssBaseScore)}`);
   }
-
-  // CVSS Vector
   if (issue.cvssVector) {
     metricsRow.push(`🧮 **Vector:** \`${issue.cvssVector}\``);
   }
-
   lines.push(metricsRow.join('  \n'));
   lines.push('');
 

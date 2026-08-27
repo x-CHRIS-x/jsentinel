@@ -40,6 +40,19 @@ export const scanFile = async (file, rules) => {
       }
     }
 
+    // Attach guidanceId and extracted sourceLine
+    const codeLines = code.split(/\r?\n/);
+    issues.forEach(issue => {
+      if (!issue.guidanceId) {
+        issue.guidanceId = issue.id;
+      }
+      if (typeof issue.line === 'number' && issue.line >= 1 && issue.line <= codeLines.length) {
+        issue.sourceLine = codeLines[issue.line - 1].trim();
+      } else {
+        issue.sourceLine = '';
+      }
+    });
+
     return {
       fileName: file.webkitRelativePath || file.name,
       issues,

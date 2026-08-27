@@ -30,11 +30,12 @@ export const injectionRules = [
           if (path.node && path.node.callee && path.node.callee.name === 'eval') {
             issues.push({
               id: "OWASP-A03-001",
+              guidanceId: "OWASP-A03-001",
               severity: "CRITICAL",
               line: path.node.loc?.start?.line || 'unknown',
               column: path.node.loc?.start?.column || 'unknown',
               message: "Dangerous use of eval()",
-              suggestion: "Use JSON.parse() or access object properties directly instead of eval().",
+              suggestion: "Remove dynamic evaluation and choose a parser or fixed behavior that matches the intended input format.",
               cvssBaseScore,
               cvssVector
             });
@@ -75,11 +76,12 @@ export const injectionRules = [
             if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral' || firstArg.type === 'BinaryExpression')) {
               issues.push({
                 id: "OWASP-A03-002",
+                guidanceId: "OWASP-A03-002",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: `Dangerous use of string in ${calleeName}`,
-                suggestion: "Pass a function or arrow function as the first argument instead of a string.",
+                suggestion: "Replace runtime code strings with a function or closure that preserves intended arguments and timing.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -119,11 +121,12 @@ export const injectionRules = [
             if (firstArg && (firstArg.type === 'StringLiteral' || firstArg.type === 'TemplateLiteral')) {
               issues.push({
                 id: "OWASP-A03-003",
+                guidanceId: "OWASP-A03-003",
                 severity: "CRITICAL",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Unsafe use of Function constructor",
-                suggestion: "Avoid dynamic code execution. Pass standard functions or structured modules instead of strings.",
+                suggestion: "Redesign dynamic code execution into fixed functions, a restricted interpreter, or structured input.",
                 cvssBaseScore,
                 cvssVector
               });
@@ -165,11 +168,12 @@ export const injectionRules = [
               if (right.expressions && right.expressions.length > 0) {
                 issues.push({
                   id: "OWASP-A03-004",
+                  guidanceId: "OWASP-A03-004",
                   severity: "HIGH",
                   line: path.node.loc?.start?.line || 'unknown',
                   column: path.node.loc?.start?.column || 'unknown',
                   message: "Unsafe innerHTML assignment using dynamic template literal",
-                  suggestion: "Use DOM manipulation methods such as document.createElement() and textContent, or apply a sanitization library.",
+                  suggestion: "Use DOM/text rendering when markup is unnecessary; otherwise sanitize under a defined HTML policy.",
                   cvssBaseScore,
                   cvssVector
                 });
@@ -210,11 +214,12 @@ export const injectionRules = [
             if (right && right.type === 'CallExpression') {
               issues.push({
                 id: "OWASP-A03-005",
+                guidanceId: "OWASP-A03-005",
                 severity: "HIGH",
                 line: path.node.loc?.start?.line || 'unknown',
                 column: path.node.loc?.start?.column || 'unknown',
                 message: "Unsafe innerHTML assignment using function return value",
-                suggestion: "Ensure the returned string is properly sanitized before assignment, or use textContent instead of innerHTML.",
+                suggestion: "Trace the returned data and use safe rendering or context-appropriate sanitization.",
                 cvssBaseScore,
                 cvssVector
               });
