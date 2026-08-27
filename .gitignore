@@ -25,5 +25,7 @@ dist-ssr
 gemini.md
 .agents/
 skills-lock.json
+# Local research and documentation
 documents/
+tests/
 cvss_metrics_reference.html
