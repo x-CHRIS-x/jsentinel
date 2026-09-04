@@ -417,9 +417,17 @@ function App() {
         });
       } else if (item.isDirectory) {
         const dirReader = item.createReader();
-        const entries = await new Promise((resolve) => {
-          dirReader.readEntries((entries) => resolve(entries));
+        const readBatch = () => new Promise((resolve, reject) => {
+          dirReader.readEntries(resolve, reject);
         });
+
+        const entries = [];
+        let batch;
+        do {
+          batch = await readBatch();
+          entries.push(...batch);
+        } while (batch && batch.length > 0);
+
         for (const entry of entries) {
           await traverseFileTree(entry, path + item.name + "/");
         }
