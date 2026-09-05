@@ -94,10 +94,23 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedFileIdx, setSelectedFileIdx] = useState(null);
   const [selectedIssueIdx, setSelectedIssueIdx] = useState(null);
+  const [expandedFullGuidance, setExpandedFullGuidance] = useState(new Set());
   const [darkMode, setDarkMode] = useState(false);
   const [largeProjectWarning, setLargeProjectWarning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileSearchQuery, setFileSearchQuery] = useState('');
+
+  const toggleFullGuidance = (key) => {
+    setExpandedFullGuidance(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   // Filtering states
   const [severityFilter, setSeverityFilter] = useState('ALL');
@@ -1371,6 +1384,7 @@ function App() {
                                 {isSelected && (() => {
                                   const guidance = getGuidance(issue);
                                   const detectedLine = issue.sourceLine || (selectedResult?.rawCode ? selectedResult.rawCode.split('\n')[issue.line - 1] : null);
+                                  const isFullGuidanceExpanded = expandedFullGuidance.has(fpKey);
 
                                   return (
                                     <div className="mt-3 pt-3 border-t border-slate-200 dark:border-zinc-800 space-y-3 animate-reveal text-left">
@@ -1417,88 +1431,95 @@ function App() {
                                         </p>
                                       </div>
 
-                                      {/* 4. What JSentinel cannot determine */}
-                                      <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 space-y-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block flex items-center gap-1">
-                                          <span>⚠️</span> 4. What JSentinel cannot determine
+                                      {/* Progressive Disclosure Toggle for Sections 4-6 */}
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleFullGuidance(fpKey)}
+                                        className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/80 text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer"
+                                      >
+                                        <span>{isFullGuidanceExpanded ? 'Hide full guidance' : 'Show full guidance'}</span>
+                                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                                          {isFullGuidanceExpanded ? '▴' : '▾'}
                                         </span>
-                                        <p className="text-[10.5px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
-                                          {guidance.cannotInfer}
-                                        </p>
-                                      </div>
+                                      </button>
 
-                                      {/* 5. Possible approaches */}
-                                      <div className="space-y-1.5">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                          5. Possible approaches
-                                        </span>
-                                        <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
-                                          {guidance.approaches && guidance.approaches.map((appr, idx) => {
-                                            if (typeof appr === 'string') {
-                                              const colonIdx = appr.indexOf(':');
-                                              if (colonIdx !== -1) {
-                                                const title = appr.slice(0, colonIdx);
-                                                const desc = appr.slice(colonIdx + 1).trim();
-                                                return (
-                                                  <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                    <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
-                                                    <span>
-                                                      <strong className="text-slate-900 dark:text-zinc-100">{title}:</strong> {desc}
-                                                    </span>
-                                                  </li>
-                                                );
-                                              }
-                                              return (
-                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                  <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
-                                                  <span>{appr}</span>
-                                                </li>
-                                              );
-                                            }
-                                            if (typeof appr === 'object' && appr !== null) {
-                                              return (
-                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                  <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
-                                                  <span>
-                                                    <strong className="text-slate-900 dark:text-zinc-100">{appr.title}:</strong> {appr.description}
-                                                  </span>
-                                                </li>
-                                              );
-                                            }
-                                            return null;
-                                          })}
-                                        </ul>
-                                        {guidance.illustrativePattern && (
-                                          <div className="mt-1.5 p-2 rounded-lg bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700">
-                                            <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block mb-1">
-                                              Illustrative Pattern (Non-Prescriptive)
+                                      {/* Collapsible Sections 4-6 */}
+                                      {isFullGuidanceExpanded && (
+                                        <div className="space-y-3 pt-1 animate-reveal">
+                                          {/* 4. What JSentinel cannot determine */}
+                                          <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 space-y-1">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block flex items-center gap-1">
+                                              <span>⚠️</span> 4. What JSentinel cannot determine
                                             </span>
-                                            <code className="text-[10px] font-mono text-slate-800 dark:text-zinc-200 block whitespace-pre-wrap break-all">
-                                              {guidance.illustrativePattern}
-                                            </code>
+                                            <p className="text-[10.5px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
+                                              {guidance.cannotInfer}
+                                            </p>
                                           </div>
-                                        )}
-                                      </div>
 
-                                      {/* 6. How to verify */}
-                                      <div className="space-y-1.5">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                          6. How to verify
-                                        </span>
-                                        <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
-                                          {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
-                                            <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                              <span className="text-emerald-500 dark:text-emerald-400 font-bold shrink-0">✓</span>
-                                              <span>{step}</span>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
+                                          {/* 5. Possible approaches */}
+                                          <div className="space-y-1.5">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                              5. Possible approaches
+                                            </span>
+                                            <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                              {guidance.approaches && guidance.approaches.map((appr, idx) => {
+                                                if (typeof appr === 'string') {
+                                                  const colonIdx = appr.indexOf(':');
+                                                  if (colonIdx !== -1) {
+                                                    const title = appr.slice(0, colonIdx);
+                                                    const desc = appr.slice(colonIdx + 1).trim();
+                                                    return (
+                                                      <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                        <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                        <span>
+                                                          <strong className="text-slate-900 dark:text-zinc-100">{title}:</strong> {desc}
+                                                        </span>
+                                                      </li>
+                                                    );
+                                                  }
+                                                  return (
+                                                    <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                      <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                      <span>{appr}</span>
+                                                    </li>
+                                                  );
+                                                }
+                                                if (typeof appr === 'object' && appr !== null) {
+                                                  return (
+                                                    <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                      <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                      <span>
+                                                        <strong className="text-slate-900 dark:text-zinc-100">{appr.title}:</strong> {appr.description}
+                                                      </span>
+                                                    </li>
+                                                  );
+                                                }
+                                                return null;
+                                              })}
+                                            </ul>
+                                          </div>
 
-                                      {/* Mandatory Educational Disclaimer Banner */}
-                                      <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-[9.5px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
-                                        {GUIDANCE_DISCLAIMER}
-                                      </div>
+                                          {/* 6. How to verify */}
+                                          <div className="space-y-1.5">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
+                                              6. How to verify
+                                            </span>
+                                            <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                              {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
+                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                  <span className="text-emerald-500 dark:text-emerald-400 font-bold shrink-0">✓</span>
+                                                  <span>{step}</span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+
+                                          {/* Mandatory Educational Disclaimer Banner */}
+                                          <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-[9.5px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
+                                            {GUIDANCE_DISCLAIMER}
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 })()}

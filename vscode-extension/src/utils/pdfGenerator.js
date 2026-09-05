@@ -389,26 +389,6 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
         y += 1.5;
       }
 
-      // Illustrative Pattern (if present)
-      if (record.illustrativePattern) {
-        const patternLines = doc.splitTextToSize(record.illustrativePattern, 174);
-        const patternBoxHeight = Math.max(14, 8 + (patternLines.length * 4));
-        y = checkHeightAndPageBreak(doc, patternBoxHeight + 6, y);
-
-        doc.setFillColor(248, 250, 252);
-        doc.rect(14, y, 182, patternBoxHeight, 'F');
-        doc.setFontSize(7.5);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...brand.slate);
-        doc.text('Illustrative rule pattern — not the detected source', 18, y + 4.5);
-        doc.setFont('courier', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(...brand.charcoal);
-        doc.text(patternLines, 18, y + 9);
-        y += patternBoxHeight + 3.5;
-        doc.setFont('helvetica', 'normal');
-      }
-
       // Verification Procedures
       if (record.verifySteps && record.verifySteps.length > 0) {
         y = checkHeightAndPageBreak(doc, 20, y);

@@ -142,15 +142,6 @@ const buildHoverCard = (issue) => {
     lines.push('');
   }
 
-  // ── Optional Illustrative Pattern ──
-  if (guidance.illustrativePattern) {
-    lines.push('**Illustrative Pattern (Non-Prescriptive):**');
-    lines.push('```javascript');
-    lines.push(guidance.illustrativePattern);
-    lines.push('```');
-    lines.push('');
-  }
-
   // ── Verification Steps ──
   if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
     lines.push('### 🧪 Verification Steps');

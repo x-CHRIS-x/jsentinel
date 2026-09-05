@@ -66,8 +66,9 @@ const scanCode = (code, fileName, rules) => {
     if (!issue.guidanceId) {
       issue.guidanceId = issue.id;
     }
-    if (typeof issue.line === 'number' && issue.line >= 1 && issue.line <= codeLines.length) {
-      issue.sourceLine = codeLines[issue.line - 1].trim();
+    const lineNum = typeof issue.line === 'number' ? issue.line : parseInt(issue.line, 10);
+    if (!Number.isNaN(lineNum) && lineNum >= 1 && lineNum <= codeLines.length) {
+      issue.sourceLine = codeLines[lineNum - 1].trim();
     } else {
       issue.sourceLine = '';
     }
