@@ -430,7 +430,7 @@ const guidanceCatalog = {
       { title: 'MDN setTimeout() Reference', url: 'https://developer.mozilla.org/en-US/docs/Web/API/setTimeout' },
       { title: 'OWASP A03:2021 – Injection', url: 'https://owasp.org/Top10/A03_2021-Injection/' }
     ],
-    illustrativePattern: 'setTimeout("processUserData(\'" + userId + "\')", 1000);'
+    illustrativePattern: "// Pass a callback function or arrow function closure rather than an evaluated code string\nsetTimeout(() => {\n  processUserData(userId);\n}, 1000);"
   },
 
   'OWASP-A03-003': {
@@ -575,7 +575,7 @@ const guidanceCatalog = {
       { title: 'MDN document.write() Reference and Deprecation Warning', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Document/write' },
       { title: 'OWASP A03:2021 – Injection', url: 'https://owasp.org/Top10/A03_2021-Injection/' }
     ],
-    illustrativePattern: "document.write('<script src=\"' + scriptUrl + '\"></script>');"
+    illustrativePattern: "// Construct elements using standard DOM APIs and append them to the document tree\nconst script = document.createElement(\"script\");\nscript.src = verifiedScriptUrl;\ndocument.head.appendChild(script);"
   },
 
   'OWASP-A03-008': {
@@ -604,7 +604,7 @@ const guidanceCatalog = {
       { title: 'React Documentation: dangerouslySetInnerHTML', url: 'https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html' },
       { title: 'OWASP Cross-Site Scripting (XSS) Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html' }
     ],
-    illustrativePattern: "// Construct elements using standard DOM APIs and append them to the document tree\nconst script = document.createElement(\"script\");\nscript.src = verifiedScriptUrl;\ndocument.head.appendChild(script);"
+    illustrativePattern: "// Prefer standard JSX children or sanitize HTML with DOMPurify before passing to __html\n<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userMarkup) }} />"
   },
 
   // =========================================================================

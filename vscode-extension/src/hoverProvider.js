@@ -107,7 +107,14 @@ const buildHoverCard = (issue) => {
   lines.push('');
   lines.push(`**${guidance.shortAction || guidance.recommendedAction}**`);
   lines.push('');
-  lines.push(`*Detected:* ${issue.message}`);
+  if (issue.sourceLine) {
+    lines.push(`**Detected code (Line ${issue.line}):**`);
+    lines.push('```javascript');
+    lines.push(issue.sourceLine);
+    lines.push('```');
+  } else {
+    lines.push(`*Detected (Line ${issue.line}):* ${issue.message}`);
+  }
   lines.push('');
 
   // ── Why This Was Flagged ──
@@ -152,13 +159,12 @@ const buildHoverCard = (issue) => {
   lines.push('');
   lines.push(`**Why there isn't one exact fix:** ${guidance.cannotInfer}`);
   lines.push('');
-  if (guidance.illustrativePattern) {
-    lines.push('**Illustrative pattern (adapt this to your project):**');
-    lines.push('```javascript');
-    lines.push(guidance.illustrativePattern);
-    lines.push('```');
-    lines.push('');
-  }
+  const patternText = guidance.illustrativePattern || '// Conceptual pattern: consult architectural guidelines and project security standards for safe implementation.';
+  lines.push('**Illustrative pattern: adapt this to your project**');
+  lines.push('```javascript');
+  lines.push(patternText);
+  lines.push('```');
+  lines.push('');
 
   // ── Mandatory Educational Disclaimer ──
   lines.push('---');

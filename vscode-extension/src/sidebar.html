@@ -1962,7 +1962,7 @@
       } else {
         const unavailBox = document.createElement('div');
         unavailBox.className = 'guidance-unavailable-box';
-        unavailBox.textContent = 'Source code line is unavailable for this archived scan record.';
+        unavailBox.textContent = 'Source code line is unavailable for this record.';
         sec1.appendChild(unavailBox);
       }
       container.appendChild(sec1);
@@ -2012,6 +2012,7 @@
       function createDetailSection(sectionKey, titleText, renderContentFn) {
         const compositeKey = issue.fpKey + ':' + sectionKey;
         const isExpanded = expandedGuidanceSections.has(compositeKey);
+        const panelId = 'guidance-panel-' + compositeKey.replace(/[^a-zA-Z0-9_-]/g, '_');
 
         const card = document.createElement('div');
         card.className = 'guidance-detail-card';
@@ -2020,9 +2021,11 @@
         toggleBtn.type = 'button';
         toggleBtn.className = 'guidance-detail-toggle';
         toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        toggleBtn.setAttribute('aria-controls', panelId);
         toggleBtn.innerHTML = '<span>' + escapeHtml(titleText) + '</span><span class="guidance-detail-arrow">' + (isExpanded ? '▴' : '▾') + '</span>';
 
         const contentDiv = document.createElement('div');
+        contentDiv.id = panelId;
         contentDiv.className = 'guidance-detail-content';
         contentDiv.style.display = isExpanded ? 'flex' : 'none';
 
@@ -2135,23 +2138,22 @@
         el.appendChild(cannotBox);
 
         // Illustrative pattern
-        if (guidance.illustrativePattern) {
-          const patternGroup = document.createElement('div');
-          patternGroup.className = 'guidance-section';
-          const patternLabel = document.createElement('span');
-          patternLabel.className = 'illustrative-label';
-          patternLabel.textContent = 'Illustrative pattern: adapt this to your project';
-          patternGroup.appendChild(patternLabel);
+        const patternText = guidance.illustrativePattern || '// Conceptual pattern: consult architectural guidelines and project security standards for safe implementation.';
+        const patternGroup = document.createElement('div');
+        patternGroup.className = 'guidance-section';
+        const patternLabel = document.createElement('span');
+        patternLabel.className = 'illustrative-label';
+        patternLabel.textContent = 'Illustrative pattern: adapt this to your project';
+        patternGroup.appendChild(patternLabel);
 
-          const patternBox = document.createElement('div');
-          patternBox.className = 'guidance-code-box';
-          const patternEl = document.createElement('code');
-          patternEl.className = 'guidance-code-snippet';
-          patternEl.textContent = guidance.illustrativePattern;
-          patternBox.appendChild(patternEl);
-          patternGroup.appendChild(patternBox);
-          el.appendChild(patternGroup);
-        }
+        const patternBox = document.createElement('div');
+        patternBox.className = 'guidance-code-box';
+        const patternEl = document.createElement('code');
+        patternEl.className = 'guidance-code-snippet';
+        patternEl.textContent = patternText;
+        patternBox.appendChild(patternEl);
+        patternGroup.appendChild(patternBox);
+        el.appendChild(patternGroup);
 
         // Educational Disclaimer Banner
         const disclaimerEl = document.createElement('div');

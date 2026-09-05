@@ -1394,7 +1394,7 @@ function App() {
                                     <div className="mt-3 pt-3 border-t border-slate-200 dark:border-zinc-800 space-y-2.5 animate-reveal text-left">
                                       {/* 1. Detected code */}
                                       <div className="space-y-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:border-zinc-500 block">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
                                           Detected code (Line {issue.line})
                                         </span>
                                         {detectedLine !== null && detectedLine !== undefined ? (() => {
@@ -1444,7 +1444,8 @@ function App() {
                                             type="button"
                                             onClick={() => toggleGuidanceSection(fpKey, 'flagged')}
                                             aria-expanded={isFlaggedExpanded}
-                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                            aria-controls={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-flagged`}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
                                           >
                                             <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
                                               Why this was flagged
@@ -1454,7 +1455,7 @@ function App() {
                                             </span>
                                           </button>
                                           {isFlaggedExpanded && (
-                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed animate-reveal">
+                                            <div id={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-flagged`} className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed animate-reveal">
                                               <p>{guidance.risk}</p>
                                             </div>
                                           )}
@@ -1466,7 +1467,8 @@ function App() {
                                             type="button"
                                             onClick={() => toggleGuidanceSection(fpKey, 'approach')}
                                             aria-expanded={isApproachExpanded}
-                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                            aria-controls={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-approach`}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
                                           >
                                             <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
                                               Choose an approach
@@ -1476,7 +1478,7 @@ function App() {
                                             </span>
                                           </button>
                                           {isApproachExpanded && (
-                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
+                                            <div id={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-approach`} className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
                                               <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
                                                 {guidance.approaches && guidance.approaches.map((appr, idx) => {
                                                   if (typeof appr === 'string') {
@@ -1523,7 +1525,8 @@ function App() {
                                             type="button"
                                             onClick={() => toggleGuidanceSection(fpKey, 'test')}
                                             aria-expanded={isTestExpanded}
-                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                            aria-controls={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-test`}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
                                           >
                                             <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
                                               How to test
@@ -1533,7 +1536,7 @@ function App() {
                                             </span>
                                           </button>
                                           {isTestExpanded && (
-                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
+                                            <div id={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-test`} className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
                                               <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
                                                 {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
                                                   <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
@@ -1552,7 +1555,8 @@ function App() {
                                             type="button"
                                             onClick={() => toggleGuidanceSection(fpKey, 'example')}
                                             aria-expanded={isExampleExpanded}
-                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                            aria-controls={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-example`}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 transition-colors cursor-pointer"
                                           >
                                             <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
                                               Example structure
@@ -1562,7 +1566,7 @@ function App() {
                                             </span>
                                           </button>
                                           {isExampleExpanded && (
-                                            <div className="px-3 pb-2.5 pt-2 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-2 animate-reveal">
+                                            <div id={`guidance-panel-${fpKey.replace(/[^a-zA-Z0-9_-]/g, '_')}-example`} className="px-3 pb-2.5 pt-2 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-2 animate-reveal">
                                               {/* Why there isn't one exact fix (plain language, non-blocker) */}
                                               <div className="p-2.5 rounded-lg bg-slate-100/80 dark:bg-zinc-800/50 border border-slate-200/70 dark:border-zinc-700/50 space-y-1">
                                                 <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
@@ -1579,16 +1583,19 @@ function App() {
                                               </div>
 
                                               {/* Illustrative pattern */}
-                                              {guidance.illustrativePattern && (
-                                                <div className="space-y-1">
-                                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block">
-                                                    Illustrative pattern: adapt this to your project
-                                                  </span>
-                                                  <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
-                                                    <code className="whitespace-pre-wrap break-all">{guidance.illustrativePattern}</code>
+                                              {(() => {
+                                                const patternContent = guidance.illustrativePattern || '// Conceptual pattern: consult architectural guidelines and project security standards for safe implementation.';
+                                                return (
+                                                  <div className="space-y-1">
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block">
+                                                      Illustrative pattern: adapt this to your project
+                                                    </span>
+                                                    <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
+                                                      <code className="whitespace-pre-wrap break-all">{patternContent}</code>
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              )}
+                                                );
+                                              })()}
 
                                               {/* Educational Disclaimer */}
                                               <div className="p-2 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100/80 dark:border-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
