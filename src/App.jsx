@@ -1393,11 +1393,15 @@ function App() {
                                         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
                                           1. Detected in your code (Line {issue.line})
                                         </span>
-                                        {detectedLine !== null && detectedLine !== undefined ? (
-                                          <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
-                                            <code className="whitespace-pre-wrap break-all">{detectedLine.trim() || `Line ${issue.line}`}</code>
-                                          </div>
-                                        ) : (
+                                        {detectedLine !== null && detectedLine !== undefined ? (() => {
+                                          const trimmed = (detectedLine || '').trim() || `Line ${issue.line}`;
+                                          const displayCode = trimmed.length > 280 ? (trimmed.slice(0, 280) + '... (truncated)') : trimmed;
+                                          return (
+                                            <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
+                                              <code className="whitespace-pre-wrap break-all">{displayCode}</code>
+                                            </div>
+                                          );
+                                        })() : (
                                           <div className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800/60 text-slate-500 dark:text-zinc-400 font-mono text-[10px] italic border border-slate-200 dark:border-zinc-700">
                                             Source code line is unavailable for this archived scan record.
                                           </div>

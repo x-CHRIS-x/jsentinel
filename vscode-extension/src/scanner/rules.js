@@ -436,11 +436,20 @@ const sensitiveDataRules = [
         if (!val) return;
         const jwtPattern = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/;
         const awsKeyPattern = /(?:AKIA|A3T|AGPA|AIDA|AROA|AIPA|AQCA|AMZA|AWA|A2A)[A-Z0-9]{16}/;
-        const ipPattern = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
+        const ipPattern = /(?<![0-9.])(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(?![0-9.])/;
         let type = null;
         if (val.startsWith('eyJ') && jwtPattern.test(val)) type = "JWT Token";
         else if (awsKeyPattern.test(val)) type = "AWS Access Key";
-        else if (ipPattern.test(val) && val !== '127.0.0.1' && val !== '0.0.0.0') type = "IP Address";
+        else if (
+          ipPattern.test(val) &&
+          val !== '127.0.0.1' &&
+          val !== '0.0.0.0' &&
+          val !== '255.255.255.255' &&
+          !(val.includes('<') && val.includes('>')) &&
+          !val.startsWith('M')
+        ) {
+          type = "IP Address";
+        }
         if (type) {
           const isNetworkAddress = type === "IP Address";
           const guidanceId = isNetworkAddress ? "OWASP-A02-005:network-address" : "OWASP-A02-005:credential";

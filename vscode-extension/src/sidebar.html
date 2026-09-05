@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSentinel Dashboard</title>
+  <style>
+    :root {
+      --js-primary: var(--vscode-button-background, #dc2626);
+      --js-primary-hover: var(--vscode-button-hoverBackground, #b91c1c);
+      --js-critical: #ef4444;
+      --js-critical-bg: rgba(239, 68, 68, 0.14);
+      --js-critical-border: rgba(239, 68, 68, 0.35);
+      --js-high: #f97316;
+      --js-high-bg: rgba(249, 115, 22, 0.14);
+      --js-high-border: rgba(249, 115, 22, 0.35);
+      --js-medium: #eab308;
+      --js-medium-bg: rgba(234, 179, 8, 0.14);
+      --js-medium-border: rgba(234, 179, 8, 0.35);
+      --js-low: #3b82f6;
+      --js-low-bg: rgba(59, 130, 246, 0.14);
+      --js-low-border: rgba(59, 130, 246, 0.35);
+      --js-success: #10b981;
+      --js-success-bg: rgba(16, 185, 129, 0.14);
+      --js-success-border: rgba(16, 185, 129, 0.35);
+      --card-bg: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.06));
+      --card-border: var(--vscode-widget-border, rgba(128, 128, 128, 0.2));
+      --card-hover-bg: rgba(128, 128, 128, 0.1);
+      --surface-tint: rgba(128, 128, 128, 0.05);
+      --font-mono: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+    }
+
+    body.vscode-light {
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-border: rgba(0, 0, 0, 0.14);
+      --card-hover-bg: rgba(0, 0, 0, 0.06);
+      --surface-tint: rgba(0, 0, 0, 0.03);
+      --js-critical: #dc2626;
+      --js-high: #ea580c;
+      --js-medium: #ca8a04;
+      --js-low: #2563eb;
+      --js-success: #059669;
+    }
+
+    body.vscode-high-contrast, body.vscode-high-contrast-light {
+      --card-bg: var(--vscode-sideBar-background);
+      --card-border: var(--vscode-contrastBorder, #ffffff);
+      --card-hover-bg: var(--vscode-list-hoverBackground, #333333);
+      --js-critical-border: var(--vscode-contrastBorder, #ff4444);
+      --js-high-border: var(--vscode-contrastBorder, #ff9900);
+      --js-medium-border: var(--vscode-contrastBorder, #ffff00);
+      --js-low-border: var(--vscode-contrastBorder, #00ffff);
+      --js-success-border: var(--vscode-contrastBorder, #00ff00);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--vscode-sideBar-background);
+      color: var(--vscode-foreground);
+      font-family: var(--vscode-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 10px 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: hidden;
+      word-wrap: break-word;
+    }
+    
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.25);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(128, 128, 128, 0.45);
+    }
+
+    /* Container */
+    .app-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* 1. Header Gauge & Health Dashboard */
+    .dashboard-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .score-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+    .gauge-container {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+    .circular-chart {
+      display: block;
+      width: 48px;
+      height: 48px;
+    }
+    .circle-bg {
+      fill: none;
+      stroke: var(--card-border);
+      stroke-width: 3.2;
+    }
+    .circle {
+      fill: none;
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke-dasharray: 0, 100;
+      transition: stroke-dasharray 0.5s ease, stroke 0.3s ease;
+    }
+    .gauge-center-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 13px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      color: var(--vscode-foreground);
+      text-align: center;
+      line-height: 1;
+      pointer-events: none;
+    }
+    .score-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      flex: 1;
+    }
+    .score-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--vscode-descriptionForeground);
+    }
+    .score-status-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 2.5px 8px;
+      border-radius: 4px;
+      width: fit-content;
+      transition: background-color 0.3s, color 0.3s, border 0.3s;
+    }
+    .score-status-badge.compliant {
+      color: var(--js-success);
+      background: var(--js-success-bg);
+      border: 1px solid var(--js-success-border);
+    }
+    .score-status-badge.warning {
+      color: var(--js-medium);
+      background: var(--js-medium-bg);
+      border: 1px solid var(--js-medium-border);
+    }
+    .score-status-badge.vulnerable {
+      color: var(--js-critical);
+      background: var(--js-critical-bg);
+      border: 1px solid var(--js-critical-border);
+    }
+    .score-subtitle {
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Active Scan Progress Banner */
+    .scan-progress-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--vscode-focusBorder, var(--js-low));
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      animation: pulseBorder 1.5s infinite ease-in-out;
+    }
+    @keyframes pulseBorder {
+      0%, 100% { border-color: rgba(59, 130, 246, 0.4); }
+      50% { border-color: rgba(59, 130, 246, 0.9); box-shadow: 0 0 6px rgba(59, 130, 246, 0.25); }
+    }
+    .scan-progress-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .scan-progress-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--vscode-foreground);
+      min-width: 0;
+      overflow: hidden;
+    }
+    #scan-progress-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .scan-spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .scan-progress-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: rgba(128, 128, 128, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .scan-progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 2px;
+      transition: width 0.2s ease;
+    }
+
+    /* Actions Grid */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    button.action-btn {
+      background-color: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+      border: 1px solid transparent;
+      padding: 7px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      min-width: 0;
+      outline: none;
+    }
+    button.action-btn:hover {
+      background-color: var(--vscode-button-hoverBackground);
+      transform: translateY(-1px);
+    }
+    button.action-btn:active {
+      transform: translateY(1px);
+    }
+    button.action-btn:focus-visible {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+    }
+    button.secondary-btn {
+      background-color: var(--vscode-button-secondaryBackground, var(--surface-tint));
+      color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+      border: 1px solid var(--card-border);
+    }
+    button.secondary-btn:hover {
+      background-color: var(--vscode-button-secondaryHoverBackground, var(--card-hover-bg));
+      border-color: rgba(128, 128, 128, 0.35);
+    }
+    button.danger-btn {
+      background-color: transparent;
+      color: var(--vscode-descriptionForeground);
+      border: 1px solid var(--card-border);
+    }
+    button.danger-btn:hover {
+      color: var(--js-critical);
+      border-color: var(--js-critical-border);
+      background-color: var(--js-critical-bg);
+    }
+
+    /* Interactive Severity Filter Cards */
+    .severity-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+    }
+    .severity-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 6px 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      min-width: 0;
+      outline: none;
+    }
+    .severity-card:hover {
+      background: var(--card-hover-bg);
+      border-color: rgba(128, 128, 128, 0.4);
+    }
+    .severity-card:focus-visible {
+      border-color: var(--vscode-focusBorder, #3b82f6);
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+    }
+    .severity-card.active {
+      background: var(--surface-tint);
+      border-color: var(--vscode-focusBorder, #3b82f6);
+      box-shadow: 0 0 0 1px var(--vscode-focusBorder, #3b82f6);
+    }
+    .severity-card.active.all { border-color: var(--vscode-foreground); }
+    .severity-card.active.critical { border-color: var(--js-critical); background: var(--js-critical-bg); }
+    .severity-card.active.high { border-color: var(--js-high); background: var(--js-high-bg); }
+    .severity-card.active.medium { border-color: var(--js-medium); background: var(--js-medium-bg); }
+    .severity-card.active.low { border-color: var(--js-low); background: var(--js-low-bg); }
+
+    .sev-val {
+      font-size: 12px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .severity-card.critical .sev-val { color: var(--js-critical); }
+    .severity-card.high .sev-val { color: var(--js-high); }
+    .severity-card.medium .sev-val { color: var(--js-medium); }
+    .severity-card.low .sev-val { color: var(--js-low); }
+    .severity-card.all .sev-val { color: var(--vscode-foreground); }
+
+    .sev-lbl {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--vscode-descriptionForeground);
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Search & Filter Toolbar */
+    .filter-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+    .search-input {
+      width: 100%;
+      background-color: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-input-border, var(--card-border));
+      border-radius: 6px;
+      padding: 6px 26px 6px 28px;
+      font-size: 11.5px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input:focus {
+      border-color: var(--vscode-focusBorder);
+    }
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--vscode-descriptionForeground);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      display: none;
+      line-height: 1;
+    }
+    .search-clear-btn:hover {
+      color: var(--vscode-foreground);
+    }
+    .category-select {
+      width: 100%;
+      background-color: var(--vscode-dropdown-background, var(--vscode-input-background));
+      color: var(--vscode-dropdown-foreground, var(--vscode-input-foreground));
+      border: 1px solid var(--vscode-dropdown-border, var(--card-border));
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 11.5px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+    .category-select:focus {
+      border-color: var(--vscode-focusBorder);
+    }
+
+    /* Active Filter Status Ribbon */
+    .filter-status-ribbon {
+      background: var(--surface-tint);
+      border: 1px dashed var(--card-border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--vscode-descriptionForeground);
+    }
+    .filter-reset-link {
+      color: var(--vscode-textLink-foreground);
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      outline: none;
+    }
+    .filter-reset-link:hover {
+      text-decoration: underline;
+    }
+    .filter-reset-link:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    /* Tabs */
+    .tabs-container {
+      display: flex;
+      border-bottom: 1px solid var(--card-border);
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--vscode-descriptionForeground);
+      padding: 8px 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-bottom 0.15s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .tab-btn:hover {
+      color: var(--vscode-foreground);
+    }
+    .tab-btn:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+      outline-offset: -1px;
+    }
+    .tab-btn.active {
+      color: var(--vscode-foreground);
+      border-bottom: 2px solid var(--vscode-button-background, #dc2626);
+    }
+    .tab-count-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      border-radius: 10px;
+      background: rgba(128, 128, 128, 0.18);
+      color: inherit;
+    }
+
+    /* Findings List View */
+    .list-view {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+    }
+    .file-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+      min-width: 0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .file-header {
+      background: var(--surface-tint);
+      padding: 7px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid var(--card-border);
+      user-select: none;
+    }
+    .file-title-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex: 1;
+      cursor: pointer;
+      outline: none;
+      padding: 2px 3px;
+      border-radius: 4px;
+      transition: background-color 0.15s;
+    }
+    .file-title-group:hover {
+      background-color: var(--card-hover-bg);
+    }
+    .file-title-group:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+    }
+    .file-path {
+      color: var(--vscode-textLink-foreground);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .file-path:hover {
+      text-decoration: underline;
+    }
+    .file-badge-count {
+      background: rgba(128, 128, 128, 0.16);
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1.5px 6px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    /* Issue Item */
+    .issue-item {
+      padding: 10px 11px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background-color 0.15s;
+    }
+    .issue-item:last-child {
+      border-bottom: none;
+    }
+    .issue-item:hover {
+      background-color: var(--card-hover-bg);
+    }
+    .issue-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .issue-pills-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .issue-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.2;
+    }
+    .issue-badge.critical { background-color: var(--js-critical-bg); color: var(--js-critical); border: 1px solid var(--js-critical-border); }
+    .issue-badge.high { background-color: var(--js-high-bg); color: var(--js-high); border: 1px solid var(--js-high-border); }
+    .issue-badge.medium { background-color: var(--js-medium-bg); color: var(--js-medium); border: 1px solid var(--js-medium-border); }
+    .issue-badge.low { background-color: var(--js-low-bg); color: var(--js-low); border: 1px solid var(--js-low-border); }
+
+    .cvss-pill {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      background: rgba(128, 128, 128, 0.12);
+      border: 1px solid var(--card-border);
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      color: var(--vscode-foreground);
+      line-height: 1.2;
+      cursor: help;
+    }
+    .rule-id-pill {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--vscode-descriptionForeground);
+    }
+    .issue-loc-pill {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      color: var(--vscode-descriptionForeground);
+      background: var(--surface-tint);
+      border: 1px solid var(--card-border);
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-left: auto;
+    }
+
+    .issue-message {
+      font-size: 12.5px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--vscode-foreground);
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .issue-message:hover {
+      color: var(--vscode-textLink-activeForeground, #3b82f6);
+      text-decoration: underline;
+    }
+
+    /* Actions Row */
+    .issue-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+    }
+    .issue-action-btn {
+      background: var(--surface-tint);
+      border: 1px solid var(--card-border);
+      color: var(--vscode-descriptionForeground);
+      cursor: pointer;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      outline: none;
+    }
+    .issue-action-btn:hover {
+      background: var(--card-hover-bg);
+      border-color: rgba(128, 128, 128, 0.4);
+      color: var(--vscode-foreground);
+    }
+    .issue-action-btn:focus-visible {
+      border-color: var(--vscode-focusBorder);
+      outline: 1px solid var(--vscode-focusBorder);
+    }
+    .issue-action-btn.fp-btn:hover {
+      color: var(--js-medium);
+      border-color: var(--js-medium-border);
+      background-color: var(--js-medium-bg);
+    }
+    .issue-action-btn.restore-btn:hover {
+      color: var(--js-success);
+      border-color: var(--js-success-border);
+      background-color: var(--js-success-bg);
+    }
+
+    /* Accordion Fix Section */
+    .accordion-toggle {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--vscode-textLink-foreground);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      outline: none;
+      transition: all 0.15s;
+    }
+    .accordion-toggle:hover {
+      background: var(--card-hover-bg);
+      color: var(--vscode-textLink-activeForeground, #3b82f6);
+    }
+    .accordion-toggle:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+    }
+    .accordion-arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+    .accordion-arrow.expanded {
+      transform: rotate(90deg);
+    }
+
+    .remediation-box {
+      margin-top: 6px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 11.5px;
+      animation: fadeIn 0.2s ease;
+    }
+    body.vscode-light .remediation-box {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .guidance-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .guidance-section-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--vscode-descriptionForeground);
+    }
+    .guidance-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .scope-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      padding: 1.5px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .guidance-code-box {
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: var(--vscode-editor-background, #18181b);
+      border: 1px solid var(--card-border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.4;
+      overflow-x: auto;
+    }
+    .guidance-unavailable-box {
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--card-border);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-style: italic;
+      color: var(--vscode-descriptionForeground);
+    }
+    .guidance-code-snippet {
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--vscode-editor-foreground, #d4d4d4);
+    }
+    .guidance-text {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: var(--vscode-foreground);
+      margin: 0;
+    }
+    .guidance-action-text {
+      font-weight: 600;
+    }
+    .cannot-infer-box {
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .cannot-infer-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #eab308;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cannot-infer-text {
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--vscode-foreground);
+      margin: 0;
+    }
+    .guidance-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .guidance-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .guidance-bullet {
+      color: #818cf8;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .full-guidance-toggle {
+      background: var(--surface-tint);
+      border: 1px solid var(--card-border);
+      color: var(--vscode-textLink-foreground);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 4px;
+      outline: none;
+      transition: all 0.15s;
+    }
+    .full-guidance-toggle:hover {
+      background: var(--card-hover-bg);
+      color: var(--vscode-textLink-activeForeground, #3b82f6);
+    }
+    .full-guidance-toggle:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+    }
+    .full-guidance-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .verify-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .verify-list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .verify-check {
+      color: var(--js-success, #10b981);
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .disclaimer-banner {
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      font-size: 10px;
+      font-style: italic;
+      line-height: 1.45;
+      color: var(--vscode-descriptionForeground);
+    }
+    .cvss-vector-footer {
+      font-size: 9.5px;
+      font-family: var(--font-mono);
+      color: var(--vscode-descriptionForeground);
+      border-top: 1px dashed var(--card-border);
+      padding-top: 4px;
+      word-break: break-all;
+    }
+
+    /* Empty States */
+    .empty-state {
+      padding: 28px 14px;
+      text-align: center;
+      color: var(--vscode-descriptionForeground);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px dashed var(--card-border);
+    }
+    .empty-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--vscode-descriptionForeground);
+    }
+    .empty-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--vscode-foreground);
+    }
+    .empty-desc {
+      font-size: 11.5px;
+      line-height: 1.45;
+      max-width: 240px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Narrow sidebar responsive adjustments (< 250px) */
+    @media (max-width: 250px) {
+      body {
+        padding: 6px 4px;
+      }
+      .dashboard-header {
+        padding: 8px;
+        gap: 8px;
+      }
+      .gauge-container, .circular-chart {
+        width: 40px;
+        height: 40px;
+      }
+      .gauge-center-text {
+        font-size: 11px;
+      }
+      .btn-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .severity-filter-grid {
+        gap: 2px;
+      }
+      .sev-val {
+        font-size: 11px;
+      }
+      .sev-lbl {
+        font-size: 8px;
+      }
+      .issue-actions-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .issue-action-btn {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    
+    <!-- 1. Header Security Score Gauge & Health -->
+    <div class="dashboard-header" role="region" aria-label="Security Health Score">
+      <div class="score-wrapper">
+        <div class="gauge-container" role="img" id="gauge-container" aria-label="Security score: 100%">
+          <svg viewBox="0 0 36 36" class="circular-chart" aria-hidden="true">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path id="score-circle" class="circle" stroke="var(--js-success)" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <div id="score-text" class="gauge-center-text" aria-hidden="true">100%</div>
+        </div>
+        <div class="score-info">
+          <div class="score-title">Security Score</div>
+          <span id="score-status-badge" class="score-status-badge compliant">Compliant</span>
+          <span id="score-subtitle" class="score-subtitle">0 files scanned • 0 issues</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Active Scan Progress Banner -->
+    <div id="scan-progress-banner" class="scan-progress-banner hidden" role="status" aria-live="polite">
+      <div class="scan-progress-header">
+        <div class="scan-progress-title">
+          <span class="scan-spinner" aria-hidden="true"></span>
+          <span id="scan-progress-text">Scanning workspace for vulnerabilities...</span>
+        </div>
+        <span id="scan-progress-count" style="color: var(--vscode-descriptionForeground); font-variant-numeric: tabular-nums;">0%</span>
+      </div>
+      <div class="scan-progress-bar-bg" role="progressbar" id="scan-progress-bar-container" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div id="scan-progress-bar" class="scan-progress-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- 3. Primary Actions -->
+    <div class="btn-group">
+      <div class="btn-row">
+        <button class="action-btn" id="scan-workspace-btn" title="Scan entire workspace">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Workspace</span>
+        </button>
+        <button class="action-btn secondary-btn" id="scan-active-btn" title="Scan currently open file">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Active File</span>
+        </button>
+      </div>
+      <div class="btn-row">
+        <button class="action-btn secondary-btn" id="export-report-btn" title="Export Academic PDF Security Report">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Export PDF</span>
+        </button>
+        <button class="action-btn danger-btn" id="clear-results-btn" title="Clear all diagnostics">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Clear</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Interactive Severity Filter Cards -->
+    <div class="severity-filter-grid" role="group" aria-label="Severity Filter">
+      <div class="severity-card all active" id="sev-filter-all" data-sev="ALL" role="button" tabindex="0" aria-pressed="true" title="Show all severity levels">
+        <span id="stat-all" class="sev-val">0</span>
+        <span class="sev-lbl">All</span>
+      </div>
+      <div class="severity-card critical" id="sev-filter-critical" data-sev="CRITICAL" role="button" tabindex="0" aria-pressed="false" title="Filter Critical vulnerabilities (-20 pts)">
+        <span id="stat-critical" class="sev-val">0</span>
+        <span class="sev-lbl">Crit</span>
+      </div>
+      <div class="severity-card high" id="sev-filter-high" data-sev="HIGH" role="button" tabindex="0" aria-pressed="false" title="Filter High vulnerabilities (-10 pts)">
+        <span id="stat-high" class="sev-val">0</span>
+        <span class="sev-lbl">High</span>
+      </div>
+      <div class="severity-card medium" id="sev-filter-medium" data-sev="MEDIUM" role="button" tabindex="0" aria-pressed="false" title="Filter Medium vulnerabilities (-5 pts)">
+        <span id="stat-medium" class="sev-val">0</span>
+        <span class="sev-lbl">Med</span>
+      </div>
+      <div class="severity-card low" id="sev-filter-low" data-sev="LOW" role="button" tabindex="0" aria-pressed="false" title="Filter Low vulnerabilities (-1 pt)">
+        <span id="stat-low" class="sev-val">0</span>
+        <span class="sev-lbl">Low</span>
+      </div>
+    </div>
+
+    <!-- 5. Search Bar & OWASP Category Filter -->
+    <div class="filter-toolbar">
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" id="search-input" class="search-input" placeholder="Filter by rule, path, text, or line..." aria-label="Filter findings by text, rule ID, or code snippet" />
+        <button id="search-clear-btn" class="search-clear-btn" title="Clear search" aria-label="Clear search input">✕</button>
+      </div>
+      <select id="category-select" class="category-select" title="Filter by OWASP Top 10 Category" aria-label="Filter findings by OWASP category">
+        <option value="ALL">All OWASP Categories (8 categories)</option>
+        <option value="A01">A01: Broken Access Control</option>
+        <option value="A02">A02: Cryptographic Failures</option>
+        <option value="A03">A03: Injection</option>
+        <option value="A05">A05: Security Misconfiguration</option>
+        <option value="A06">A06: Vulnerable and Outdated Components</option>
+        <option value="A07">A07: Identification and Authentication Failures</option>
+        <option value="A08">A08: Software and Data Integrity Failures</option>
+        <option value="A10">A10: Server-Side Request Forgery (SSRF)</option>
+      </select>
+      <div id="filter-status-ribbon" class="filter-status-ribbon hidden">
+        <span id="filter-status-text">Showing filtered findings</span>
+        <a href="#" id="filter-reset-link" class="filter-reset-link" role="button" tabindex="0">Reset Filters</a>
+      </div>
+    </div>
+
+    <!-- 6. Tabs Navigation -->
+    <div class="tabs-container" role="tablist" aria-label="Finding types">
+      <button class="tab-btn active" id="tab-active" role="tab" aria-selected="true" aria-controls="active-issues-list">
+        <span>Active Issues</span>
+        <span id="count-active" class="tab-count-badge">0</span>
+      </button>
+      <button class="tab-btn" id="tab-fp" role="tab" aria-selected="false" aria-controls="fp-issues-list">
+        <span>False Positives</span>
+        <span id="count-fp" class="tab-count-badge">0</span>
+      </button>
+    </div>
+
+    <!-- 7. Main Finding Lists -->
+    <div id="active-issues-list" class="list-view" role="tabpanel" aria-labelledby="tab-active">
+      <div class="empty-state" id="empty-state-clean">
+        <span class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--js-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </span>
+        <span class="empty-title">Code Guard Clean</span>
+        <span class="empty-desc">No security vulnerabilities detected in your project. Scan workspace or files to begin.</span>
+      </div>
+    </div>
+
+    <div id="fp-issues-list" class="list-view hidden" role="tabpanel" aria-labelledby="tab-fp">
+      <div class="empty-state" id="empty-state-fp">
+        <span class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--vscode-descriptionForeground)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        </span>
+        <span class="empty-title">No False Positives</span>
+        <span class="empty-desc">Vulnerabilities you exempt as false positives will appear here and restore your compliance score.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const vscode = acquireVsCodeApi();
+
+    // Dictionaries passed from extension backend
+    const guidanceCatalog = __GUIDANCE_CATALOG_JSON__;
+    const guidanceDisclaimer = __DISCLAIMER_JSON__;
+    const owaspCategories = __OWASP_JSON__;
+
+    function getGuidanceForIssue(issue) {
+      const key = (issue && (issue.guidanceId || issue.id)) || '';
+      if (key && Object.prototype.hasOwnProperty.call(guidanceCatalog, key)) return guidanceCatalog[key];
+      if (issue && issue.id && Object.prototype.hasOwnProperty.call(guidanceCatalog, issue.id)) return guidanceCatalog[issue.id];
+      return {
+        guidanceId: issue ? (issue.guidanceId || issue.id || 'UNKNOWN') : 'UNKNOWN',
+        ruleId: issue ? (issue.id || 'UNKNOWN') : 'UNKNOWN',
+        title: 'Security Review Recommendation',
+        category: 'General Security Practice',
+        recommendedAction: 'Review the flagged code against project security requirements.',
+        shortAction: 'Review the flagged code against project security requirements.',
+        risk: 'Static analysis flagged an unclassified code pattern that may warrant security review.',
+        cannotInfer: 'JSentinel cannot determine application intent, runtime context, or environmental security controls.',
+        scope: 'cross-boundary',
+        approaches: [
+          'Architecture Review: Review code behavior with development and security team members to ensure safe handling.',
+          'Defensive Controls: Apply least-privilege principles and input validation tailored to the application architecture.'
+        ],
+        verifySteps: [
+          'Verify that the flagged pattern adheres to application security policies.',
+          'Test edge cases and unexpected inputs in automated test suites.'
+        ]
+      };
+    }
+
+    // Client state
+    let currentState = {
+      scannedFiles: {},
+      fpFlags: [],
+      stats: {
+        totalIssues: 0,
+        activeIssuesCount: 0,
+        criticalIssues: 0,
+        highIssues: 0,
+        mediumIssues: 0,
+        lowIssues: 0,
+        securityScore: 100,
+        filesScanned: 0
+      },
+      isScanning: false,
+      scanProgress: null
+    };
+
+    // Restore persisted client state if available
+    const previousState = vscode.getState() || {};
+    let activeTabName = previousState.activeTabName || 'active';
+    let selectedSeverity = previousState.selectedSeverity || 'ALL';
+    let selectedCategory = previousState.selectedCategory || 'ALL';
+    let searchQuery = previousState.searchQuery || '';
+    const expandedIssues = new Set(previousState.expandedKeys || []);
+    const expandedFullGuidance = new Set(previousState.expandedFullKeys || []);
+
+    function persistClientState() {
+      vscode.setState({
+        activeTabName: activeTabName,
+        selectedSeverity: selectedSeverity,
+        selectedCategory: selectedCategory,
+        searchQuery: searchQuery,
+        expandedKeys: Array.from(expandedIssues),
+        expandedFullKeys: Array.from(expandedFullGuidance)
+      });
+    }
+
+    // DOM Elements
+    const scoreCircle = document.getElementById('score-circle');
+    const scoreText = document.getElementById('score-text');
+    const scoreStatusBadge = document.getElementById('score-status-badge');
+    const scoreSubtitle = document.getElementById('score-subtitle');
+
+    const scanProgressBanner = document.getElementById('scan-progress-banner');
+    const scanProgressText = document.getElementById('scan-progress-text');
+    const scanProgressCount = document.getElementById('scan-progress-count');
+    const scanProgressBar = document.getElementById('scan-progress-bar');
+    const scanProgressBarContainer = document.getElementById('scan-progress-bar-container');
+
+    const statAll = document.getElementById('stat-all');
+    const statCritical = document.getElementById('stat-critical');
+    const statHigh = document.getElementById('stat-high');
+    const statMedium = document.getElementById('stat-medium');
+    const statLow = document.getElementById('stat-low');
+
+    const searchInput = document.getElementById('search-input');
+    const searchClearBtn = document.getElementById('search-clear-btn');
+    const categorySelect = document.getElementById('category-select');
+    const filterStatusRibbon = document.getElementById('filter-status-ribbon');
+    const filterStatusText = document.getElementById('filter-status-text');
+    const filterResetLink = document.getElementById('filter-reset-link');
+
+    const tabActive = document.getElementById('tab-active');
+    const tabFp = document.getElementById('tab-fp');
+    const countActive = document.getElementById('count-active');
+    const countFp = document.getElementById('count-fp');
+    const activeList = document.getElementById('active-issues-list');
+    const fpList = document.getElementById('fp-issues-list');
+
+    // Restore inputs from persisted state
+    if (searchQuery) {
+      searchInput.value = searchQuery;
+      searchClearBtn.style.display = 'block';
+    }
+    if (selectedCategory !== 'ALL') {
+      categorySelect.value = selectedCategory;
+    }
+    if (activeTabName === 'fp') {
+      tabFp.classList.add('active');
+      tabFp.setAttribute('aria-selected', 'true');
+      tabActive.classList.remove('active');
+      tabActive.setAttribute('aria-selected', 'false');
+      fpList.classList.remove('hidden');
+      activeList.classList.add('hidden');
+    }
+
+    // Severity card filter buttons
+    const severityCards = document.querySelectorAll('.severity-card');
+    severityCards.forEach(function(card) {
+      const toggleHandler = function() {
+        const sev = card.getAttribute('data-sev');
+        if (selectedSeverity === sev && sev !== 'ALL') {
+          selectedSeverity = 'ALL';
+        } else {
+          selectedSeverity = sev;
+        }
+        updateSeverityCardStyles();
+        persistClientState();
+        renderFindings();
+      };
+      card.addEventListener('click', toggleHandler);
+      card.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleHandler();
+        }
+      });
+    });
+
+    function updateSeverityCardStyles() {
+      severityCards.forEach(function(card) {
+        const sev = card.getAttribute('data-sev');
+        const isActive = sev === selectedSeverity;
+        if (isActive) {
+          card.classList.add('active');
+          card.setAttribute('aria-pressed', 'true');
+        } else {
+          card.classList.remove('active');
+          card.setAttribute('aria-pressed', 'false');
+        }
+      });
+    }
+    updateSeverityCardStyles();
+
+    // Search and Category Handlers
+    searchInput.addEventListener('input', function(e) {
+      searchQuery = e.target.value.trim().toLowerCase();
+      searchClearBtn.style.display = searchQuery ? 'block' : 'none';
+      persistClientState();
+      renderFindings();
+    });
+
+    searchClearBtn.addEventListener('click', function() {
+      searchInput.value = '';
+      searchQuery = '';
+      searchClearBtn.style.display = 'none';
+      persistClientState();
+      renderFindings();
+    });
+
+    categorySelect.addEventListener('change', function(e) {
+      selectedCategory = e.target.value;
+      persistClientState();
+      renderFindings();
+    });
+
+    const resetFiltersHandler = function(e) {
+      if (e) e.preventDefault();
+      selectedSeverity = 'ALL';
+      selectedCategory = 'ALL';
+      categorySelect.value = 'ALL';
+      searchQuery = '';
+      searchInput.value = '';
+      searchClearBtn.style.display = 'none';
+      updateSeverityCardStyles();
+      persistClientState();
+      renderFindings();
+    };
+
+    filterResetLink.addEventListener('click', resetFiltersHandler);
+    filterResetLink.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        resetFiltersHandler();
+      }
+    });
+
+    // Tab Handlers
+    tabActive.addEventListener('click', function() {
+      activeTabName = 'active';
+      tabActive.classList.add('active');
+      tabActive.setAttribute('aria-selected', 'true');
+      tabFp.classList.remove('active');
+      tabFp.setAttribute('aria-selected', 'false');
+      activeList.classList.remove('hidden');
+      fpList.classList.add('hidden');
+      persistClientState();
+      renderFindings();
+    });
+
+    tabFp.addEventListener('click', function() {
+      activeTabName = 'fp';
+      tabFp.classList.add('active');
+      tabFp.setAttribute('aria-selected', 'true');
+      tabActive.classList.remove('active');
+      tabActive.setAttribute('aria-selected', 'false');
+      fpList.classList.remove('hidden');
+      activeList.classList.add('hidden');
+      persistClientState();
+      renderFindings();
+    });
+
+    // Primary Action Buttons
+    document.getElementById('scan-workspace-btn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'scanWorkspace' });
+    });
+
+    document.getElementById('scan-active-btn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'scanActive' });
+    });
+
+    document.getElementById('export-report-btn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'exportReport' });
+    });
+
+    document.getElementById('clear-results-btn').addEventListener('click', function() {
+      vscode.postMessage({ type: 'clearResults' });
+    });
+
+    // Request initial state on mount
+    vscode.postMessage({ type: 'requestState' });
+
+    // Handle messages from the extension host
+    window.addEventListener('message', function(event) {
+      const message = event.data;
+      if (message.type === 'updateState') {
+        currentState = message.state || currentState;
+        updateUI();
+      } else if (message.type === 'scanProgress') {
+        currentState.isScanning = Boolean(message.isScanning);
+        currentState.scanProgress = message.scanProgress || null;
+        updateScanProgress();
+      }
+    });
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function updateScanProgress() {
+      if (currentState.isScanning) {
+        scanProgressBanner.classList.remove('hidden');
+        if (currentState.scanProgress) {
+          const progressData = currentState.scanProgress;
+          const msg = progressData.message || 'Scanning workspace...';
+          const current = progressData.current || 0;
+          const total = progressData.total || 0;
+          scanProgressText.textContent = msg;
+          if (total > 0) {
+            const pct = Math.min(100, Math.round((current / total) * 100));
+            scanProgressCount.textContent = pct + '%';
+            scanProgressBar.style.width = pct + '%';
+            if (scanProgressBarContainer) scanProgressBarContainer.setAttribute('aria-valuenow', String(pct));
+          } else {
+            scanProgressCount.textContent = '...';
+            scanProgressBar.style.width = '30%';
+            if (scanProgressBarContainer) scanProgressBarContainer.setAttribute('aria-valuenow', '30');
+          }
+        } else {
+          scanProgressText.textContent = 'Scanning files for vulnerabilities...';
+          scanProgressCount.textContent = '';
+          scanProgressBar.style.width = '60%';
+          if (scanProgressBarContainer) scanProgressBarContainer.setAttribute('aria-valuenow', '60');
+        }
+      } else {
+        scanProgressBanner.classList.add('hidden');
+      }
+    }
+
+    function updateUI() {
+      updateScanProgress();
+
+      const stats = currentState.stats || {};
+      const score = typeof stats.securityScore === 'number' && !Number.isNaN(stats.securityScore)
+        ? Math.min(100, Math.max(0, Math.round(stats.securityScore)))
+        : 100;
+
+      const strokeDash = score + ', 100';
+      scoreCircle.setAttribute('stroke-dasharray', strokeDash);
+      scoreText.textContent = score + '%';
+      const gaugeContainer = document.getElementById('gauge-container');
+      if (gaugeContainer) {
+        gaugeContainer.setAttribute('aria-label', 'Security score: ' + score + '%');
+      }
+
+      let scoreColor = 'var(--js-critical)';
+      let statusClass = 'vulnerable';
+      let statusText = 'Vulnerable';
+
+      if (score > 80) {
+        scoreColor = 'var(--js-success)';
+        statusClass = 'compliant';
+        statusText = 'Compliant';
+      } else if (score >= 50) {
+        scoreColor = 'var(--js-medium)';
+        statusClass = 'warning';
+        statusText = 'Warning';
+      }
+
+      scoreCircle.style.stroke = scoreColor;
+      scoreCircle.setAttribute('stroke', scoreColor);
+      scoreStatusBadge.className = 'score-status-badge ' + statusClass;
+      scoreStatusBadge.textContent = statusText;
+
+      const fileCount = stats.filesScanned || Object.keys(currentState.scannedFiles || {}).length;
+      const totalIssues = stats.activeIssuesCount || 0;
+      scoreSubtitle.textContent = fileCount + ' file' + (fileCount === 1 ? '' : 's') + ' scanned • ' + totalIssues + ' active issue' + (totalIssues === 1 ? '' : 's');
+
+      statAll.textContent = stats.activeIssuesCount || 0;
+      statCritical.textContent = stats.criticalIssues || 0;
+      statHigh.textContent = stats.highIssues || 0;
+      statMedium.textContent = stats.mediumIssues || 0;
+      statLow.textContent = stats.lowIssues || 0;
+
+      renderFindings();
+    }
+
+    function getCategoryPrefix(ruleId) {
+      if (!ruleId) return 'OTHER';
+      const m = String(ruleId).match(/^OWASP-(A\d+)/i);
+      return m ? m[1].toUpperCase() : 'OTHER';
+    }
+
+    function renderFindings() {
+      const scannedFiles = currentState.scannedFiles || {};
+      const fpFlags = Array.isArray(currentState.fpFlags) ? currentState.fpFlags : [];
+
+      const activeGrouped = {};
+      const fpGrouped = {};
+      let totalActiveCount = 0;
+      let totalFpCount = 0;
+
+      let filteredActiveCount = 0;
+      let filteredFpCount = 0;
+
+      const searchTerms = searchQuery ? searchQuery.split(/\s+/).filter(Boolean) : [];
+
+      // Group and classify
+      Object.entries(scannedFiles).forEach(function(entry) {
+        const uriStr = entry[0];
+        const fileData = entry[1];
+        if (!fileData || !Array.isArray(fileData.issues) || fileData.issues.length === 0) return;
+
+        fileData.issues.forEach(function(issue) {
+          if (!issue) return;
+          const issueId = String(issue.id || 'UNKNOWN');
+          const issueSeverity = (issue.severity || 'MEDIUM').toUpperCase();
+          const issueLine = issue.line || 1;
+          const issueCol = issue.column || 0;
+          const fpKey = (fileData.fileName || 'unknown') + ':' + issueId + ':' + issueLine + ':' + issueCol;
+          const isFP = fpFlags.includes(fpKey);
+          const catPrefix = getCategoryPrefix(issueId);
+
+          if (isFP) {
+            totalFpCount++;
+          } else {
+            totalActiveCount++;
+          }
+
+          let passes = true;
+          if (selectedSeverity !== 'ALL' && issueSeverity !== selectedSeverity) {
+            passes = false;
+          }
+          if (selectedCategory !== 'ALL' && catPrefix !== selectedCategory) {
+            passes = false;
+          }
+          if (searchTerms.length > 0) {
+            const rel = (fileData.relativePath || fileData.fileName || '').toLowerCase();
+            const msg = (issue.message || '').toLowerCase();
+            const id = issueId.toLowerCase();
+            const catName = (owaspCategories[catPrefix] || '').toLowerCase();
+            const sugg = (issue.suggestion || '').toLowerCase();
+            const gRecord = getGuidanceForIssue(issue);
+            const gRisk = (gRecord.risk || '').toLowerCase();
+            const gAction = (gRecord.recommendedAction || gRecord.shortAction || '').toLowerCase();
+            const gCannot = (gRecord.cannotInfer || '').toLowerCase();
+            const gApproaches = (gRecord.approaches || []).map(function(a) {
+              return typeof a === 'string' ? a : (a.title + ' ' + a.description);
+            }).join(' ').toLowerCase();
+            const sev = issueSeverity.toLowerCase();
+            const locStr = ('l' + issueLine + ':c' + issueCol + ' ' + issueLine).toLowerCase();
+            
+            const combinedSearchString = rel + ' ' + msg + ' ' + id + ' ' + catName + ' ' + sugg + ' ' + gRisk + ' ' + gAction + ' ' + gCannot + ' ' + gApproaches + ' ' + sev + ' ' + locStr;
+
+            const queryMatch = searchTerms.every(function(term) {
+              return combinedSearchString.includes(term);
+            });
+            if (!queryMatch) {
+              passes = false;
+            }
+          }
+
+          if (!passes) return;
+
+          const itemData = Object.assign({}, issue, {
+            id: issueId,
+            severity: issueSeverity,
+            line: issueLine,
+            column: issueCol,
+            fpKey: fpKey,
+            catPrefix: catPrefix
+          });
+
+          if (isFP) {
+            filteredFpCount++;
+            if (!fpGrouped[uriStr]) {
+              fpGrouped[uriStr] = {
+                relativePath: fileData.relativePath || fileData.fileName || 'unknown',
+                issues: []
+              };
+            }
+            fpGrouped[uriStr].issues.push(itemData);
+          } else {
+            filteredActiveCount++;
+            if (!activeGrouped[uriStr]) {
+              activeGrouped[uriStr] = {
+                relativePath: fileData.relativePath || fileData.fileName || 'unknown',
+                issues: []
+              };
+            }
+            activeGrouped[uriStr].issues.push(itemData);
+          }
+        });
+      });
+
+      countActive.textContent = totalActiveCount;
+      countFp.textContent = totalFpCount;
+
+      const hasActiveFilters = selectedSeverity !== 'ALL' || selectedCategory !== 'ALL' || !!searchQuery;
+      if (hasActiveFilters) {
+        filterStatusRibbon.classList.remove('hidden');
+        const countShowing = activeTabName === 'active' ? filteredActiveCount : filteredFpCount;
+        const countTotal = activeTabName === 'active' ? totalActiveCount : totalFpCount;
+        filterStatusText.textContent = 'Showing ' + countShowing + ' of ' + countTotal + ' finding' + (countTotal === 1 ? '' : 's');
+      } else {
+        filterStatusRibbon.classList.add('hidden');
+      }
+
+      if (activeTabName === 'active') {
+        renderGroupedView(activeGrouped, activeList, 'active', filteredActiveCount, totalActiveCount, hasActiveFilters);
+      } else {
+        renderGroupedView(fpGrouped, fpList, 'fp', filteredFpCount, totalFpCount, hasActiveFilters);
+      }
+    }
+
+    function renderGroupedView(grouped, targetContainer, type, filteredCount, totalCount, hasActiveFilters) {
+      targetContainer.innerHTML = '';
+
+      if (totalCount === 0) {
+        const emptyEl = document.createElement('div');
+        emptyEl.className = 'empty-state';
+        if (type === 'active') {
+          emptyEl.innerHTML = '<span class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--js-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></span><span class="empty-title">Code Guard Clean</span><span class="empty-desc">No security vulnerabilities detected in your project. Scan workspace or files to begin.</span>';
+        } else {
+          emptyEl.innerHTML = '<span class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--vscode-descriptionForeground)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span><span class="empty-title">No False Positives</span><span class="empty-desc">Vulnerabilities you exempt as false positives will appear here and restore your compliance score.</span>';
+        }
+        targetContainer.appendChild(emptyEl);
+        return;
+      }
+
+      if (filteredCount === 0 && hasActiveFilters) {
+        const emptyEl = document.createElement('div');
+        emptyEl.className = 'empty-state';
+        emptyEl.innerHTML = '<span class="empty-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--vscode-descriptionForeground)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="empty-title">No Matching Findings</span><span class="empty-desc">No vulnerabilities matched your current search or category filter.</span>';
+        targetContainer.appendChild(emptyEl);
+        return;
+      }
+
+      Object.entries(grouped).forEach(function(entry) {
+        const uriStr = entry[0];
+        const fileObj = entry[1];
+
+        const fileCard = document.createElement('div');
+        fileCard.className = 'file-card';
+
+        const fileHeader = document.createElement('div');
+        fileHeader.className = 'file-header';
+
+        const titleGroup = document.createElement('div');
+        titleGroup.className = 'file-title-group';
+        titleGroup.setAttribute('role', 'button');
+        titleGroup.setAttribute('tabindex', '0');
+        titleGroup.setAttribute('aria-label', 'Open ' + fileObj.relativePath + ' in editor');
+        titleGroup.title = 'Click to open file in editor';
+        titleGroup.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="file-path">' + escapeHtml(fileObj.relativePath) + '</span>';
+        
+        const openFileHandler = function() {
+          vscode.postMessage({
+            type: 'revealIssue',
+            fileUri: uriStr,
+            line: 1,
+            column: 0
+          });
+        };
+        titleGroup.addEventListener('click', openFileHandler);
+        titleGroup.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openFileHandler();
+          }
+        });
+
+        const badgeCount = document.createElement('span');
+        badgeCount.className = 'file-badge-count';
+        badgeCount.textContent = fileObj.issues.length + ' ' + (fileObj.issues.length === 1 ? 'issue' : 'issues');
+
+        fileHeader.appendChild(titleGroup);
+        fileHeader.appendChild(badgeCount);
+        fileCard.appendChild(fileHeader);
+
+        fileObj.issues.forEach(function(issue) {
+          const issueItem = document.createElement('div');
+          issueItem.className = 'issue-item';
+
+          const metaRow = document.createElement('div');
+          metaRow.className = 'issue-meta-row';
+
+          const pillsLeft = document.createElement('div');
+          pillsLeft.className = 'issue-pills-left';
+
+          const sevBadge = document.createElement('span');
+          sevBadge.className = 'issue-badge ' + (issue.severity || 'medium').toLowerCase();
+          sevBadge.textContent = issue.severity || 'MEDIUM';
+          pillsLeft.appendChild(sevBadge);
+
+          const cvssScore = issue.cvssBaseScore !== undefined ? issue.cvssBaseScore : (issue.severity === 'CRITICAL' ? '9.8' : issue.severity === 'HIGH' ? '8.8' : issue.severity === 'MEDIUM' ? '5.3' : '3.7');
+          const cvssPill = document.createElement('span');
+          cvssPill.className = 'cvss-pill';
+          cvssPill.textContent = 'CVSS ' + cvssScore;
+          if (issue.cvssVector) {
+            cvssPill.title = issue.cvssVector;
+          }
+          pillsLeft.appendChild(cvssPill);
+
+          const rulePill = document.createElement('span');
+          rulePill.className = 'rule-id-pill';
+          rulePill.textContent = issue.id;
+          pillsLeft.appendChild(rulePill);
+
+          const locPill = document.createElement('span');
+          locPill.className = 'issue-loc-pill';
+          locPill.textContent = 'Line ' + issue.line;
+
+          metaRow.appendChild(pillsLeft);
+          metaRow.appendChild(locPill);
+          issueItem.appendChild(metaRow);
+
+          // Finding Message (Clickable to reveal in editor)
+          const msgEl = document.createElement('div');
+          msgEl.className = 'issue-message';
+          msgEl.textContent = issue.message;
+          msgEl.title = 'Click to jump to line in editor';
+          msgEl.addEventListener('click', function() {
+            vscode.postMessage({
+              type: 'revealIssue',
+              fileUri: uriStr,
+              line: issue.line,
+              column: issue.column
+            });
+          });
+          issueItem.appendChild(msgEl);
+
+          // Remediation Accordion & Actions Row
+          const isExpanded = expandedIssues.has(issue.fpKey);
+          const remediationId = 'remediation-' + issue.fpKey.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+          const actionsRow = document.createElement('div');
+          actionsRow.className = 'issue-actions-row';
+
+          // Reveal Button
+          const revealBtn = document.createElement('button');
+          revealBtn.className = 'issue-action-btn';
+          revealBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Reveal</span>';
+          revealBtn.title = 'Open file and jump to line ' + issue.line;
+          revealBtn.addEventListener('click', function() {
+            vscode.postMessage({
+              type: 'revealIssue',
+              fileUri: uriStr,
+              line: issue.line,
+              column: issue.column
+            });
+          });
+          actionsRow.appendChild(revealBtn);
+
+          // Ignore / False Positive Button
+          const fpBtn = document.createElement('button');
+          fpBtn.className = 'issue-action-btn ' + (type === 'active' ? 'fp-btn' : 'restore-btn');
+          if (type === 'active') {
+            fpBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Ignore</span>';
+            fpBtn.title = 'Mark as False Positive (restores security score)';
+          } else {
+            fpBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Restore</span>';
+            fpBtn.title = 'Restore finding to active security audit';
+          }
+          fpBtn.addEventListener('click', function() {
+            vscode.postMessage({
+              type: 'toggleFalsePositive',
+              fpKey: issue.fpKey
+            });
+          });
+          actionsRow.appendChild(fpBtn);
+
+          // Guidance Toggle Button
+          const accordionToggle = document.createElement('button');
+          accordionToggle.className = 'accordion-toggle';
+          accordionToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          accordionToggle.setAttribute('aria-controls', remediationId);
+          accordionToggle.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5 0.76 0.76 1.23 1.52 1.41 2.5"/></svg><span>Guidance</span><svg class="accordion-arrow' + (isExpanded ? ' expanded' : '') + '" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>';
+
+          const remediationContainer = document.createElement('div');
+          remediationContainer.id = remediationId;
+          remediationContainer.className = 'remediation-box';
+          if (!isExpanded) {
+            remediationContainer.style.display = 'none';
+          } else {
+            renderRemediationContent(remediationContainer, issue);
+          }
+
+          accordionToggle.addEventListener('click', function() {
+            if (expandedIssues.has(issue.fpKey)) {
+              expandedIssues.delete(issue.fpKey);
+              accordionToggle.setAttribute('aria-expanded', 'false');
+              remediationContainer.style.display = 'none';
+              const arrow = accordionToggle.querySelector('.accordion-arrow');
+              if (arrow) arrow.classList.remove('expanded');
+            } else {
+              expandedIssues.add(issue.fpKey);
+              accordionToggle.setAttribute('aria-expanded', 'true');
+              renderRemediationContent(remediationContainer, issue);
+              remediationContainer.style.display = 'flex';
+              const arrow = accordionToggle.querySelector('.accordion-arrow');
+              if (arrow) arrow.classList.add('expanded');
+            }
+            persistClientState();
+          });
+
+          actionsRow.appendChild(accordionToggle);
+          issueItem.appendChild(actionsRow);
+          issueItem.appendChild(remediationContainer);
+
+          fileCard.appendChild(issueItem);
+        });
+
+        targetContainer.appendChild(fileCard);
+      });
+    }
+
+    function renderRemediationContent(container, issue) {
+      container.innerHTML = '';
+      const guidance = getGuidanceForIssue(issue);
+      const detectedLine = issue.sourceLine;
+
+      // 1. Detected in your code
+      const sec1 = document.createElement('div');
+      sec1.className = 'guidance-section';
+      const label1 = document.createElement('span');
+      label1.className = 'guidance-section-label';
+      label1.textContent = '1. Detected in your code (Line ' + issue.line + ')';
+      sec1.appendChild(label1);
+
+      if (detectedLine !== undefined && detectedLine !== null && detectedLine !== '') {
+        const codeBox = document.createElement('div');
+        codeBox.className = 'guidance-code-box';
+        const codeEl = document.createElement('code');
+        codeEl.className = 'guidance-code-snippet';
+        const trimmedLine = detectedLine.trim() || ('Line ' + issue.line);
+        codeEl.textContent = trimmedLine.length > 280 ? (trimmedLine.slice(0, 280) + '... (truncated)') : trimmedLine;
+        codeBox.appendChild(codeEl);
+        sec1.appendChild(codeBox);
+      } else {
+        const unavailBox = document.createElement('div');
+        unavailBox.className = 'guidance-unavailable-box';
+        unavailBox.textContent = 'Source code line is unavailable for this archived scan record.';
+        sec1.appendChild(unavailBox);
+      }
+      container.appendChild(sec1);
+
+      // 2. Why review this
+      const sec2 = document.createElement('div');
+      sec2.className = 'guidance-section';
+      const label2 = document.createElement('span');
+      label2.className = 'guidance-section-label';
+      label2.textContent = '2. Why review this';
+      sec2.appendChild(label2);
+      const pRisk = document.createElement('p');
+      pRisk.className = 'guidance-text';
+      pRisk.textContent = guidance.risk || 'Review the flagged pattern for potential security impact.';
+      sec2.appendChild(pRisk);
+      container.appendChild(sec2);
+
+      // 3. Recommended action
+      const sec3 = document.createElement('div');
+      sec3.className = 'guidance-section';
+      const actionHeader = document.createElement('div');
+      actionHeader.className = 'guidance-header-row';
+      const label3 = document.createElement('span');
+      label3.className = 'guidance-section-label';
+      label3.textContent = '3. Recommended action';
+      actionHeader.appendChild(label3);
+
+      if (guidance.scope) {
+        const scopeBadge = document.createElement('span');
+        scopeBadge.className = 'scope-badge';
+        scopeBadge.textContent = guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope';
+        actionHeader.appendChild(scopeBadge);
+      }
+      sec3.appendChild(actionHeader);
+
+      const pAction = document.createElement('p');
+      pAction.className = 'guidance-text guidance-action-text';
+      pAction.textContent = guidance.recommendedAction || guidance.shortAction || 'Review according to security best practices.';
+      sec3.appendChild(pAction);
+      container.appendChild(sec3);
+
+      // Progressive Disclosure: Toggle for Sections 4-6
+      const isFullExpanded = expandedFullGuidance.has(issue.fpKey);
+      const fullToggle = document.createElement('button');
+      fullToggle.className = 'full-guidance-toggle';
+      fullToggle.setAttribute('aria-expanded', isFullExpanded ? 'true' : 'false');
+      fullToggle.innerHTML = '<span class="full-guidance-text">' + (isFullExpanded ? 'Hide full guidance' : 'Show full guidance') + '</span><span class="full-guidance-arrow">' + (isFullExpanded ? '▴' : '▾') + '</span>';
+
+      const fullContainer = document.createElement('div');
+      fullContainer.className = 'full-guidance-container';
+      fullContainer.style.display = isFullExpanded ? 'flex' : 'none';
+
+      // 4. What JSentinel cannot determine
+      const sec4 = document.createElement('div');
+      sec4.className = 'cannot-infer-box';
+      const label4 = document.createElement('span');
+      label4.className = 'cannot-infer-label';
+      label4.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>4. What JSentinel cannot determine</span>';
+      sec4.appendChild(label4);
+      const pCannot = document.createElement('p');
+      pCannot.className = 'cannot-infer-text';
+      pCannot.textContent = guidance.cannotInfer || 'JSentinel cannot determine application intent, runtime context, or environmental controls.';
+      sec4.appendChild(pCannot);
+      fullContainer.appendChild(sec4);
+
+      // 5. Possible approaches (prose only)
+      const sec5 = document.createElement('div');
+      sec5.className = 'guidance-section';
+      const label5 = document.createElement('span');
+      label5.className = 'guidance-section-label';
+      label5.textContent = '5. Possible approaches';
+      sec5.appendChild(label5);
+
+      if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
+        const ul = document.createElement('ul');
+        ul.className = 'guidance-list';
+        guidance.approaches.forEach(function(appr) {
+          const li = document.createElement('li');
+          li.className = 'guidance-list-item';
+          const bullet = document.createElement('span');
+          bullet.className = 'guidance-bullet';
+          bullet.textContent = '•';
+          li.appendChild(bullet);
+
+          const contentSpan = document.createElement('span');
+          if (typeof appr === 'string') {
+            const colonIdx = appr.indexOf(':');
+            if (colonIdx !== -1) {
+              const strong = document.createElement('strong');
+              strong.textContent = appr.slice(0, colonIdx) + ': ';
+              contentSpan.appendChild(strong);
+              contentSpan.appendChild(document.createTextNode(appr.slice(colonIdx + 1).trim()));
+            } else {
+              contentSpan.textContent = appr;
+            }
+          } else if (typeof appr === 'object' && appr !== null) {
+            const strong = document.createElement('strong');
+            strong.textContent = (appr.title || '') + ': ';
+            contentSpan.appendChild(strong);
+            contentSpan.appendChild(document.createTextNode(appr.description || ''));
+          }
+          li.appendChild(contentSpan);
+          ul.appendChild(li);
+        });
+        sec5.appendChild(ul);
+      }
+      fullContainer.appendChild(sec5);
+
+      // 6. How to verify
+      const sec6 = document.createElement('div');
+      sec6.className = 'guidance-section';
+      const label6 = document.createElement('span');
+      label6.className = 'guidance-section-label';
+      label6.textContent = '6. How to verify';
+      sec6.appendChild(label6);
+
+      if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
+        const ulVerify = document.createElement('ul');
+        ulVerify.className = 'verify-list';
+        guidance.verifySteps.forEach(function(step) {
+          const li = document.createElement('li');
+          li.className = 'verify-list-item';
+          const check = document.createElement('span');
+          check.className = 'verify-check';
+          check.textContent = '✓';
+          li.appendChild(check);
+
+          const stepText = document.createElement('span');
+          stepText.textContent = step;
+          li.appendChild(stepText);
+          ulVerify.appendChild(li);
+        });
+        sec6.appendChild(ulVerify);
+      }
+      fullContainer.appendChild(sec6);
+
+      // Mandatory Educational Disclaimer Banner
+      const disclaimerEl = document.createElement('div');
+      disclaimerEl.className = 'disclaimer-banner';
+      disclaimerEl.textContent = guidanceDisclaimer;
+      fullContainer.appendChild(disclaimerEl);
+
+      if (issue.cvssVector) {
+        const cvssFooter = document.createElement('div');
+        cvssFooter.className = 'cvss-vector-footer';
+        cvssFooter.textContent = 'Vector: ' + issue.cvssVector;
+        fullContainer.appendChild(cvssFooter);
+      }
+
+      fullToggle.addEventListener('click', function() {
+        if (expandedFullGuidance.has(issue.fpKey)) {
+          expandedFullGuidance.delete(issue.fpKey);
+          fullToggle.setAttribute('aria-expanded', 'false');
+          fullContainer.style.display = 'none';
+          fullToggle.querySelector('.full-guidance-text').textContent = 'Show full guidance';
+          fullToggle.querySelector('.full-guidance-arrow').textContent = '▾';
+        } else {
+          expandedFullGuidance.add(issue.fpKey);
+          fullToggle.setAttribute('aria-expanded', 'true');
+          fullContainer.style.display = 'flex';
+          fullToggle.querySelector('.full-guidance-text').textContent = 'Hide full guidance';
+          fullToggle.querySelector('.full-guidance-arrow').textContent = '▴';
+        }
+        persistClientState();
+      });
+
+      container.appendChild(fullToggle);
+      container.appendChild(fullContainer);
+    }
+    </script>
+</body>
+</html>
