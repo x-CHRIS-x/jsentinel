@@ -850,29 +850,137 @@
     .guidance-action-text {
       font-weight: 600;
     }
-    .cannot-infer-box {
+    .guidance-next-step-box {
       padding: 8px 10px;
       border-radius: 6px;
-      background: rgba(234, 179, 8, 0.12);
-      border: 1px solid rgba(234, 179, 8, 0.3);
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    body.vscode-light .guidance-next-step-box {
+      background: rgba(99, 102, 241, 0.05);
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+    .guidance-next-step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .guidance-next-step-label {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #818cf8;
+    }
+    body.vscode-light .guidance-next-step-label {
+      color: #4f46e5;
+    }
+    .guidance-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .context-pill {
+      font-size: 9px;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(128, 128, 128, 0.12);
+      color: var(--vscode-descriptionForeground);
+      border: 1px solid var(--card-border);
+    }
+    .guidance-next-step-text {
+      font-size: 11.5px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--vscode-foreground);
+      margin: 0;
+    }
+    .guidance-details-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .guidance-detail-card {
+      border: 1px solid var(--card-border);
+      border-radius: 5px;
+      background: var(--surface-tint);
+      overflow: hidden;
+    }
+    .guidance-detail-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      background: transparent;
+      border: none;
+      color: var(--vscode-foreground);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.15s;
+    }
+    .guidance-detail-toggle:hover {
+      background: var(--card-hover-bg);
+      color: var(--vscode-textLink-activeForeground, #3b82f6);
+    }
+    .guidance-detail-toggle:focus-visible {
+      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
+    }
+    .guidance-detail-arrow {
+      font-size: 10px;
+      color: var(--vscode-descriptionForeground);
+      font-family: var(--font-mono);
+    }
+    .guidance-detail-content {
+      padding: 6px 8px 8px 8px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeIn 0.15s ease;
+    }
+    .illustrative-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--vscode-descriptionForeground);
+      display: block;
+    }
+    .cannot-infer-box {
+      padding: 7px 9px;
+      border-radius: 5px;
+      background: rgba(128, 128, 128, 0.08);
+      border: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
       gap: 3px;
     }
     .cannot-infer-label {
-      font-size: 10px;
-      font-weight: 800;
+      font-size: 9.5px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: #eab308;
+      color: var(--vscode-foreground);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
     .cannot-infer-text {
       font-size: 11px;
       line-height: 1.45;
-      color: var(--vscode-foreground);
+      color: var(--vscode-descriptionForeground);
       margin: 0;
     }
     .guidance-list {
@@ -894,37 +1002,6 @@
       color: #818cf8;
       font-weight: bold;
       flex-shrink: 0;
-    }
-    .full-guidance-toggle {
-      background: var(--surface-tint);
-      border: 1px solid var(--card-border);
-      color: var(--vscode-textLink-foreground);
-      font-size: 11px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      margin-top: 4px;
-      outline: none;
-      transition: all 0.15s;
-    }
-    .full-guidance-toggle:hover {
-      background: var(--card-hover-bg);
-      color: var(--vscode-textLink-activeForeground, #3b82f6);
-    }
-    .full-guidance-toggle:focus-visible {
-      outline: 1px solid var(--vscode-focusBorder, #3b82f6);
-    }
-    .full-guidance-container {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 4px;
     }
     .verify-list {
       list-style: none;
@@ -1211,7 +1288,8 @@
         verifySteps: [
           'Verify that the flagged pattern adheres to application security policies.',
           'Test edge cases and unexpected inputs in automated test suites.'
-        ]
+        ],
+        illustrativePattern: '// Review flagged code pattern and apply safe coding practices suited to your architecture'
       };
     }
 
@@ -1240,7 +1318,7 @@
     let selectedCategory = previousState.selectedCategory || 'ALL';
     let searchQuery = previousState.searchQuery || '';
     const expandedIssues = new Set(previousState.expandedKeys || []);
-    const expandedFullGuidance = new Set(previousState.expandedFullKeys || []);
+    const expandedGuidanceSections = new Set(previousState.expandedSectionKeys || previousState.expandedFullKeys || []);
 
     function persistClientState() {
       vscode.setState({
@@ -1249,7 +1327,7 @@
         selectedCategory: selectedCategory,
         searchQuery: searchQuery,
         expandedKeys: Array.from(expandedIssues),
-        expandedFullKeys: Array.from(expandedFullGuidance)
+        expandedSectionKeys: Array.from(expandedGuidanceSections)
       });
     }
 
@@ -1864,12 +1942,12 @@
       const guidance = getGuidanceForIssue(issue);
       const detectedLine = issue.sourceLine;
 
-      // 1. Detected in your code
+      // 1. Detected code
       const sec1 = document.createElement('div');
       sec1.className = 'guidance-section';
       const label1 = document.createElement('span');
       label1.className = 'guidance-section-label';
-      label1.textContent = '1. Detected in your code (Line ' + issue.line + ')';
+      label1.textContent = 'Detected code (Line ' + issue.line + ')';
       sec1.appendChild(label1);
 
       if (detectedLine !== undefined && detectedLine !== null && detectedLine !== '') {
@@ -1889,170 +1967,207 @@
       }
       container.appendChild(sec1);
 
-      // 2. Why review this
-      const sec2 = document.createElement('div');
-      sec2.className = 'guidance-section';
-      const label2 = document.createElement('span');
-      label2.className = 'guidance-section-label';
-      label2.textContent = '2. Why review this';
-      sec2.appendChild(label2);
-      const pRisk = document.createElement('p');
-      pRisk.className = 'guidance-text';
-      pRisk.textContent = guidance.risk || 'Review the flagged pattern for potential security impact.';
-      sec2.appendChild(pRisk);
-      container.appendChild(sec2);
+      // 2. Suggested next step & 3. Context indicator (Visual Priority)
+      const nextStepBox = document.createElement('div');
+      nextStepBox.className = 'guidance-next-step-box';
 
-      // 3. Recommended action
-      const sec3 = document.createElement('div');
-      sec3.className = 'guidance-section';
-      const actionHeader = document.createElement('div');
-      actionHeader.className = 'guidance-header-row';
-      const label3 = document.createElement('span');
-      label3.className = 'guidance-section-label';
-      label3.textContent = '3. Recommended action';
-      actionHeader.appendChild(label3);
+      const nextStepHeader = document.createElement('div');
+      nextStepHeader.className = 'guidance-next-step-header';
+
+      const nextStepLabel = document.createElement('span');
+      nextStepLabel.className = 'guidance-next-step-label';
+      nextStepLabel.textContent = 'Suggested next step';
+      nextStepHeader.appendChild(nextStepLabel);
+
+      const badgesRow = document.createElement('div');
+      badgesRow.className = 'guidance-badges-row';
 
       if (guidance.scope) {
         const scopeBadge = document.createElement('span');
         scopeBadge.className = 'scope-badge';
         scopeBadge.textContent = guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope';
-        actionHeader.appendChild(scopeBadge);
-      }
-      sec3.appendChild(actionHeader);
-
-      const pAction = document.createElement('p');
-      pAction.className = 'guidance-text guidance-action-text';
-      pAction.textContent = guidance.recommendedAction || guidance.shortAction || 'Review according to security best practices.';
-      sec3.appendChild(pAction);
-      container.appendChild(sec3);
-
-      // Progressive Disclosure: Toggle for Sections 4-6
-      const isFullExpanded = expandedFullGuidance.has(issue.fpKey);
-      const fullToggle = document.createElement('button');
-      fullToggle.className = 'full-guidance-toggle';
-      fullToggle.setAttribute('aria-expanded', isFullExpanded ? 'true' : 'false');
-      fullToggle.innerHTML = '<span class="full-guidance-text">' + (isFullExpanded ? 'Hide full guidance' : 'Show full guidance') + '</span><span class="full-guidance-arrow">' + (isFullExpanded ? '▴' : '▾') + '</span>';
-
-      const fullContainer = document.createElement('div');
-      fullContainer.className = 'full-guidance-container';
-      fullContainer.style.display = isFullExpanded ? 'flex' : 'none';
-
-      // 4. What JSentinel cannot determine
-      const sec4 = document.createElement('div');
-      sec4.className = 'cannot-infer-box';
-      const label4 = document.createElement('span');
-      label4.className = 'cannot-infer-label';
-      label4.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>4. What JSentinel cannot determine</span>';
-      sec4.appendChild(label4);
-      const pCannot = document.createElement('p');
-      pCannot.className = 'cannot-infer-text';
-      pCannot.textContent = guidance.cannotInfer || 'JSentinel cannot determine application intent, runtime context, or environmental controls.';
-      sec4.appendChild(pCannot);
-      fullContainer.appendChild(sec4);
-
-      // 5. Possible approaches (prose only)
-      const sec5 = document.createElement('div');
-      sec5.className = 'guidance-section';
-      const label5 = document.createElement('span');
-      label5.className = 'guidance-section-label';
-      label5.textContent = '5. Possible approaches';
-      sec5.appendChild(label5);
-
-      if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
-        const ul = document.createElement('ul');
-        ul.className = 'guidance-list';
-        guidance.approaches.forEach(function(appr) {
-          const li = document.createElement('li');
-          li.className = 'guidance-list-item';
-          const bullet = document.createElement('span');
-          bullet.className = 'guidance-bullet';
-          bullet.textContent = '•';
-          li.appendChild(bullet);
-
-          const contentSpan = document.createElement('span');
-          if (typeof appr === 'string') {
-            const colonIdx = appr.indexOf(':');
-            if (colonIdx !== -1) {
-              const strong = document.createElement('strong');
-              strong.textContent = appr.slice(0, colonIdx) + ': ';
-              contentSpan.appendChild(strong);
-              contentSpan.appendChild(document.createTextNode(appr.slice(colonIdx + 1).trim()));
-            } else {
-              contentSpan.textContent = appr;
-            }
-          } else if (typeof appr === 'object' && appr !== null) {
-            const strong = document.createElement('strong');
-            strong.textContent = (appr.title || '') + ': ';
-            contentSpan.appendChild(strong);
-            contentSpan.appendChild(document.createTextNode(appr.description || ''));
-          }
-          li.appendChild(contentSpan);
-          ul.appendChild(li);
-        });
-        sec5.appendChild(ul);
-      }
-      fullContainer.appendChild(sec5);
-
-      // 6. How to verify
-      const sec6 = document.createElement('div');
-      sec6.className = 'guidance-section';
-      const label6 = document.createElement('span');
-      label6.className = 'guidance-section-label';
-      label6.textContent = '6. How to verify';
-      sec6.appendChild(label6);
-
-      if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
-        const ulVerify = document.createElement('ul');
-        ulVerify.className = 'verify-list';
-        guidance.verifySteps.forEach(function(step) {
-          const li = document.createElement('li');
-          li.className = 'verify-list-item';
-          const check = document.createElement('span');
-          check.className = 'verify-check';
-          check.textContent = '✓';
-          li.appendChild(check);
-
-          const stepText = document.createElement('span');
-          stepText.textContent = step;
-          li.appendChild(stepText);
-          ulVerify.appendChild(li);
-        });
-        sec6.appendChild(ulVerify);
-      }
-      fullContainer.appendChild(sec6);
-
-      // Mandatory Educational Disclaimer Banner
-      const disclaimerEl = document.createElement('div');
-      disclaimerEl.className = 'disclaimer-banner';
-      disclaimerEl.textContent = guidanceDisclaimer;
-      fullContainer.appendChild(disclaimerEl);
-
-      if (issue.cvssVector) {
-        const cvssFooter = document.createElement('div');
-        cvssFooter.className = 'cvss-vector-footer';
-        cvssFooter.textContent = 'Vector: ' + issue.cvssVector;
-        fullContainer.appendChild(cvssFooter);
+        badgesRow.appendChild(scopeBadge);
       }
 
-      fullToggle.addEventListener('click', function() {
-        if (expandedFullGuidance.has(issue.fpKey)) {
-          expandedFullGuidance.delete(issue.fpKey);
-          fullToggle.setAttribute('aria-expanded', 'false');
-          fullContainer.style.display = 'none';
-          fullToggle.querySelector('.full-guidance-text').textContent = 'Show full guidance';
-          fullToggle.querySelector('.full-guidance-arrow').textContent = '▾';
-        } else {
-          expandedFullGuidance.add(issue.fpKey);
-          fullToggle.setAttribute('aria-expanded', 'true');
-          fullContainer.style.display = 'flex';
-          fullToggle.querySelector('.full-guidance-text').textContent = 'Hide full guidance';
-          fullToggle.querySelector('.full-guidance-arrow').textContent = '▴';
+      if (guidance.scope === 'cross-boundary') {
+        const contextPill = document.createElement('span');
+        contextPill.className = 'context-pill';
+        contextPill.textContent = 'Requires project context';
+        badgesRow.appendChild(contextPill);
+      }
+      nextStepHeader.appendChild(badgesRow);
+      nextStepBox.appendChild(nextStepHeader);
+
+      const pNextStep = document.createElement('p');
+      pNextStep.className = 'guidance-next-step-text';
+      pNextStep.textContent = guidance.shortAction || guidance.recommendedAction || 'Review according to security best practices.';
+      nextStepBox.appendChild(pNextStep);
+      container.appendChild(nextStepBox);
+
+      // 4. Compact detail actions (Progressive Disclosure)
+      const detailsContainer = document.createElement('div');
+      detailsContainer.className = 'guidance-details-container';
+
+      // Helper to create an expandable detail section
+      function createDetailSection(sectionKey, titleText, renderContentFn) {
+        const compositeKey = issue.fpKey + ':' + sectionKey;
+        const isExpanded = expandedGuidanceSections.has(compositeKey);
+
+        const card = document.createElement('div');
+        card.className = 'guidance-detail-card';
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'guidance-detail-toggle';
+        toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        toggleBtn.innerHTML = '<span>' + escapeHtml(titleText) + '</span><span class="guidance-detail-arrow">' + (isExpanded ? '▴' : '▾') + '</span>';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'guidance-detail-content';
+        contentDiv.style.display = isExpanded ? 'flex' : 'none';
+
+        if (isExpanded) {
+          renderContentFn(contentDiv);
         }
-        persistClientState();
-      });
 
-      container.appendChild(fullToggle);
-      container.appendChild(fullContainer);
+        toggleBtn.addEventListener('click', function() {
+          if (expandedGuidanceSections.has(compositeKey)) {
+            expandedGuidanceSections.delete(compositeKey);
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            contentDiv.style.display = 'none';
+            toggleBtn.querySelector('.guidance-detail-arrow').textContent = '▾';
+          } else {
+            expandedGuidanceSections.add(compositeKey);
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            contentDiv.innerHTML = '';
+            renderContentFn(contentDiv);
+            contentDiv.style.display = 'flex';
+            toggleBtn.querySelector('.guidance-detail-arrow').textContent = '▴';
+          }
+          persistClientState();
+        });
+
+        card.appendChild(toggleBtn);
+        card.appendChild(contentDiv);
+        return card;
+      }
+
+      // Action 1: Why this was flagged
+      detailsContainer.appendChild(createDetailSection('flagged', 'Why this was flagged', function(el) {
+        const pRisk = document.createElement('p');
+        pRisk.className = 'guidance-text';
+        pRisk.textContent = guidance.risk || 'Review the flagged pattern for potential security impact.';
+        el.appendChild(pRisk);
+      }));
+
+      // Action 2: Choose an approach
+      detailsContainer.appendChild(createDetailSection('approach', 'Choose an approach', function(el) {
+        if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
+          const ul = document.createElement('ul');
+          ul.className = 'guidance-list';
+          guidance.approaches.forEach(function(appr) {
+            const li = document.createElement('li');
+            li.className = 'guidance-list-item';
+            const bullet = document.createElement('span');
+            bullet.className = 'guidance-bullet';
+            bullet.textContent = '•';
+            li.appendChild(bullet);
+
+            const contentSpan = document.createElement('span');
+            if (typeof appr === 'string') {
+              const colonIdx = appr.indexOf(':');
+              if (colonIdx !== -1) {
+                const strong = document.createElement('strong');
+                strong.textContent = appr.slice(0, colonIdx) + ': ';
+                contentSpan.appendChild(strong);
+                contentSpan.appendChild(document.createTextNode(appr.slice(colonIdx + 1).trim()));
+              } else {
+                contentSpan.textContent = appr;
+              }
+            } else if (typeof appr === 'object' && appr !== null) {
+              const strong = document.createElement('strong');
+              strong.textContent = (appr.title || '') + ': ';
+              contentSpan.appendChild(strong);
+              contentSpan.appendChild(document.createTextNode(appr.description || ''));
+            }
+            li.appendChild(contentSpan);
+            ul.appendChild(li);
+          });
+          el.appendChild(ul);
+        }
+      }));
+
+      // Action 3: How to test
+      detailsContainer.appendChild(createDetailSection('test', 'How to test', function(el) {
+        if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
+          const ulVerify = document.createElement('ul');
+          ulVerify.className = 'verify-list';
+          guidance.verifySteps.forEach(function(step) {
+            const li = document.createElement('li');
+            li.className = 'verify-list-item';
+            const check = document.createElement('span');
+            check.className = 'verify-check';
+            check.textContent = '✓';
+            li.appendChild(check);
+
+            const stepText = document.createElement('span');
+            stepText.textContent = step;
+            li.appendChild(stepText);
+            ulVerify.appendChild(li);
+          });
+          el.appendChild(ulVerify);
+        }
+      }));
+
+      // Action 4: Example structure
+      detailsContainer.appendChild(createDetailSection('example', 'Example structure', function(el) {
+        // Why there isn't one exact fix (plain language, non-blocker)
+        const cannotBox = document.createElement('div');
+        cannotBox.className = 'cannot-infer-box';
+        const cannotLabel = document.createElement('span');
+        cannotLabel.className = 'cannot-infer-label';
+        cannotLabel.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Why there isn\'t one exact fix</span>';
+        cannotBox.appendChild(cannotLabel);
+        const pCannot = document.createElement('p');
+        pCannot.className = 'cannot-infer-text';
+        pCannot.textContent = guidance.cannotInfer || 'JSentinel cannot determine application intent, runtime context, or environmental controls.';
+        cannotBox.appendChild(pCannot);
+        el.appendChild(cannotBox);
+
+        // Illustrative pattern
+        if (guidance.illustrativePattern) {
+          const patternGroup = document.createElement('div');
+          patternGroup.className = 'guidance-section';
+          const patternLabel = document.createElement('span');
+          patternLabel.className = 'illustrative-label';
+          patternLabel.textContent = 'Illustrative pattern: adapt this to your project';
+          patternGroup.appendChild(patternLabel);
+
+          const patternBox = document.createElement('div');
+          patternBox.className = 'guidance-code-box';
+          const patternEl = document.createElement('code');
+          patternEl.className = 'guidance-code-snippet';
+          patternEl.textContent = guidance.illustrativePattern;
+          patternBox.appendChild(patternEl);
+          patternGroup.appendChild(patternBox);
+          el.appendChild(patternGroup);
+        }
+
+        // Educational Disclaimer Banner
+        const disclaimerEl = document.createElement('div');
+        disclaimerEl.className = 'disclaimer-banner';
+        disclaimerEl.textContent = guidanceDisclaimer;
+        el.appendChild(disclaimerEl);
+
+        if (issue.cvssVector) {
+          const cvssFooter = document.createElement('div');
+          cvssFooter.className = 'cvss-vector-footer';
+          cvssFooter.textContent = 'Vector: ' + issue.cvssVector;
+          el.appendChild(cvssFooter);
+        }
+      }));
+
+      container.appendChild(detailsContainer);
     }
     </script>
 </body>

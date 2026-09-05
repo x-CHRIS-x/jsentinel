@@ -94,19 +94,20 @@ function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedFileIdx, setSelectedFileIdx] = useState(null);
   const [selectedIssueIdx, setSelectedIssueIdx] = useState(null);
-  const [expandedFullGuidance, setExpandedFullGuidance] = useState(new Set());
+  const [expandedGuidanceSections, setExpandedGuidanceSections] = useState(new Set());
   const [darkMode, setDarkMode] = useState(false);
   const [largeProjectWarning, setLargeProjectWarning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileSearchQuery, setFileSearchQuery] = useState('');
 
-  const toggleFullGuidance = (key) => {
-    setExpandedFullGuidance(prev => {
+  const toggleGuidanceSection = (key, section) => {
+    const compositeKey = `${key}:${section}`;
+    setExpandedGuidanceSections(prev => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
+      if (next.has(compositeKey)) {
+        next.delete(compositeKey);
       } else {
-        next.add(key);
+        next.add(compositeKey);
       }
       return next;
     });
@@ -1380,18 +1381,21 @@ function App() {
                                   </button>
                                 </div>
 
-                                {/* Expandable 6-Part Guidance Panel */}
+                                {/* Action-First Compact Guidance Panel */}
                                 {isSelected && (() => {
                                   const guidance = getGuidance(issue);
                                   const detectedLine = issue.sourceLine || (selectedResult?.rawCode ? selectedResult.rawCode.split('\n')[issue.line - 1] : null);
-                                  const isFullGuidanceExpanded = expandedFullGuidance.has(fpKey);
+                                  const isFlaggedExpanded = expandedGuidanceSections.has(`${fpKey}:flagged`);
+                                  const isApproachExpanded = expandedGuidanceSections.has(`${fpKey}:approach`);
+                                  const isTestExpanded = expandedGuidanceSections.has(`${fpKey}:test`);
+                                  const isExampleExpanded = expandedGuidanceSections.has(`${fpKey}:example`);
 
                                   return (
-                                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-zinc-800 space-y-3 animate-reveal text-left">
-                                      {/* 1. Detected in your code */}
+                                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-zinc-800 space-y-2.5 animate-reveal text-left">
+                                      {/* 1. Detected code */}
                                       <div className="space-y-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                          1. Detected in your code (Line {issue.line})
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:border-zinc-500 block">
+                                          Detected code (Line {issue.line})
                                         </span>
                                         {detectedLine !== null && detectedLine !== undefined ? (() => {
                                           const trimmed = (detectedLine || '').trim() || `Line ${issue.line}`;
@@ -1408,122 +1412,192 @@ function App() {
                                         )}
                                       </div>
 
-                                      {/* 2. Why review this */}
-                                      <div className="space-y-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                          2. Why review this
-                                        </span>
-                                        <p className="text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed">
-                                          {guidance.risk}
+                                      {/* 2. Suggested next step (Visual Priority) & 3. Context indicator */}
+                                      <div className="p-2.5 rounded-lg bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 space-y-1.5">
+                                        <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                                          <span className="text-[9px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 block">
+                                            Suggested next step
+                                          </span>
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            {guidance.scope && (
+                                              <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                {guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope'}
+                                              </span>
+                                            )}
+                                            {guidance.scope === 'cross-boundary' && (
+                                              <span className="text-[8px] font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-200/60 dark:border-zinc-700/60">
+                                                Requires project context
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <p className="text-[11.5px] font-bold text-slate-900 dark:text-zinc-100 leading-snug">
+                                          {guidance.shortAction || guidance.recommendedAction}
                                         </p>
                                       </div>
 
-                                      {/* 3. Recommended action */}
-                                      <div className="space-y-1">
-                                        <div className="flex items-center justify-between gap-1">
-                                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                            3. Recommended action
-                                          </span>
-                                          {guidance.scope && (
-                                            <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
-                                              {guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope'}
+                                      {/* 4. Compact detail actions (Progressive Disclosure) */}
+                                      <div className="space-y-1 pt-0.5">
+                                        {/* Action 1: Why this was flagged */}
+                                        <div className="rounded-lg border border-slate-200/70 dark:border-zinc-800/80 overflow-hidden bg-slate-50/50 dark:bg-zinc-900/30">
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleGuidanceSection(fpKey, 'flagged')}
+                                            aria-expanded={isFlaggedExpanded}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                          >
+                                            <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
+                                              Why this was flagged
                                             </span>
+                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                                              {isFlaggedExpanded ? '▴' : '▾'}
+                                            </span>
+                                          </button>
+                                          {isFlaggedExpanded && (
+                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed animate-reveal">
+                                              <p>{guidance.risk}</p>
+                                            </div>
                                           )}
                                         </div>
-                                        <p className="text-[11px] font-semibold text-slate-900 dark:text-zinc-100 leading-relaxed">
-                                          {guidance.recommendedAction}
-                                        </p>
-                                      </div>
 
-                                      {/* Progressive Disclosure Toggle for Sections 4-6 */}
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleFullGuidance(fpKey)}
-                                        className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/80 text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300 transition-colors cursor-pointer"
-                                      >
-                                        <span>{isFullGuidanceExpanded ? 'Hide full guidance' : 'Show full guidance'}</span>
-                                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
-                                          {isFullGuidanceExpanded ? '▴' : '▾'}
-                                        </span>
-                                      </button>
-
-                                      {/* Collapsible Sections 4-6 */}
-                                      {isFullGuidanceExpanded && (
-                                        <div className="space-y-3 pt-1 animate-reveal">
-                                          {/* 4. What JSentinel cannot determine */}
-                                          <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 space-y-1">
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block flex items-center gap-1">
-                                              <span>⚠️</span> 4. What JSentinel cannot determine
+                                        {/* Action 2: Choose an approach */}
+                                        <div className="rounded-lg border border-slate-200/70 dark:border-zinc-800/80 overflow-hidden bg-slate-50/50 dark:bg-zinc-900/30">
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleGuidanceSection(fpKey, 'approach')}
+                                            aria-expanded={isApproachExpanded}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                          >
+                                            <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
+                                              Choose an approach
                                             </span>
-                                            <p className="text-[10.5px] text-amber-800 dark:text-amber-300/90 leading-relaxed">
-                                              {guidance.cannotInfer}
-                                            </p>
-                                          </div>
-
-                                          {/* 5. Possible approaches */}
-                                          <div className="space-y-1.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                              5. Possible approaches
+                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                                              {isApproachExpanded ? '▴' : '▾'}
                                             </span>
-                                            <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
-                                              {guidance.approaches && guidance.approaches.map((appr, idx) => {
-                                                if (typeof appr === 'string') {
-                                                  const colonIdx = appr.indexOf(':');
-                                                  if (colonIdx !== -1) {
-                                                    const title = appr.slice(0, colonIdx);
-                                                    const desc = appr.slice(colonIdx + 1).trim();
+                                          </button>
+                                          {isApproachExpanded && (
+                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
+                                              <ul className="space-y-1.5 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                                {guidance.approaches && guidance.approaches.map((appr, idx) => {
+                                                  if (typeof appr === 'string') {
+                                                    const colonIdx = appr.indexOf(':');
+                                                    if (colonIdx !== -1) {
+                                                      const title = appr.slice(0, colonIdx);
+                                                      const desc = appr.slice(colonIdx + 1).trim();
+                                                      return (
+                                                        <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                          <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                          <span>
+                                                            <strong className="text-slate-900 dark:text-zinc-100">{title}:</strong> {desc}
+                                                          </span>
+                                                        </li>
+                                                      );
+                                                    }
+                                                    return (
+                                                      <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                        <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
+                                                        <span>{appr}</span>
+                                                      </li>
+                                                    );
+                                                  }
+                                                  if (typeof appr === 'object' && appr !== null) {
                                                     return (
                                                       <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
                                                         <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
                                                         <span>
-                                                          <strong className="text-slate-900 dark:text-zinc-100">{title}:</strong> {desc}
+                                                          <strong className="text-slate-900 dark:text-zinc-100">{appr.title}:</strong> {appr.description}
                                                         </span>
                                                       </li>
                                                     );
                                                   }
-                                                  return (
-                                                    <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                      <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
-                                                      <span>{appr}</span>
-                                                    </li>
-                                                  );
-                                                }
-                                                if (typeof appr === 'object' && appr !== null) {
-                                                  return (
-                                                    <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                      <span className="text-indigo-500 dark:text-indigo-400 font-bold shrink-0">•</span>
-                                                      <span>
-                                                        <strong className="text-slate-900 dark:text-zinc-100">{appr.title}:</strong> {appr.description}
-                                                      </span>
-                                                    </li>
-                                                  );
-                                                }
-                                                return null;
-                                              })}
-                                            </ul>
-                                          </div>
-
-                                          {/* 6. How to verify */}
-                                          <div className="space-y-1.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
-                                              6. How to verify
-                                            </span>
-                                            <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
-                                              {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
-                                                <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
-                                                  <span className="text-emerald-500 dark:text-emerald-400 font-bold shrink-0">✓</span>
-                                                  <span>{step}</span>
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-
-                                          {/* Mandatory Educational Disclaimer Banner */}
-                                          <div className="p-2.5 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/30 text-[9.5px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
-                                            {GUIDANCE_DISCLAIMER}
-                                          </div>
+                                                  return null;
+                                                })}
+                                              </ul>
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
+
+                                        {/* Action 3: How to test */}
+                                        <div className="rounded-lg border border-slate-200/70 dark:border-zinc-800/80 overflow-hidden bg-slate-50/50 dark:bg-zinc-900/30">
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleGuidanceSection(fpKey, 'test')}
+                                            aria-expanded={isTestExpanded}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                          >
+                                            <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
+                                              How to test
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                                              {isTestExpanded ? '▴' : '▾'}
+                                            </span>
+                                          </button>
+                                          {isTestExpanded && (
+                                            <div className="px-3 pb-2.5 pt-1 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-1.5 animate-reveal">
+                                              <ul className="space-y-1 text-[10.5px] text-slate-700 dark:text-zinc-300">
+                                                {guidance.verifySteps && guidance.verifySteps.map((step, idx) => (
+                                                  <li key={idx} className="flex items-start gap-1.5 leading-relaxed">
+                                                    <span className="text-emerald-500 dark:text-emerald-400 font-bold shrink-0">✓</span>
+                                                    <span>{step}</span>
+                                                  </li>
+                                                ))}
+                                              </ul>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* Action 4: Example structure */}
+                                        <div className="rounded-lg border border-slate-200/70 dark:border-zinc-800/80 overflow-hidden bg-slate-50/50 dark:bg-zinc-900/30">
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleGuidanceSection(fpKey, 'example')}
+                                            aria-expanded={isExampleExpanded}
+                                            className="w-full flex items-center justify-between px-3 py-1.5 text-left hover:bg-slate-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                                          >
+                                            <span className="text-[10.5px] font-semibold text-slate-700 dark:text-zinc-300">
+                                              Example structure
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">
+                                              {isExampleExpanded ? '▴' : '▾'}
+                                            </span>
+                                          </button>
+                                          {isExampleExpanded && (
+                                            <div className="px-3 pb-2.5 pt-2 border-t border-slate-200/50 dark:border-zinc-800/50 space-y-2 animate-reveal">
+                                              {/* Why there isn't one exact fix (plain language, non-blocker) */}
+                                              <div className="p-2.5 rounded-lg bg-slate-100/80 dark:bg-zinc-800/50 border border-slate-200/70 dark:border-zinc-700/50 space-y-1">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                                  <svg className="w-3 h-3 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                                  </svg>
+                                                  Why there isn't one exact fix
+                                                </span>
+                                                <p className="text-[10.5px] text-slate-600 dark:text-zinc-300 leading-relaxed">
+                                                  {guidance.cannotInfer}
+                                                </p>
+                                              </div>
+
+                                              {/* Illustrative pattern */}
+                                              {guidance.illustrativePattern && (
+                                                <div className="space-y-1">
+                                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 block">
+                                                    Illustrative pattern: adapt this to your project
+                                                  </span>
+                                                  <div className="p-2 rounded-lg bg-slate-900 text-slate-100 dark:bg-zinc-950 font-mono text-[10px] overflow-x-auto border border-slate-700/50 dark:border-zinc-800">
+                                                    <code className="whitespace-pre-wrap break-all">{guidance.illustrativePattern}</code>
+                                                  </div>
+                                                </div>
+                                              )}
+
+                                              {/* Educational Disclaimer */}
+                                              <div className="p-2 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100/80 dark:border-indigo-900/40 text-[9px] text-indigo-700 dark:text-indigo-300 italic leading-snug">
+                                                {GUIDANCE_DISCLAIMER}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
                                   );
                                 })()}

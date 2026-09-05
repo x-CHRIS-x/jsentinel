@@ -84,6 +84,7 @@ const buildHoverCard = (issue) => {
   const category = categoryPrefix ? owaspCategories[categoryPrefix] : null;
   const guidance = getGuidance(issue);
   const scopeLabel = guidance.scope === 'browser' ? 'Browser Scope' : guidance.scope === 'server' ? 'Server Scope' : 'Cross-Boundary Scope';
+  const contextNote = guidance.scope === 'cross-boundary' ? ' | **Context:** `Requires project context`' : '';
 
   const lines = [];
 
@@ -93,7 +94,7 @@ const buildHoverCard = (issue) => {
 
   // ── OWASP Category & Scope ──
   if (category) {
-    lines.push(`${category.icon} **OWASP Category:** [${category.name}](${category.url}) | **Scope:** \`${scopeLabel}\``);
+    lines.push(`${category.icon} **OWASP Category:** [${category.name}](${category.url}) | **Scope:** \`${scopeLabel}\`${contextNote}`);
     lines.push('');
   }
 
@@ -101,29 +102,23 @@ const buildHoverCard = (issue) => {
   lines.push('---');
   lines.push('');
 
-  // ── Summary & Risk Analysis ──
-  lines.push('### 🔎 Summary & Risk Analysis');
+  // ── Suggested Next Step (Visual Priority) ──
+  lines.push('### 💡 Suggested Next Step');
   lines.push('');
-  lines.push(`**Detected:** ${issue.message}`);
+  lines.push(`**${guidance.shortAction || guidance.recommendedAction}**`);
+  lines.push('');
+  lines.push(`*Detected:* ${issue.message}`);
+  lines.push('');
+
+  // ── Why This Was Flagged ──
+  lines.push('### 🔎 Why This Was Flagged');
   lines.push('');
   lines.push(guidance.risk);
   lines.push('');
 
-  // ── Recommended Action ──
-  lines.push('### 💡 Recommended Action');
-  lines.push('');
-  lines.push(guidance.recommendedAction || guidance.shortAction);
-  lines.push('');
-
-  // ── Analysis Limitations ──
-  lines.push('### ⚠️ What JSentinel Cannot Determine');
-  lines.push('');
-  lines.push(guidance.cannotInfer);
-  lines.push('');
-
-  // ── Safe Approaches ──
+  // ── Choose an Approach ──
   if (guidance.approaches && Array.isArray(guidance.approaches) && guidance.approaches.length > 0) {
-    lines.push('### 🛠️ Safe Approaches');
+    lines.push('### 🛠️ Choose an Approach');
     lines.push('');
     guidance.approaches.forEach(appr => {
       if (typeof appr === 'string') {
@@ -142,13 +137,26 @@ const buildHoverCard = (issue) => {
     lines.push('');
   }
 
-  // ── Verification Steps ──
+  // ── How to Test ──
   if (guidance.verifySteps && Array.isArray(guidance.verifySteps) && guidance.verifySteps.length > 0) {
-    lines.push('### 🧪 Verification Steps');
+    lines.push('### 🧪 How to Test');
     lines.push('');
     guidance.verifySteps.forEach(step => {
       lines.push(`- [ ] ${step}`);
     });
+    lines.push('');
+  }
+
+  // ── Example Structure ──
+  lines.push('### 📋 Example Structure');
+  lines.push('');
+  lines.push(`**Why there isn't one exact fix:** ${guidance.cannotInfer}`);
+  lines.push('');
+  if (guidance.illustrativePattern) {
+    lines.push('**Illustrative pattern (adapt this to your project):**');
+    lines.push('```javascript');
+    lines.push(guidance.illustrativePattern);
+    lines.push('```');
     lines.push('');
   }
 

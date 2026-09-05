@@ -42,7 +42,8 @@ export const FALLBACK_GUIDANCE = {
       title: 'OWASP Top 10 Security Risks',
       url: 'https://owasp.org/www-project-top-ten/'
     }
-  ]
+  ],
+  illustrativePattern: '// Review flagged code pattern and apply safe coding practices suited to your architecture'
 };
 
 export const guidanceCatalog = {
@@ -75,7 +76,7 @@ export const guidanceCatalog = {
       { title: 'OWASP A01:2021 – Broken Access Control', url: 'https://owasp.org/Top10/A01_2021-Broken_Access_Control/' },
       { title: 'OWASP Unvalidated Redirects and Forwards Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'window.location.href = userProvidedRedirectUrl;'
+    illustrativePattern: "// Validate destination against an allowlist or internal relative route before redirecting\nconst target = isValidInternalRoute(userPath) ? userPath : \"/dashboard\";\nwindow.location.href = target;"
   },
 
   'OWASP-A01-002': {
@@ -104,7 +105,7 @@ export const guidanceCatalog = {
       { title: 'OWASP A01:2021 – Broken Access Control', url: 'https://owasp.org/Top10/A01_2021-Broken_Access_Control/' },
       { title: 'OWASP Authorization Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html' }
     ],
-    illustrativePattern: "if (userData.role === 'admin') { performPrivilegedAction(); }"
+    illustrativePattern: "// Client UI state adjusts presentation; server endpoints must independently verify role permissions\n// Client: if (user.canEdit) showAdminControl();\n// Server: req.session.user.role === \"admin\" before executing sensitive operations"
   },
 
   // =========================================================================
@@ -136,7 +137,7 @@ export const guidanceCatalog = {
       { title: 'OWASP A02:2021 – Cryptographic Failures', url: 'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/' },
       { title: 'OWASP Secrets Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'const dbPassword = "super_secret_password_123";'
+    illustrativePattern: "// Retrieve secrets from server runtime environment variables or a secret vault\nconst dbPassword = process.env.DATABASE_PASSWORD;"
   },
 
   'OWASP-A02-002': {
@@ -165,7 +166,7 @@ export const guidanceCatalog = {
       { title: 'MDN Set-Cookie Header Reference', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie' },
       { title: 'OWASP Session Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'document.cookie = "sessionId=" + token;'
+    illustrativePattern: "// Server Set-Cookie header with defensive attributes:\n// Set-Cookie: session_id=token_value; Secure; HttpOnly; SameSite=Strict; Path=/"
   },
 
   'OWASP-A02-003': {
@@ -194,7 +195,7 @@ export const guidanceCatalog = {
       { title: 'MDN Web Crypto API', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Window/crypto' },
       { title: 'OWASP Cryptographic Storage Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'const token = Math.random().toString(36).substring(2);'
+    illustrativePattern: "// Generate cryptographically secure random values for security tokens\nconst token = window.crypto.randomUUID();"
   },
 
   'OWASP-A02-004': {
@@ -223,7 +224,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Transport Layer Security Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html' },
       { title: 'MDN HTTPS Security', url: 'https://developer.mozilla.org/en-US/docs/Glossary/HTTPS' }
     ],
-    illustrativePattern: "fetch('http://api.internal.service/auth');"
+    illustrativePattern: "// Transmit sensitive API requests exclusively over HTTPS\nfetch(\"https://api.example.com/v1/auth\", requestOptions);"
   },
 
   'OWASP-A02-005': {
@@ -252,7 +253,7 @@ export const guidanceCatalog = {
       { title: 'OWASP A02:2021 – Cryptographic Failures', url: 'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/' },
       { title: 'Vite Environment Variables & Modes', url: 'https://vite.dev/guide/env-and-mode' }
     ],
-    illustrativePattern: 'const secret = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";'
+    illustrativePattern: "// Reference sensitive secrets through environment variables rather than embedding in code\nconst apiSecret = process.env.AUTH_SECRET_KEY;"
   },
 
   'OWASP-A02-005:credential': {
@@ -281,7 +282,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Secrets Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html' },
       { title: 'Vite Environment Variables & Modes', url: 'https://vite.dev/guide/env-and-mode' }
     ],
-    illustrativePattern: 'const AWS_KEY = "AKIAIOSFODNN7EXAMPLE";'
+    illustrativePattern: "// Use IAM role credentials or environment variables rather than hardcoded keys\nconst client = new ServiceClient({ credentials: fromEnvironment() });"
   },
 
   'OWASP-A02-005:network-address': {
@@ -310,7 +311,7 @@ export const guidanceCatalog = {
       { title: 'OWASP A02:2021 – Cryptographic Failures', url: 'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/' },
       { title: 'RFC 1918 Private Address Allocation', url: 'https://datatracker.ietf.org/doc/html/rfc1918' }
     ],
-    illustrativePattern: 'const serviceIp = "192.168.1.100";'
+    illustrativePattern: "// Load internal service endpoints through configuration variables\nconst serviceUrl = process.env.INTERNAL_SERVICE_URL;"
   },
 
   'OWASP-A02-006': {
@@ -339,7 +340,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Key Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html' },
       { title: 'OWASP A02:2021 – Cryptographic Failures', url: 'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/' }
     ],
-    illustrativePattern: 'const apiKey = "sec_key_xyz123456789abc";'
+    illustrativePattern: "// Load API keys securely server-side or via build environment configuration\nconst apiKey = process.env.API_KEY;"
   },
 
   'OWASP-A02-007': {
@@ -368,7 +369,7 @@ export const guidanceCatalog = {
       { title: 'OWASP REST Security Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/REST_Security_Cheat_Sheet.html' },
       { title: 'RFC 6750 Bearer Token Usage', url: 'https://datatracker.ietf.org/doc/html/rfc6750' }
     ],
-    illustrativePattern: "const url = '/api/login?password=' + encodeURIComponent(userPassword);"
+    illustrativePattern: "// Transmit sensitive parameters in POST request body over HTTPS, not query parameters\nfetch(\"/api/auth/login\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\" },\n  body: JSON.stringify({ credential })\n});"
   },
 
   // =========================================================================
@@ -400,7 +401,7 @@ export const guidanceCatalog = {
       { title: 'MDN eval() Reference and Security Risks', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval' },
       { title: 'OWASP A03:2021 – Injection', url: 'https://owasp.org/Top10/A03_2021-Injection/' }
     ],
-    illustrativePattern: 'const result = eval("data." + userInputProperty);'
+    illustrativePattern: "// Access properties using standard object lookups instead of dynamic code evaluation\nconst value = data[validatedKey];"
   },
 
   'OWASP-A03-002': {
@@ -458,7 +459,7 @@ export const guidanceCatalog = {
       { title: 'MDN Function Constructor Security Considerations', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function' },
       { title: 'OWASP A03:2021 – Injection', url: 'https://owasp.org/Top10/A03_2021-Injection/' }
     ],
-    illustrativePattern: "const dynamicFn = new Function('a', 'b', 'return ' + userExpression);"
+    illustrativePattern: "// Use a static operation map or handler table instead of compiling code from strings\nconst operations = { calculate: (a, b) => a + b };\nconst result = operations[action]?.(val1, val2);"
   },
 
   'OWASP-A03-004': {
@@ -487,7 +488,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Cross-Site Scripting (XSS) Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html' },
       { title: 'DOMPurify Security Library', url: 'https://github.com/cure53/DOMPurify' }
     ],
-    illustrativePattern: 'element.innerHTML = `<div class="user-card">${userName}</div>`;'
+    illustrativePattern: "// Use textContent for plain text or sanitize markup prior to insertion\ncardTitle.textContent = userName;"
   },
 
   'OWASP-A03-005': {
@@ -516,7 +517,7 @@ export const guidanceCatalog = {
       { title: 'OWASP DOM-based XSS Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html' },
       { title: 'OWASP A03:2021 – Injection', url: 'https://owasp.org/Top10/A03_2021-Injection/' }
     ],
-    illustrativePattern: 'container.innerHTML = renderUserProfile(userData);'
+    illustrativePattern: "// Sanitize rendered HTML output with DOMPurify or construct DOM nodes programmatically\ncontainer.innerHTML = DOMPurify.sanitize(renderUserProfile(userData));"
   },
 
   'OWASP-A03-006': {
@@ -545,7 +546,7 @@ export const guidanceCatalog = {
       { title: 'MDN Element.innerHTML Reference', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML' },
       { title: 'OWASP Cross-Site Scripting (XSS) Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'contentDiv.innerHTML = untrustedContent;'
+    illustrativePattern: "// Assign textContent to prevent HTML interpretation of untrusted input\ncontentElement.textContent = untrustedInput;"
   },
 
   'OWASP-A03-007': {
@@ -603,7 +604,7 @@ export const guidanceCatalog = {
       { title: 'React Documentation: dangerouslySetInnerHTML', url: 'https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html' },
       { title: 'OWASP Cross-Site Scripting (XSS) Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html' }
     ],
-    illustrativePattern: '<div dangerouslySetInnerHTML={{ __html: dynamicMarkup }} />'
+    illustrativePattern: "// Construct elements using standard DOM APIs and append them to the document tree\nconst script = document.createElement(\"script\");\nscript.src = verifiedScriptUrl;\ndocument.head.appendChild(script);"
   },
 
   // =========================================================================
@@ -635,7 +636,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Logging Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html' },
       { title: 'OWASP A05:2021 – Security Misconfiguration', url: 'https://owasp.org/Top10/A05_2021-Security_Misconfiguration/' }
     ],
-    illustrativePattern: 'console.log("User login credential: ", userPassword);'
+    illustrativePattern: "// Log non-sensitive audit metadata and omit credentials or secrets\nconsole.log(\"Login attempt recorded for user ID:\", userId);"
   },
 
   'OWASP-A05-002': {
@@ -664,7 +665,7 @@ export const guidanceCatalog = {
       { title: 'MDN Cross-Origin Resource Sharing (CORS)', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS' },
       { title: 'OWASP HTML5 Security Cheat Sheet - CORS', url: 'https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#cross-origin-resource-sharing' }
     ],
-    illustrativePattern: 'response.setHeader("Access-Control-Allow-Origin", "*");'
+    illustrativePattern: "// Restrict Access-Control-Allow-Origin to specific authorized origins\nresponse.setHeader(\"Access-Control-Allow-Origin\", \"https://app.example.com\");"
   },
 
   'OWASP-A05-003': {
@@ -693,7 +694,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Logging Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html' },
       { title: 'OWASP A05:2021 – Security Misconfiguration', url: 'https://owasp.org/Top10/A05_2021-Security_Misconfiguration/' }
     ],
-    illustrativePattern: 'console.log("Full request context: ", requestContext);'
+    illustrativePattern: "// Redact sensitive payload properties before logging diagnostic output\nconsole.log(\"Request summary:\", { method: req.method, path: req.path, status: res.statusCode });"
   },
 
   'OWASP-A05-004': {
@@ -722,7 +723,7 @@ export const guidanceCatalog = {
       { title: 'Helmet.js Security Documentation', url: 'https://helmetjs.github.io/' },
       { title: 'OWASP Secure Headers Project', url: 'https://owasp.org/www-project-secure-headers/' }
     ],
-    illustrativePattern: 'const app = express();\napp.listen(3000);'
+    illustrativePattern: "// Use helmet middleware to apply recommended security headers in Express\nconst helmet = require(\"helmet\");\napp.use(helmet());"
   },
 
   // =========================================================================
@@ -754,7 +755,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Vulnerable Dependency Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html' },
       { title: 'NIST National Vulnerability Database', url: 'https://nvd.nist.gov/' }
     ],
-    illustrativePattern: "import lodash from 'lodash';"
+    illustrativePattern: "// Audit package dependencies and upgrade packages to patched versions\n// npm audit / yarn audit"
   },
 
   'OWASP-A06-001:component-review': {
@@ -783,7 +784,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Vulnerable Dependency Management Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html' },
       { title: 'NIST National Vulnerability Database', url: 'https://nvd.nist.gov/' }
     ],
-    illustrativePattern: "import lodash from 'lodash'; // Review package version against advisories"
+    illustrativePattern: "// Review library advisories and pin known-safe release versions in package.json\n// npm update <package-name>"
   },
 
   'OWASP-A06-001:express-headers': {
@@ -812,7 +813,7 @@ export const guidanceCatalog = {
       { title: 'Helmet.js Documentation', url: 'https://helmetjs.github.io/' },
       { title: 'Express Production Security Best Practices', url: 'https://expressjs.com/en/advanced/best-practice-security.html' }
     ],
-    illustrativePattern: 'const app = express(); // Express instance without Helmet security headers'
+    illustrativePattern: "// Attach helmet middleware to the Express application instance\nconst helmet = require(\"helmet\");\napp.use(helmet());"
   },
 
   'OWASP-A06-001:dynamic-request-target': {
@@ -841,7 +842,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Server-Side Request Forgery Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html' },
       { title: 'Axios Instance Config Documentation', url: 'https://axios-http.com/docs/instance' }
     ],
-    illustrativePattern: 'axios.get(userProvidedUrl);'
+    illustrativePattern: "// Resolve paths against a fixed trusted origin rather than passing unvalidated URLs\nconst requestUrl = new URL(validatedEndpoint, \"https://api.example.com\");\naxios.get(requestUrl.href);"
   },
 
   // =========================================================================
@@ -873,7 +874,7 @@ export const guidanceCatalog = {
       { title: 'OWASP HTML5 Security Cheat Sheet - Local Storage', url: 'https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#local-storage' },
       { title: 'MDN Web Storage API Security', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API' }
     ],
-    illustrativePattern: "localStorage.setItem('authToken', jwtToken);"
+    illustrativePattern: "// Keep authentication credentials in server-managed HttpOnly cookies or memory session state\n// rather than unencrypted browser localStorage"
   },
 
   // =========================================================================
@@ -905,7 +906,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Deserialization Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html' },
       { title: 'OWASP A08:2021 – Software and Data Integrity Failures', url: 'https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/' }
     ],
-    illustrativePattern: 'const parsedData = JSON.parse(untrustedJsonInput);'
+    illustrativePattern: "// Wrap JSON parsing in try/catch error handling and validate payload structure\ntry {\n  const payload = JSON.parse(untrustedJsonInput);\n  if (isValidSchema(payload)) processData(payload);\n} catch (err) {\n  handleParseError(err);\n}"
   },
 
   'OWASP-A08-002': {
@@ -934,7 +935,7 @@ export const guidanceCatalog = {
       { title: 'MDN Object.prototype.__proto__', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto' },
       { title: 'OWASP Prototype Pollution Prevention', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Prototype_Pollution_Prevention_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'targetObject.__proto__.polluted = true;'
+    illustrativePattern: "// Construct dictionaries without prototype inheritance or reject prototype keys\nconst safeMap = Object.create(null);"
   },
 
   'OWASP-A08-003': {
@@ -963,7 +964,7 @@ export const guidanceCatalog = {
       { title: 'MDN Object.assign() Reference', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign' },
       { title: 'OWASP Prototype Pollution Prevention', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Prototype_Pollution_Prevention_Cheat_Sheet.html' }
     ],
-    illustrativePattern: 'Object.assign(targetObject, JSON.parse(userInputPayload));'
+    illustrativePattern: "// Copy explicit allowed properties or merge into a null-prototype object\nconst target = Object.create(null);\ntarget.name = untrustedData.name;"
   },
 
   // =========================================================================
@@ -995,7 +996,7 @@ export const guidanceCatalog = {
       { title: 'OWASP Server-Side Request Forgery Prevention Cheat Sheet', url: 'https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html' },
       { title: 'OWASP A10:2021 – Server-Side Request Forgery (SSRF)', url: 'https://owasp.org/Top10/A10_2021-Server-Side_Request_Forgery_%28SSRF%29/' }
     ],
-    illustrativePattern: 'axios.get(userSuppliedUrl);'
+    illustrativePattern: "// Validate destination hosts against a strict server-side allowlist before making requests\nconst parsed = new URL(destination);\nif (ALLOWED_HOSTS.includes(parsed.hostname)) {\n  axios.get(destination);\n}"
   }
 };
 
