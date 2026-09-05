@@ -2,7 +2,7 @@
   "name": "jsentinel",
   "displayName": "JSentinel: JavaScript Security Scanner",
   "description": "Client-side static analysis system for detecting JavaScript and TypeScript security vulnerabilities using AST traversal. Detects OWASP Top 10 vulnerabilities directly in your editor.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "jsentinel-team",
   "license": "MIT",
   "engines": {
