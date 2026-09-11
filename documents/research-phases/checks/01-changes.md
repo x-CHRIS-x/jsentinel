@@ -74,4 +74,8 @@ Chunk size warning is pre-existing (Babel parser bundle size) and unrelated to P
 
 ## Commit hash
 
-To be recorded after `git commit` at end of phase.
+`59387bf` on branch `work/phase-01-scope`
+
+Full message: "Phase 01: Retire SSRF, CORS wildcard, helmet, and A06 server-side branches from browser scan"
+
+8 files changed, 371 insertions(+), 646 deletions(-)
