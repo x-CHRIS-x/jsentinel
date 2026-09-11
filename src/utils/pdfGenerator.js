@@ -1,3 +1,4 @@
+import { calculateStats, isAdvisory, getOwaspCategories, getScanVersions } from './findingPolicy.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { getGuidance, GUIDANCE_DISCLAIMER } from '../data/guidanceCatalog.js';
@@ -42,6 +43,7 @@ const checkHeightAndPageBreak = (doc, neededHeight, currentY) => {
  */
 export const generatePDFReport = (results, stats, history = [], activity = [], fpFlags = [], fpAnnotations = {}) => {
   const doc = new jsPDF();
+  stats = calculateStats(results, fpFlags);
   const timestamp = new Date().toLocaleString();
   
   // Custom Academic branding palettes matching JSentinel dark red theme
@@ -82,11 +84,11 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
 
   // Calculated Compliance Rating Band
   const score = stats.securityScore;
-  let bandText = "COMPLIANT (EXCELLENT STATUS)";
+  let bandText = "LOW DEDUCTIONS";
   let bandColor = brand.emerald;
   
   if (score < 50) {
-    bandText = "NON-COMPLIANT (HIGH RISK BREACH PROTOCOL)";
+    bandText = "HIGH DEDUCTIONS (REVIEW REQUIRED)";
     bandColor = brand.rose;
   } else if (score < 80) {
     bandText = "WARNING STATUS (MITIGATION STRONGLY SUGGESTED)";
@@ -106,7 +108,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   
-  const scoreExplanation = "This score is computed client side using a CVSS v3.1 inspired mathematical model. The base line rating starts at 100.0 points. Deductions are dynamically applied based on unmitigated active breaches detected in scanned files: Critical severity issues incur a 20.0 point penalty, High severity issues incur 10.0 points, Medium severity issues incur 5.0 points, and Low severity issues incur 1.0 point. Exempted false positive overrides immediately restore score metrics in real time.";
+  const scoreExplanation = "This project score starts at 100 and deducts 20, 10, 5, or 1 points for active Critical, High, Medium, or Low static findings. It is not a CVSS score or proof of security. Informational component-review advisories and false-positive overrides do not deduct points. Versions: " + getScanVersions(results).join(", ");
   const splitExplanation = doc.splitTextToSize(scoreExplanation, 182);
   doc.text(splitExplanation, 14, y);
   y += (splitExplanation.length * 4) + 6;
@@ -126,8 +128,9 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     body: [
       ['Scope of Project Scope Name', results.length > 0 ? (history[0]?.projectName || 'Uploaded Workspace') : 'N/A'],
       ['Total Source Files Scanned', `${results.length} JavaScript/TypeScript resource files`],
-      ['Total Vulnerability Breaches Detected', `${stats.totalIssues} items flagged in AST nodes`],
-      ['Active Vulnerability Breaches Remaining', `${stats.activeIssuesCount} issues affecting rating compliance`],
+      ['Component-review Advisories (not scored)', `${stats.advisoryCount} informational findings`],
+      ['Vulnerability-pattern Findings', `${stats.totalIssues} items flagged in AST nodes`],
+      ['Active Vulnerability-pattern Findings', `${stats.activeIssuesCount} issues affecting rating compliance`],
       ['Flagged False Positive Override Exceptions', `${fpFlags.length} issues excluded from score model`],
       ['Scanning Engine Code Parser Status', 'Complete - Babel Standalone Engine (Active Mode)']
     ],
@@ -149,7 +152,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
 
   autoTable(doc, {
     startY: y,
-    head: [['Severity Band', 'Active Breaches', 'Weight Deduction', 'Standard CVSS v3.1 Representative Vector']],
+    head: [['Severity Band', 'Active Findings', 'Weight Deduction', 'Standard CVSS v3.1 Representative Vector']],
     body: [
       ['CRITICAL', `${stats.criticalIssues} active`, '20.0 points', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'],
       ['HIGH', `${stats.highIssues} active`, '10.0 points', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'],
@@ -179,7 +182,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     if (res.issues) {
       res.issues.forEach(issue => {
         const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        if (fpFlags.includes(fpKey)) return;
+        if (fpFlags.includes(fpKey) || isAdvisory(issue)) return;
         
         activeIssues++;
         if (issue.severity === 'CRITICAL') filePenalty += 20.0;
@@ -195,7 +198,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     return [
       shortName,
       res.fileName,
-      res.issues ? res.issues.length : 0,
+      res.issues ? res.issues.filter(issue => !isAdvisory(issue)).length : 0,
       activeIssues,
       `${fileScore.toFixed(1)}%`
     ];
@@ -264,7 +267,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
 
     autoTable(doc, {
       startY: y,
-      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Breach Description']],
+      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Finding Description']],
       body: findingsBody,
       theme: 'grid',
       styles: { fontSize: 7.5, cellPadding: 3.5 },
@@ -456,44 +459,14 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
   y += 5;
 
   // Pre-calculate OWASP count distributions client side
-  const owaspData = {
-    'A01:2021-Broken Access Control': 0,
-    'A02:2021-Cryptographic Failures': 0,
-    'A03:2021-Injection': 0,
-    'A05:2021-Security Misconfiguration': 0,
-    'A06:2021-Vulnerable and Outdated Components': 0,
-    'A07:2021-Identification and Authentication Failures': 0,
-    'A08:2021-Software and Data Integrity Failures': 0,
-    'A10:2021-Server-Side Request Forgery (SSRF)': 0
-  };
-
-  results.forEach(res => {
-    if (res.issues) {
-      res.issues.forEach(issue => {
-        const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        if (fpFlags.includes(fpKey)) return;
-
-        const match = issue.id.match(/^OWASP-(A\d+)/);
-        const catCode = match ? match[1] : '';
-        if (catCode === 'A01') owaspData['A01:2021-Broken Access Control']++;
-        else if (catCode === 'A02') owaspData['A02:2021-Cryptographic Failures']++;
-        else if (catCode === 'A03') owaspData['A03:2021-Injection']++;
-        else if (catCode === 'A05') owaspData['A05:2021-Security Misconfiguration']++;
-        else if (catCode === 'A06') owaspData['A06:2021-Vulnerable and Outdated Components']++;
-        else if (catCode === 'A07') owaspData['A07:2021-Identification and Authentication Failures']++;
-        else if (catCode === 'A08') owaspData['A08:2021-Software and Data Integrity Failures']++;
-        else if (catCode === 'A10') owaspData['A10:2021-Server-Side Request Forgery (SSRF)']++;
-      });
-    }
-  });
-
-  const owaspBody = Object.entries(owaspData).map(([name, count]) => {
-    return [name, `${count} active breaches`, count > 0 ? 'Exposed status' : 'Secure compliance'];
-  });
+  const owaspBody = getOwaspCategories(results, fpFlags).map(cat => [
+    cat.name, `${cat.count} active findings; ${cat.advisoryCount} advisories`,
+    cat.count > 0 ? 'Review required' : 'No active vulnerability-pattern findings'
+  ]);
 
   autoTable(doc, {
     startY: y,
-    head: [['OWASP Core Category Profile Description', 'Breach Frequency Metric', 'Compliance Status']],
+    head: [['OWASP Core Category Profile Description', 'Finding Frequency', 'Review Status']],
     body: owaspBody,
     theme: 'striped',
     styles: { fontSize: 8, cellPadding: 3.5 },
@@ -552,7 +525,7 @@ export const generatePDFReport = (results, stats, history = [], activity = [], f
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...brand.gray);
-    doc.text('No false positive override annotations have been logged. All breaches remain active.', 14, y);
+    doc.text('No false positive override annotations have been logged. Findings have not been exempted. Advisories are not scored.', 14, y);
     y += 10;
     doc.setTextColor(...brand.charcoal);
   } else {

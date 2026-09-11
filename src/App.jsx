@@ -1,3 +1,4 @@
+import { calculateStats, getOwaspCategories, getScanVersions } from './utils/findingPolicy';
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { scanFile } from './utils/scannerEngine';
 import { injectionRules } from './scanner/rules/injection';
@@ -63,22 +64,16 @@ const createAuditLogRecord = (actionDescription) => {
   };
 };
 
-const createScanHistoryRecord = (projectName, updated, activeCount, critical, high, medium, low, finalScore) => {
+const createScanHistoryRecord = (projectName, updated, fpFlags = []) => {
   return {
     id: `scan_${Date.now()}`,
     timestamp: getCurrentTimestamp(),
     projectName,
-    stats: {
-      totalIssues: updated.reduce((acc, r) => acc + (r.issues?.length || 0), 0),
-      activeIssuesCount: activeCount,
-      criticalIssues: critical,
-      highIssues: high,
-      mediumIssues: medium,
-      lowIssues: low,
-      securityScore: finalScore
-    },
+    stats: calculateStats(updated, fpFlags),
+    scannerVersions: getScanVersions(updated),
     filesCount: updated.length,
     results: updated.map(res => ({
+      scannerVersion: res.scannerVersion,
       fileName: res.fileName,
       success: res.success,
       hasError: res.hasError,
@@ -297,95 +292,10 @@ function App() {
   };
 
   // Recalculates stats excluding items marked as False Positives
-  const stats = useMemo(() => {
-    if (results.length === 0) {
-      return { 
-        totalIssues: 0, 
-        activeIssuesCount: 0, 
-        criticalIssues: 0, 
-        highIssues: 0, 
-        mediumIssues: 0, 
-        lowIssues: 0, 
-        securityScore: 100 
-      };
-    }
-
-    let totalIssues = 0;
-    let activeIssuesCount = 0;
-    let criticalIssues = 0;
-    let highIssues = 0;
-    let mediumIssues = 0;
-    let lowIssues = 0;
-    let penalty = 0;
-
-    results.forEach(res => {
-      if (res.issues) {
-        res.issues.forEach(issue => {
-          totalIssues++;
-          const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-          const isFP = fpFlags.includes(fpKey);
-
-          if (!isFP) {
-            activeIssuesCount++;
-            if (issue.severity === 'CRITICAL') {
-              criticalIssues++;
-              penalty += 20.0;
-            } else if (issue.severity === 'HIGH') {
-              highIssues++;
-              penalty += 10.0;
-            } else if (issue.severity === 'MEDIUM') {
-              mediumIssues++;
-              penalty += 5.0;
-            } else if (issue.severity === 'LOW') {
-              lowIssues++;
-              penalty += 1.0;
-            }
-          }
-        });
-      }
-    });
-
-    const securityScore = parseFloat(Math.max(0, 100 - penalty).toFixed(1));
-
-    return { 
-      totalIssues, 
-      activeIssuesCount, 
-      criticalIssues, 
-      highIssues, 
-      mediumIssues, 
-      lowIssues, 
-      securityScore 
-    };
-  }, [results, fpFlags]);
+  const stats = useMemo(() => calculateStats(results, fpFlags), [results, fpFlags]);
 
   // OWASP Categories Mappings
-  const owaspCategories = useMemo(() => {
-    const list = {
-      'A01': { name: 'A01:2021-Broken Access Control', count: 0, severity: 'HIGH' },
-      'A02': { name: 'A02:2021-Cryptographic Failures', count: 0, severity: 'CRITICAL' },
-      'A03': { name: 'A03:2021-Injection', count: 0, severity: 'HIGH' },
-      'A05': { name: 'A05:2021-Security Misconfiguration', count: 0, severity: 'MEDIUM' },
-      'A06': { name: 'A06:2021-Vulnerable and Outdated Components', count: 0, severity: 'MEDIUM' },
-      'A07': { name: 'A07:2021-Identification and Authentication Failures', count: 0, severity: 'HIGH' },
-      'A08': { name: 'A08:2021-Software and Data Integrity Failures', count: 0, severity: 'MEDIUM' }
-      // A10 (SSRF) retired from browser scan scope in Phase 01 — removed from active category display
-    };
-
-    results.forEach(res => {
-      if (res.issues) {
-        res.issues.forEach(issue => {
-          const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-          if (fpFlags.includes(fpKey)) return;
-
-          const match = issue.id.match(/^OWASP-(A\d+)/);
-          const cat = match ? match[1] : 'A01';
-          if (list[cat]) list[cat].count++;
-        });
-      }
-    });
-
-    return Object.values(list);
-  }, [results, fpFlags]);
+  const owaspCategories = useMemo(() => getOwaspCategories(results, fpFlags), [results, fpFlags]);
 
   // Compliant OWASP Category counter
   const compliantCategoriesCount = useMemo(() => {
@@ -532,41 +442,7 @@ function App() {
 
     // Pre-compute local stats to save to history
     const currentFPFlags = JSON.parse(localStorage.getItem('jsentinel_fp_flags') || '[]');
-    let penalty = 0;
-    let critical = 0;
-    let high = 0;
-    let medium = 0;
-    let low = 0;
-    let activeCount = 0;
-
-    updatedResults.forEach(res => {
-      if (res.issues) {
-        res.issues.forEach(issue => {
-          const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-          const isFP = currentFPFlags.includes(fpKey);
-          if (!isFP) {
-            activeCount++;
-            if (issue.severity === 'CRITICAL') {
-              critical++;
-              penalty += 20.0;
-            } else if (issue.severity === 'HIGH') {
-              high++;
-              penalty += 10.0;
-            } else if (issue.severity === 'MEDIUM') {
-              medium++;
-              penalty += 5.0;
-            } else if (issue.severity === 'LOW') {
-              low++;
-              penalty += 1.0;
-            }
-          }
-        });
-      }
-    });
-
-    const finalScore = parseFloat(Math.max(0, 100 - penalty).toFixed(1));
-
-    const newHistoryRecord = createScanHistoryRecord(projectName, updatedResults, activeCount, critical, high, medium, low, finalScore);
+    const newHistoryRecord = createScanHistoryRecord(projectName, updatedResults, currentFPFlags);
     setScanHistory(prevHist => [newHistoryRecord, ...prevHist]);
     addActivityLog(`Security scan completed for project "${projectName}" containing ${filtered.length} files.`);
 
@@ -943,7 +819,7 @@ function App() {
                               ? 'text-amber-600 dark:text-amber-400' 
                               : 'text-rose-600 dark:text-rose-400'
                           }`}>
-                            {stats.securityScore > 80 ? 'Compliant' : stats.securityScore >= 50 ? 'Warning' : 'Vulnerable'}
+                            {stats.securityScore > 80 ? 'Low deductions' : stats.securityScore >= 50 ? 'Review' : 'High deductions'}
                           </span>
                         </div>
 
@@ -951,7 +827,7 @@ function App() {
                         <div className="group relative cursor-pointer ml-0.5">
                           <span className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200">ⓘ</span>
                           <div className="absolute left-0 top-full mt-2.5 hidden group-hover:block w-72 bg-slate-900/95 dark:bg-zinc-900/95 backdrop-blur-md text-white text-[10px] p-3.5 rounded-2xl border border-slate-700/80 dark:border-zinc-700 shadow-2xl leading-normal z-50 pointer-events-none">
-                            <p className="font-bold text-xs mb-1 text-slate-100">CVSS-Inspired Deduction Model</p>
+                            <p className="font-bold text-xs mb-1 text-slate-100">Project Score Deductions</p>
                             <p className="text-slate-300 font-mono text-[9px] bg-slate-800/80 dark:bg-zinc-800/80 px-2 py-1 rounded-md mb-2">Score = max(0, 100 - sum(deductions))</p>
                             <div className="grid grid-cols-2 border-t border-slate-800 dark:border-zinc-800 pt-2 text-[9px] gap-1 font-medium">
                               <span className="text-rose-400 font-semibold">• Critical: -20 pts</span>
@@ -959,7 +835,7 @@ function App() {
                               <span className="text-amber-400 font-semibold">• Medium: -5 pts</span>
                               <span className="text-slate-400 font-semibold">• Low: -1 pt</span>
                             </div>
-                            <p className="mt-2 text-[9px] text-emerald-400 font-medium border-t border-slate-800/60 dark:border-zinc-800/60 pt-1.5">Exempting false positives restores score instantly.</p>
+                            <p className="mt-2 text-[9px] text-emerald-400 font-medium border-t border-slate-800/60 dark:border-zinc-800/60 pt-1.5">Advisories are not scored. This score does not prove security. Exempting false positives restores points.</p>
                           </div>
                         </div>
                       </div>
@@ -999,7 +875,8 @@ function App() {
                     {/* Center Group: Quick Severity Filter Pills */}
                     <div className="flex items-center gap-1 bg-slate-50 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200/80 dark:border-zinc-800">
                       {[
-                        { id: 'ALL', label: 'All', count: stats.activeIssuesCount },
+                        { id: 'ALL', label: 'All findings', count: stats.activeIssuesCount + stats.activeAdvisoryCount },
+                        { id: 'INFORMATIONAL', label: 'Advisories', count: stats.activeAdvisoryCount },
                         { id: 'CRITICAL', label: 'Critical', count: stats.criticalIssues, color: 'text-rose-600 dark:text-rose-400' },
                         { id: 'HIGH', label: 'High', count: stats.highIssues, color: 'text-orange-600 dark:text-orange-400' },
                         { id: 'MEDIUM', label: 'Medium', count: stats.mediumIssues, color: 'text-amber-600 dark:text-amber-400' },
@@ -1041,7 +918,7 @@ function App() {
                         }`}
                         title="Filter findings by OWASP category"
                       >
-                        <option value="ALL">All Categories ({compliantCategoriesCount}/8 Compliant)</option>
+                        <option value="ALL">All Categories ({compliantCategoriesCount}/{owaspCategories.length} without active vulnerability findings)</option>
                         {owaspCategories.map(cat => {
                           const catCode = cat.name.split(':')[0];
                           return (
@@ -1248,7 +1125,7 @@ function App() {
                             <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center py-16 px-4">
                               <div className="text-3xl mb-2">📄</div>
                               <p className="text-xs font-bold text-slate-300">Archived Historical Record</p>
-                              <p className="text-[11px] text-slate-500 mt-1 max-w-xs leading-relaxed">Source code text is not cached in local storage for archived sessions. Review identified breach records and remediation guides in the findings panel.</p>
+                              <p className="text-[11px] text-slate-500 mt-1 max-w-xs leading-relaxed">Source code text is not cached in local storage for archived sessions. Review identified finding records and remediation guides in the findings panel.</p>
                             </div>
                           )
                         ) : selectedResult ? (
@@ -1717,11 +1594,11 @@ function App() {
                               <span className="font-semibold">{comparisonResults.scanB.filesCount} resources</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-500">Baseline Breach Counts:</span>
+                              <span className="text-slate-500">Baseline Finding Counts:</span>
                               <span className="font-semibold">{comparisonResults.scanA.stats.totalIssues} detected</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-slate-500">Comparison Breach Counts:</span>
+                              <span className="text-slate-500">Comparison Finding Counts:</span>
                               <span className="font-semibold">{comparisonResults.scanB.stats.totalIssues} detected</span>
                             </div>
                           </div>
@@ -1858,7 +1735,7 @@ function App() {
                 <div className="mb-4 border-b border-slate-100 dark:border-zinc-800 pb-3 flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-zinc-100">False Positive Annotations Log</h2>
-                    <p className="text-slate-500 dark:text-zinc-400 text-xs mt-0.5">Annotated log of security breaches exempted from compliance calculations by authorized developers.</p>
+                    <p className="text-slate-500 dark:text-zinc-400 text-xs mt-0.5">Annotated log of security findings exempted from compliance calculations by authorized developers.</p>
                   </div>
                   <span className="text-xs font-mono font-bold px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-md border border-emerald-200/60 dark:border-emerald-900/40">
                     {fpFlags.length} Exempted

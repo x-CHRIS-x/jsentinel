@@ -1,3 +1,4 @@
+import { SCANNER_VERSION } from './findingPolicy.js';
 import * as Babel from '@babel/standalone';
 
 /**
@@ -55,6 +56,7 @@ export const scanFile = async (file, rules) => {
     });
 
     return {
+      scannerVersion: SCANNER_VERSION,
       fileName: file.webkitRelativePath || file.name,
       issues,
       rawCode: code,
@@ -64,6 +66,7 @@ export const scanFile = async (file, rules) => {
   } catch (error) {
     console.error("Scanner Error:", error);
     return {
+      scannerVersion: SCANNER_VERSION,
       fileName: file.webkitRelativePath || file.name,
       error: error.message,
       success: false,

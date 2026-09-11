@@ -9,22 +9,20 @@ A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files
 - **Scan Active File**: Run `JSentinel: Scan Active File` from the command palette to scan the currently open file
 - **Scan Workspace**: Run `JSentinel: Scan Workspace` to scan all JS/TS files in the workspace
 - **Scan on Save**: Automatically scans files when saved (configurable)
-- **27 Detection Rules**: Covers 9 OWASP Top 10 categories with CVSS v3.1 severity scoring
+- **24 Active Checks**: 23 vulnerability-pattern checks and 1 informational component-review check across 7 OWASP Top 10 (2021) categories in 8 modules
 - **Confidence Levels**: Each finding includes HIGH / MEDIUM / LOW confidence rating
 
 ## OWASP Categories Covered
 
 | Category | Rules |
 |----------|-------|
-| A1 - Injection | eval(), setTimeout strings, new Function(), innerHTML template/function |
-| A2 - Broken Authentication | Hardcoded passwords, localStorage tokens, insecure cookies, Math.random(), HTTP URLs |
-| A3 - Sensitive Data Exposure | JWT tokens, AWS keys, API keys, query string secrets |
-| A5 - Broken Access Control | Open redirects, client-side role checks |
-| A6 - Security Misconfiguration | Console logging secrets, CORS wildcards, missing helmet |
-| A7 - Cross-Site Scripting | innerHTML, document.write(), dangerouslySetInnerHTML |
-| A8 - Software Integrity | JSON.parse(), prototype pollution, Object.assign() |
-| A9 - Vulnerable Components | Known risky library imports |
-| A10 - SSRF | Dynamic fetch/axios URLs |
+| A01 - Broken Access Control | Open redirects, client-side role checks |
+| A02 - Cryptographic Failures | Hardcoded secrets, weak randomness, sensitive HTTP endpoints |
+| A03 - Injection | Dynamic code execution and XSS patterns |
+| A05 - Security Misconfiguration | Sensitive console logging, debugger statements |
+| A06 - Vulnerable and Outdated Components | Informational import review; no version confirmation |
+| A07 - Identification and Authentication Failures | Token storage and insecure cookie patterns |
+| A08 - Software and Data Integrity Failures | Deserialization and object-assignment patterns |
 
 ## Configuration
 
@@ -43,7 +41,7 @@ A VS Code / Antigravity IDE extension that scans JavaScript and TypeScript files
 ## How It Works
 
 1. Files are parsed into an Abstract Syntax Tree (AST) using `@babel/parser`
-2. 27 detection rules traverse the AST using `@babel/traverse`
+2. 24 active checks traverse the AST using `@babel/traverse`
 3. Detected issues are mapped to VS Code Diagnostics (Problems panel + inline underlines)
 
 ## Installation (Development)
@@ -58,3 +56,5 @@ Then press `F5` in VS Code to launch the Extension Development Host.
 ## Credits
 
 Arellano University - Andres Bonifacio Campus Capstone Project: Ledama, Lim, Luchavez, Crispo
+
+New scans carry the `JSentinel browser-scope v2` ruleset identifier. A06 import notices request a version and advisory review; they do not prove a vulnerable dependency and do not affect vulnerability totals or project scores. The project score uses fixed severity deductions and is not a CVSS score. Historical findings retain their original classification; records without a stored version are marked as legacy/version not recorded.

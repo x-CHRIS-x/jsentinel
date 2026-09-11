@@ -26,25 +26,14 @@ export const knownVulnsRules = [
   {
     name: "risky-library-import",
     id: "OWASP-A06-001",
-    severity: "MEDIUM",
+    severity: "INFORMATIONAL",
+    findingType: "advisory",
     message: "Import of a potentially risky or often-vulnerable library detected. Check the installed version against current security advisories.",
     owasp: "A06:2021-Vulnerable and Outdated Components",
-    cvss: {
-      AV: 'N',
-      AC: 'H',
-      PR: 'N',
-      UI: 'N',
-      S:  'U',
-      C:  'L',
-      I:  'L',
-      A:  'N',
-      baseScore: 4.8,
-      baseSeverity: 'MEDIUM',
-      vector: 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N'
-    },
+    cvss: null,
     visitor: (issues) => {
-      const cvssBaseScore = 4.8;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N';
+      const cvssBaseScore = null;
+      const cvssVector = '';
 
       // Libraries with known vulnerability history or known risky usage patterns.
       // 'express' and 'axios' remain listed because they can appear in browser-adjacent
@@ -94,12 +83,13 @@ export const knownVulnsRules = [
               issues.push({
                 id: "OWASP-A06-001",
                 guidanceId: "OWASP-A06-001:component-review",
-                severity: "MEDIUM",
+                severity: "INFORMATIONAL",
+                findingType: "advisory",
                 line: imp.line,
                 column: imp.column,
                 message: imp.type === 'import'
-                  ? `Risky library imported: '${imp.name}' — verify the installed version against current security advisories`
-                  : `Risky library required: '${imp.name}' — verify the installed version against current security advisories`,
+                  ? `Component review for import: '${imp.name}' — verify the installed version against current security advisories`
+                  : `Component review for require: '${imp.name}' — verify the installed version against current security advisories`,
                 suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
                 cvssBaseScore,
                 cvssVector

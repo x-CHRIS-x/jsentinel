@@ -1,3 +1,4 @@
+import { calculateStats, isAdvisory, getScanVersions, getOwaspCategories } from './findingPolicy.js';
 /**
  * JSentinel Security Scan Exporter
  * 
@@ -18,9 +19,10 @@ import { getGuidance, FALLBACK_GUIDANCE, GUIDANCE_DISCLAIMER } from '../data/gui
  */
 export const formatJSONReport = (results = [], stats = {}, owaspCategories = [], fpFlags = []) => {
   const safeResults = Array.isArray(results) ? results : [];
-  const safeStats = stats && typeof stats === 'object' ? stats : {};
-  const safeOwasp = Array.isArray(owaspCategories) ? owaspCategories : [];
   const safeFpFlags = Array.isArray(fpFlags) ? fpFlags : [];
+  // Recompute from findings so stale caller totals cannot include advisories.
+  const safeStats = calculateStats(safeResults, safeFpFlags);
+  const safeOwasp = getOwaspCategories(safeResults, safeFpFlags);
 
   // Extract project name from first file path
   let projectName = "JSentinel Scan";
@@ -46,6 +48,8 @@ export const formatJSONReport = (results = [], stats = {}, owaspCategories = [],
           id: issue.id,
           guidanceId: issue.guidanceId || issue.id,
           severity: issue.severity,
+          findingType: issue.findingType || 'vulnerability-pattern',
+          eligibleForVulnerabilityMetrics: !isAdvisory(issue),
           line: issue.line,
           column: issue.column,
           sourceLine: issue.sourceLine || '',
@@ -66,10 +70,10 @@ export const formatJSONReport = (results = [], stats = {}, owaspCategories = [],
     let activeCount = 0;
 
     if (res && res.issues) {
-      issuesCount = res.issues.length;
+      issuesCount = res.issues.filter(issue => !isAdvisory(issue)).length;
       res.issues.forEach(issue => {
         const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        if (safeFpFlags.includes(fpKey)) return;
+        if (safeFpFlags.includes(fpKey) || isAdvisory(issue)) return;
         activeCount++;
         
         if (issue.severity === 'CRITICAL') filePenalty += 20.0;
@@ -83,6 +87,8 @@ export const formatJSONReport = (results = [], stats = {}, owaspCategories = [],
       fileName: res ? res.fileName : '',
       success: res ? res.success : false,
       hasError: res ? res.hasError : false,
+      scannerVersion: res?.scannerVersion || 'Legacy / version not recorded',
+      advisoryCount: calculateStats([res]).advisoryCount,
       issuesCount,
       activeIssuesCount: activeCount,
       score: Math.max(0, 100 - filePenalty)
@@ -93,10 +99,14 @@ export const formatJSONReport = (results = [], stats = {}, owaspCategories = [],
     meta: {
       projectName,
       scannedAt: new Date().toISOString(),
-      scannerEngine: "JSentinel Core v1.0.0",
+      scannerEngine: getScanVersions(safeResults).join(', ') || 'No scan results',
+      scannerVersions: getScanVersions(safeResults),
+      exportFormatVersion: 2,
       disclaimer: GUIDANCE_DISCLAIMER
     },
     summary: {
+      advisoryCount: safeStats.advisoryCount,
+      activeAdvisoryCount: safeStats.activeAdvisoryCount,
       totalIssues: safeStats.totalIssues ?? 0,
       activeIssuesCount: safeStats.activeIssuesCount ?? 0,
       criticalIssues: safeStats.criticalIssues ?? 0,
@@ -109,6 +119,7 @@ export const formatJSONReport = (results = [], stats = {}, owaspCategories = [],
       category: cat && cat.name ? cat.name.split(':')[0] : '',
       name: (cat && cat.name) || '',
       count: (cat && cat.count) || 0,
+      advisoryCount: cat.advisoryCount || 0,
       severity: (cat && cat.severity) || 'LOW'
     })),
     files: fileSummary,

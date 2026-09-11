@@ -1,3 +1,4 @@
+const { SCANNER_VERSION } = require('../utils/findingPolicy');
 /**
  * JSentinel Scanner Engine: Node.js / VS Code Extension Port
  * 
@@ -42,6 +43,7 @@ const scanCode = (code, fileName, rules) => {
     console.error(`Parse error in ${fileName}:`, parseError.message);
     return {
       fileName,
+    scannerVersion: SCANNER_VERSION,
       issues: [],
       success: false,
       hasError: true,
@@ -79,6 +81,7 @@ const scanCode = (code, fileName, rules) => {
 
   return {
     fileName,
+    scannerVersion: SCANNER_VERSION,
     issues,
     success: true,
     hasError
