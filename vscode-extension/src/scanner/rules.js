@@ -1,19 +1,25 @@
 /**
  * JSentinel Detection Rules - Consolidated for VS Code Extension
- * 
- * All 27 security detection rules across 8 OWASP Top 10:2021 categories, ported to CommonJS.
+ *
+ * 24 active browser security detection rules across 7 OWASP Top 10:2021 categories.
  * Each rule follows the same visitor pattern as the browser version:
  *   rule.visitor(issues) → returns Babel visitor handlers
- * 
+ *
  * Categories covered:
  *   A01 - Broken Access Control (2 rules)
  *   A02 - Cryptographic Failures (7 rules)
  *   A03 - Injection (8 rules)
- *   A05 - Security Misconfiguration (4 rules)
- *   A06 - Vulnerable and Outdated Components (1 rule)
+ *   A05 - Security Misconfiguration (2 rules)
+ *   A06 - Vulnerable and Outdated Components (1 rule, component-review advisory only)
  *   A07 - Identification and Authentication Failures (1 rule)
  *   A08 - Software and Data Integrity Failures (3 rules)
- *   A10 - Server-Side Request Forgery (1 rule)
+ *
+ * Retired from active browser scanning (Phase 01):
+ *   A05-002 (cors-wildcard) — server-side Express header; not a browser check
+ *   A05-004 (missing-helmet) — server-side Node.js/Express; not a browser check
+ *   A06-001 express-headers branch — server-side Express concern
+ *   A06-001 dynamic-request-target branch — duplicate SSRF misclassification
+ *   A10-001 (SSRF) — SSRF is server-side; browser fetch/axios is client HTTP
  */
 
 function isValidated(path, varName) {
@@ -682,6 +688,9 @@ const accessControlRules = [
 
 // ============================================================
 // A05 - Security Misconfiguration Rules
+// Active: OWASP-A05-001, OWASP-A05-003
+// Retired (Phase 01): OWASP-A05-002 (cors-wildcard — server-side Express header),
+//                     OWASP-A05-004 (missing-helmet — server-side Node.js/Express)
 // ============================================================
 const misconfigRules = [
   {
@@ -733,34 +742,6 @@ const misconfigRules = [
     }
   },
   {
-    name: "cors-wildcard",
-    id: "OWASP-A05-002",
-    severity: "MEDIUM",
-    visitor: (issues) => ({
-      CallExpression(path) {
-        const callee = path.node.callee;
-        if (callee.type === 'MemberExpression' && (callee.property.name === 'setHeader' || callee.property.name === 'header')) {
-          const args = path.node.arguments;
-          if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
-            if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
-              issues.push({
-                id: "OWASP-A05-002",
-                guidanceId: "OWASP-A05-002",
-                severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1,
-                column: path.node.loc?.start?.column || 0,
-                message: "Wildcard (*) used in Access-Control-Allow-Origin header",
-                suggestion: "Configure server CORS for the actual trusted origins and credential policy.",
-                cvssBaseScore: 6.5,
-                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N'
-              });
-            }
-          }
-        }
-      }
-    })
-  },
-  {
     name: "console-log-objects",
     id: "OWASP-A05-003",
     severity: "MEDIUM",
@@ -789,50 +770,9 @@ const misconfigRules = [
         }
       };
     }
-  },
-  {
-    name: "missing-helmet-middleware",
-    id: "OWASP-A05-004",
-    severity: "LOW",
-    visitor: (issues) => {
-      let hasExpress = false;
-      let hasHelmet = false;
-      let expressNode = null;
-      return {
-        ImportDeclaration(path) {
-          if (path.node.source.value === 'express') { hasExpress = true; expressNode = path.node; }
-          if (path.node.source.value === 'helmet') { hasHelmet = true; }
-        },
-        CallExpression(path) {
-          if (path.node.callee.name === 'require') {
-            const arg = path.node.arguments[0];
-            if (arg && arg.type === 'StringLiteral') {
-              if (arg.value === 'express') { hasExpress = true; expressNode = path.node; }
-              if (arg.value === 'helmet') { hasHelmet = true; }
-            }
-          }
-        },
-        Program: {
-          exit() {
-            if (hasExpress && !hasHelmet) {
-              issues.push({
-                id: "OWASP-A05-004",
-                guidanceId: "OWASP-A05-004",
-                severity: "LOW",
-                line: expressNode?.loc?.start?.line || 1,
-                column: expressNode?.loc?.start?.column || 0,
-                message: "Express framework imported without protective helmet middleware",
-                suggestion: "Review server response-header policy and apply the appropriate Express/server hardening.",
-                cvssBaseScore: 3.3,
-                cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
-              });
-            }
-          }
-        }
-      };
-    }
   }
 ];
+
 
 // ============================================================
 // A03 - Cross-Site Scripting (XSS) Rules
@@ -1058,6 +998,9 @@ const deserializationRules = [
 
 // ============================================================
 // A06 - Vulnerable and Outdated Components
+// Active: OWASP-A06-001 (component-review advisory branch only)
+// Retired (Phase 01): express-headers branch (server-side Express concern)
+//                     dynamic-request-target branch (duplicate SSRF misclassification)
 // ============================================================
 const knownVulnsRules = [
   {
@@ -1067,18 +1010,16 @@ const knownVulnsRules = [
     visitor: (issues) => {
       const cvssBaseScore = 4.8;
       const cvssVector = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N';
+      // Libraries with known vulnerability history or known risky usage patterns.
+      // An import alone does not establish an affected version — this is an advisory
+      // signal prompting a manual version and advisory check.
       const riskyLibs = ['serialize-javascript', 'markdown-it', 'js-yaml', 'node-fetch', 'lodash', 'axios', 'jsonwebtoken', 'express', 'mongoose', 'vm2'];
 
       const imports = [];
-      let hasHelmet = false;
-      const axiosCalls = [];
 
       return {
         ImportDeclaration(path) {
           const moduleName = path.node.source.value;
-          if (moduleName === 'helmet') {
-            hasHelmet = true;
-          }
           if (riskyLibs.includes(moduleName)) {
             imports.push({
               name: moduleName,
@@ -1094,9 +1035,6 @@ const knownVulnsRules = [
             const arg = path.node.arguments[0];
             if (arg && arg.type === 'StringLiteral') {
               const moduleName = arg.value;
-              if (moduleName === 'helmet') {
-                hasHelmet = true;
-              }
               if (riskyLibs.includes(moduleName)) {
                 imports.push({
                   name: moduleName,
@@ -1107,97 +1045,26 @@ const knownVulnsRules = [
               }
             }
           }
-
-          if (callee.type === 'MemberExpression') {
-            const objName = callee.object.name;
-            const propName = callee.property.name;
-            if (objName === 'axios' && (propName === 'get' || propName === 'post')) {
-              axiosCalls.push({ path, arg: path.node.arguments[0] });
-            }
-          } else if (callee.type === 'Identifier' && callee.name === 'axios') {
-            axiosCalls.push({ path, arg: path.node.arguments[0] });
-          }
         },
         Program: {
           exit() {
+            // Component-review branch only: flag any risky library import.
+            // An import does not establish an affected version. This is an
+            // advisory signal prompting a manual version and advisory check.
             imports.forEach(imp => {
-              if (imp.name === 'express') {
-                if (!hasHelmet) {
-                  issues.push({
-                    id: "OWASP-A06-001",
-                    guidanceId: "OWASP-A06-001:express-headers",
-                    severity: "MEDIUM",
-                    line: imp.line,
-                    column: imp.column,
-                    message: imp.type === 'import' 
-                      ? "Risky library imported: 'express' (missing helmet protection)"
-                      : "Risky library required: 'express' (missing helmet protection)",
-                    suggestion: "Review the Express header-hardening configuration.",
-                    cvssBaseScore,
-                    cvssVector
-                  });
-                }
-              } else if (imp.name === 'axios') {
-                let hasUnsafeAxiosCall = false;
-                if (axiosCalls.length > 0) {
-                  hasUnsafeAxiosCall = axiosCalls.some(call => {
-                    const arg = call.arg;
-                    if (!arg) return false;
-                    
-                    let isUnsafe = false;
-                    if (arg.type === 'Identifier') {
-                      if (!isValidated(call.path, arg.name)) {
-                        isUnsafe = true;
-                      }
-                    } else if (arg.type === 'TemplateLiteral') {
-                      if (arg.expressions && arg.expressions.length > 0) {
-                        const hasUnvalidatedExpression = arg.expressions.some(expr => {
-                          if (expr.type === 'Identifier') {
-                            return !isValidated(call.path, expr.name);
-                          }
-                          return true;
-                        });
-                        if (hasUnvalidatedExpression) {
-                          isUnsafe = true;
-                        }
-                      }
-                    } else if (arg.type === 'CallExpression') {
-                      isUnsafe = true;
-                    }
-                    return isUnsafe;
-                  });
-                }
-
-                if (hasUnsafeAxiosCall) {
-                  issues.push({
-                    id: "OWASP-A06-001",
-                    guidanceId: "OWASP-A06-001:dynamic-request-target",
-                    severity: "MEDIUM",
-                    line: imp.line,
-                    column: imp.column,
-                    message: imp.type === 'import' 
-                      ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
-                      : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
-                    suggestion: "Restrict outbound request targets using the application's approved destination policy.",
-                    cvssBaseScore,
-                    cvssVector
-                  });
-                }
-              } else {
-                issues.push({
-                  id: "OWASP-A06-001",
-                  guidanceId: "OWASP-A06-001:component-review",
-                  severity: "MEDIUM",
-                  line: imp.line,
-                  column: imp.column,
-                  message: imp.type === 'import'
-                    ? `Risky library imported: '${imp.name}'`
-                    : `Risky library required: '${imp.name}'`,
-                  suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
-                  cvssBaseScore,
-                  cvssVector
-                });
-              }
+              issues.push({
+                id: "OWASP-A06-001",
+                guidanceId: "OWASP-A06-001:component-review",
+                severity: "MEDIUM",
+                line: imp.line,
+                column: imp.column,
+                message: imp.type === 'import'
+                  ? `Risky library imported: '${imp.name}' — verify the installed version against current security advisories`
+                  : `Risky library required: '${imp.name}' — verify the installed version against current security advisories`,
+                suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
+                cvssBaseScore,
+                cvssVector
+              });
             });
           }
         }
@@ -1208,69 +1075,19 @@ const knownVulnsRules = [
 
 // ============================================================
 // A10 - Server-Side Request Forgery
+// RETIRED FROM ACTIVE BROWSER SCANNING (Phase 01)
+// SSRF requires server execution context. A browser making fetch(url) or
+// axios.get(url) is a client-side HTTP call, not SSRF. Flagging these as
+// SSRF misclassifies normal API calls as server-side attack vectors.
+// The empty array is kept so the allRules spread does not break.
 // ============================================================
-const ssrfRules = [
-  {
-    name: "ssrf-detection",
-    id: "OWASP-A10-001",
-    severity: "HIGH",
-    visitor: (issues) => ({
-      CallExpression(path) {
-        const callee = path.node.callee;
-        if (!callee) return;
-        let isHttpClientCall = false;
-        let firstArg = null;
-        if (callee.type === 'Identifier' && callee.name === 'fetch') {
-          isHttpClientCall = true;
-          firstArg = path.node.arguments[0];
-        } else if (callee.type === 'MemberExpression') {
-          const objName = callee.object.name;
-          const propName = callee.property.name;
-          if (objName === 'axios' && (propName === 'get' || propName === 'post')) {
-            isHttpClientCall = true;
-            firstArg = path.node.arguments[0];
-          }
-        }
-        if (isHttpClientCall && firstArg) {
-          let isUnsafe = false;
-          if (firstArg.type === 'Identifier') {
-            if (!isValidated(path, firstArg.name)) {
-              isUnsafe = true;
-            }
-          } else if (firstArg.type === 'TemplateLiteral') {
-            if (firstArg.expressions && firstArg.expressions.length > 0) {
-              const hasUnvalidatedExpression = firstArg.expressions.some(expr => {
-                if (expr.type === 'Identifier') {
-                  return !isValidated(path, expr.name);
-                }
-                return true;
-              });
-              if (hasUnvalidatedExpression) {
-                isUnsafe = true;
-              }
-            }
-          } else if (firstArg.type === 'CallExpression') {
-            isUnsafe = true;
-          }
+const ssrfRules = [];
 
-          if (isUnsafe) {
-            issues.push({
-              id: "OWASP-A10-001",
-              guidanceId: "OWASP-A10-001",
-              severity: "HIGH",
-              line: path.node.loc?.start?.line || 1,
-              column: path.node.loc?.start?.column || 0,
-              message: "Dynamic request target passed to HTTP client (SSRF risk)",
-              suggestion: "On the server, enforce a destination policy before making outbound requests.",
-              cvssBaseScore: 8.6,
-              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N'
-            });
-          }
-        }
-      }
-    })
-  }
-];
+// Kept below for historical reference only — not registered in allRules:
+// const _retiredSsrfDetection = [
+//   { id: "OWASP-A10-001", name: "ssrf-detection", severity: "HIGH", ... }
+// ];
+
 
 // ============================================================
 // Export all rules as a single flat array
@@ -1284,8 +1101,8 @@ const allRules = [
   ...xssRules,
   ...deserializationRules,
   ...knownVulnsRules,
+  // ssrfRules is empty after Phase 01 retirement (SSRF is server-side only)
   ...ssrfRules
 ];
 
 module.exports = { allRules };
-

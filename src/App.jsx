@@ -8,7 +8,11 @@ import { misconfigRules } from './scanner/rules/misconfig';
 import { deserializationRules } from './scanner/rules/deserialization';
 import { knownVulnsRules } from './scanner/rules/knownVulns';
 import { accessControlRules } from './scanner/rules/accessControl';
-import { ssrfRules } from './scanner/rules/ssrf';
+// OWASP-A10-001 (SSRF) retired from active browser scanning in Phase 01.
+// SSRF requires server execution context; browser fetch/axios calls are
+// client HTTP, not server-side request forgery. Import kept as comment
+// so historical guidance entries remain resolvable via guidanceCatalog.
+// import { ssrfRules } from './scanner/rules/ssrf';
 import { generatePDFReport } from './utils/pdfGenerator';
 import { generateJSONReport } from './utils/jsonExporter';
 import { getGuidance, FALLBACK_GUIDANCE, GUIDANCE_DISCLAIMER } from './data/guidanceCatalog';
@@ -363,8 +367,8 @@ function App() {
       'A05': { name: 'A05:2021-Security Misconfiguration', count: 0, severity: 'MEDIUM' },
       'A06': { name: 'A06:2021-Vulnerable and Outdated Components', count: 0, severity: 'MEDIUM' },
       'A07': { name: 'A07:2021-Identification and Authentication Failures', count: 0, severity: 'HIGH' },
-      'A08': { name: 'A08:2021-Software and Data Integrity Failures', count: 0, severity: 'MEDIUM' },
-      'A10': { name: 'A10:2021-Server-Side Request Forgery (SSRF)', count: 0, severity: 'HIGH' }
+      'A08': { name: 'A08:2021-Software and Data Integrity Failures', count: 0, severity: 'MEDIUM' }
+      // A10 (SSRF) retired from browser scan scope in Phase 01 — removed from active category display
     };
 
     results.forEach(res => {
@@ -497,7 +501,8 @@ function App() {
       ...injectionRules, ...xssRules, ...authRules,
       ...sensitiveDataRules, ...misconfigRules,
       ...deserializationRules, ...knownVulnsRules,
-      ...accessControlRules, ...ssrfRules
+      ...accessControlRules
+      // ssrfRules retired from browser scanning in Phase 01 (SSRF is server-side only)
     ];
 
     for (const file of filtered) {
