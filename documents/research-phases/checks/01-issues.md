@@ -1,55 +1,59 @@
-# Phase 01 — Issues and Carry-Forwards
+# Phase 01: Independent findings and unresolved work
 
-## Known limitations
+Branch: `work/phase-01-scope`. Review date: September 11, 2026.
+Audited implementation: `59387bf`; audited HEAD: `88c89ac`; base: `348a107`.
 
-### 1. A06 advisory-only scoring not yet separated (carry-forward to Phase 03)
+**Status: Changes required. Independent verification has not passed.**
 
-**What:** Phase 01 removes the incorrect `express-headers` and `dynamic-request-target` branches from `OWASP-A06-001`. The surviving `component-review` branch still emits `severity: "MEDIUM"`, which the current scoring logic in `App.jsx` treats the same as any other MEDIUM finding — 5-point penalty per occurrence.
+## P2-01: Exclude component advisories from vulnerability scoring
 
-**Phase 01 plan note:** The README and Phase 01 doc both state that advisory-only A06 signals should "remain visible for review but do not inflate vulnerability totals, deduct project-score points, or enter vulnerability accuracy calculations." Phase 01 removes the wrong branches. Phase 03 is the correct place to implement the scoring/counting separation.
+Location: `src/scanner/rules/knownVulns.js:94` and the mirrored finding in `vscode-extension/src/scanner/rules.js:1055`.
 
-**What the independent verifier should check:** Confirm that the `component-review` finding still appears in the findings list after scanning a file with a risky library import. Confirm Phase 03 is scoped to fix the scoring and totals separation.
+Reproduction input:
 
----
+```javascript
+import axios from "axios";
+axios.get("/api/profile");
+```
 
-### 2. Guidance catalog wording for retired rule IDs
+Before Phase 01, this input produced no finding. Now both engines emit `OWASP-A06-001:component-review` with MEDIUM severity and CVSS 4.8. The actual JSON formatter reports one active issue and a file score of 95. App and extension scoring paths likewise apply a five-point deduction.
 
-**What:** `OWASP-A05-002`, `OWASP-A05-004`, `OWASP-A10-001`, `OWASP-A06-001:express-headers`, and `OWASP-A06-001:dynamic-request-target` still have guidance entries in both `src/data/guidanceCatalog.js` and `vscode-extension/src/data/guidanceCatalog.js`. Their wording was not updated to say "this check is retired."
+Expected: show the informational review signal separately, with no vulnerability count or score deduction. An import does not establish an affected package version. The rule now emits this signal for cases that previously produced no finding, so this is more than an unchanged pre-existing penalty.
 
-**Impact:** Low. These entries are only resolved when a finding references the ID. Since the rules no longer emit these IDs, the entries are effectively dead for new scans. Historical results that saved these IDs will still show the old guidance — which is acceptable per the README decision to keep historical results identifiable under their original version.
+Required correction: implement the agreed advisory distinction consistently in new scan output, totals, scoring, and report consumers in both interfaces. Preserve historical-version meaning. The Phase 01 guide requires this behavior; Phase 03 checks the downstream behavior. It is not an approved deferral to Phase 03.
 
-**Verifier note:** If the paper needs to document the exact wording change, the guidance catalog entries for retired IDs may warrant a minor update in a future pass.
+## P2-02: Preserve category summaries for historical A10 findings
 
----
+Location: `src/App.jsx:370`, where A10 was removed from the shared category map.
 
-### 3. `isValidated` helper remains in `accessControl.js` and `ssrf.js`
+Reproduction: load an existing historical result containing one HIGH `OWASP-A10-001` finding. The Load Scan handler supplies the stored issues to the current results state. The current category callback drops the unknown category.
 
-**What:** The `isValidated` helper function that checked for validation patterns around variables is still present in `src/scanner/rules/accessControl.js`. It was removed from `knownVulns.js` as part of the SSRF tracking cleanup. The `ssrf.js` file itself is now just an empty array export, so the function is fully gone from that file.
+Observed: totalIssues remains 1, while the sum of category counts changes from 1 to 0. The JSON category profile omits A10 even though the issue is exported.
 
-**Impact:** None for correctness — the helper in `accessControl.js` is still actively used by the A01-001 open-redirect rule. This is correct behavior.
+Required correction: retain category representation for stored legacy findings while excluding A10 from active new-scan coverage. Add a historical-load/export regression; historical guidance lookup alone does not test this path.
 
----
+## Remaining Phase 01 completion gaps
 
-### 4. Chunk size build warning (pre-existing)
+- New scan/export records still lack an updated rule-set version identifier. JSON continues to label the engine `JSentinel Core v1.0.0`; ensure changed coverage can be distinguished from historical results as the phase requires.
+- `vscode-extension/README.md` still advertises 27 rules and nine categories. Update its coverage claims from the verified registry, distinguishing advisory coverage. The nine-category claim was already wrong before this change.
+- The web PDF still uses confirmed-breach wording such as "Total Vulnerability Breaches Detected". The phase calls for reviewing these claims; informational imports must not be presented as confirmed breaches.
+- The branch contains no new persistent focused regression tests. Add coverage for retired checks, retained HTTP detection, advisory totals/penalties, and historical category reporting.
 
-**What:** The `npm run build` output includes: `Some chunks are larger than 500 kB after minification` for `index-*.js` (3,762 kB before gzip). This warning existed before Phase 01.
+These gaps are listed separately from the two reproduced regressions. Do not report them as newly discovered vulnerabilities.
 
-**Impact:** None for Phase 01. Not caused by these changes. Babel parser is the main contributor to bundle size. This is a known project characteristic documented in the GEMINI.md limitations.
+## Accepted behavior and later work
 
----
+- Keep historical guidance entries resolvable. Adding a retirement label is not necessary to fix the demonstrated category-loss bug.
+- The remaining access-control validation helper belongs to Phase 02. Its presence is not a new Phase 01 defect; the retired SSRF file no longer contains that helper.
+- The bundle-size warning is a disclosed build limitation. It is not evidence that Phase 01 failed compilation.
+- A06 exclusion from vulnerability accuracy metrics is already decided in the phase guides. Apply and verify it when Phase 05's evaluator exists; do not reopen it as an undecided policy.
+- Later dataset and chapter updates must use the verified inventory and retain the distinction between active checks and demonstrated vulnerability coverage.
 
-## Dependencies for the next phase
+## Return to independent review
 
-### Phase 02 (Validation handling)
-- Phase 02 can now proceed. The SSRF rule is no longer in scope, so validation refactoring does not need to account for the `isValidated` helper's usage in the retired SSRF/axios tracking branches.
-- The `isValidated` helper in `accessControl.js` remains for the open-redirect rule — Phase 02 may need to review or extend this for its validation handling work.
+1. Correct Phase 01's unmet requirements on this branch.
+2. Add and run focused regressions, then rerun guidance/build checks and the affected historical/report checks.
+3. Update these records with the new target commit and actual evidence. Preserve the distinction between earlier failures and subsequent results.
+4. Request independent verification again. Merge only after the user confirms it passed, following [WORKFLOW.md](../WORKFLOW.md).
 
-### Phase 03 (Duplicate findings and scoring)
-- Must implement the advisory-only scoring separation for `OWASP-A06-001` component-review signals. Phase 01 left this unresolved per explicit plan.
-
----
-
-## Items requiring human judgment
-
-- **Rule count for the paper:** Confirm with Chris that the active rule count change from 27 to 24 (retiring A05-002, A05-004, A10-001, and the two A06 sub-branches) is documented correctly in Chapter III. The GEMINI.md still lists 27 rules. This needs to be updated in the paper draft.
-- **A06 advisory classification for accuracy metrics:** Decide exactly how the component-review advisory findings will be treated in Phase 04 dataset labeling and Phase 05 accuracy measurement. Phase 01 does not resolve this — only removes the incorrectly-classified branches.
+This report does not authorize a merge, branch deletion, push, or progression to Phase 02. No production fix was made while recording this audit.

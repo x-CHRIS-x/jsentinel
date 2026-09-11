@@ -1,110 +1,86 @@
-# Phase 01 — Verification Checklist
+# Phase 01: Independent verification checklist
 
-Source checklist from `01-browser-scope-and-categories.md`.
+Branch: `work/phase-01-scope`. Review date: September 11, 2026.
+Implementation commit: `59387bf`. Audited HEAD: `88c89ac`.
+Comparison base: `348a107`, the merge base with `plan/research-phases`.
 
----
+**Overall result: FAIL. Phase 01 is not ready for merge approval.**
 
-## ✅ Ordinary browser `fetch` and Axios calls do not receive SSRF or vulnerable-component labels merely because their request target is a variable
+This update records the preceding independent review of the same implementation. It replaces the earlier self-reported verdicts where evidence disagreed. The exact checklist wording below comes from [Phase 01](../01-browser-scope-and-categories.md). PASS means the stated check passed within the tested scope, not that the entire scanner is correct.
 
-**Result: PASS**
+## Check 1
 
-`OWASP-A10-001` (ssrf-detection) is no longer registered. `ssrfRules` is exported as an empty array `[]` in both `src/scanner/rules/ssrf.js` and `vscode-extension/src/scanner/rules.js`. It is removed from `allRules` in `App.jsx`. A file containing `fetch(userUrl)` will produce zero SSRF findings.
-
-The `dynamic-request-target` branch inside `OWASP-A06-001` (which tracked axios calls and emitted an SSRF-style finding) is also removed from both scanners. Axios calls with dynamic URLs now only receive the standard `component-review` advisory signal if `axios` is in the risky library list.
-
-**Evidence:** `ssrfRules = []` in both rule files. Build passes with 0 errors.
-
----
-
-## ✅ Express header and response-side CORS checks are absent from active coverage in both interfaces
+- [x] Ordinary browser `fetch` and Axios calls do not receive SSRF or vulnerable-component labels merely because their request target is a variable.
 
 **Result: PASS**
 
-- `OWASP-A05-002` (cors-wildcard): removed from `misconfigRules` in both `src/scanner/rules/misconfig.js` and `vscode-extension/src/scanner/rules.js`.
-- `OWASP-A05-004` (missing-helmet-middleware): removed from `misconfigRules` in both scanners.
-- `express-headers` branch inside `OWASP-A06-001`: removed from the `Program.exit` block in both `src/scanner/rules/knownVulns.js` and `vscode-extension/src/scanner/rules.js`.
+Dynamic browser fetch calls no longer emit A10-001. Axios calls no longer emit the retired dynamic-request-target variant. Both literal and variable Axios requests now emit component-review instead. This checks removal of the request-target classification only; the incorrect advisory penalty is a separate failure in item 6.
 
-A file containing `import express from 'express'` with no helmet import will receive only the `component-review` advisory signal (like any other risky library), not an `express-headers` finding.
+## Check 2
 
-A file containing `res.setHeader('Access-Control-Allow-Origin', '*')` will produce no findings.
-
-**Evidence:** `misconfigRules` arrays contain only A05-001 and A05-003 in both scanners. `knownVulnsRules` `Program.exit` emits only `component-review`. Build passes.
-
----
-
-## ✅ Browser-relevant checks, including sensitive HTTP endpoints, still run as intended
+- [x] Express header and response-side CORS checks are absent from active coverage in both interfaces.
 
 **Result: PASS**
 
-The following checks remain active and unmodified:
-- A01-001 (open-redirect), A01-002 (client-side-role-check)
-- A02-001 (hardcoded-password), A02-002 (insecure-cookie), A02-003 (insecure-random), A02-004 (plaintext-http-url), A07-001 (localstorage-token)
-- A02-005, A02-006, A02-007 (hardcoded secrets and sensitive query strings)
-- A03-001 through A03-008 (injection and XSS)
-- A05-001 (console-log-secrets), A05-003 (console-log-objects)
-- A06-001 (component-review advisory)
-- A08-001, A08-002, A08-003 (deserialization and prototype pollution)
+A05-002, A05-004, and the A06 express-headers branch are absent from new results in both engines. A wildcard response-header snippet produced no finding. Express imports emit component-review rather than the retired header check; its penalty remains covered by item 6.
 
-A02-004 (plaintext HTTP URL — hardcoded `http://` endpoints) still runs and covers the sensitive HTTP endpoint concern.
+## Check 3
 
-**Evidence:** 24 active rules verified against the module listing in 01-changes.md. Build passes with 232 modules transformed.
-
----
-
-## ✅ Active IDs and OWASP mappings agree between scanners and reports
+- [x] Browser-relevant checks, including sensitive HTTP endpoints, still run as intended.
 
 **Result: PASS**
 
-Both scanners (`src/scanner/rules/` and `vscode-extension/src/scanner/rules.js`) now have matching active rule sets:
-- Same 24 active IDs
-- Same `component-review`-only behavior for A06-001
-- Both have empty `ssrfRules`
-- Both removed A05-002 and A05-004
+The HTTP endpoint, eval, redirect, and sensitive-logging probes retained their expected rule IDs. Before/after comparisons over all 116 existing samples found no changes to unrelated rule outputs in either engine. This establishes regression preservation, not that every retained rule is semantically correct.
 
-`App.jsx` OWASP categories map updated: A10 entry removed. Remaining 7 categories (A01, A02, A03, A05, A06, A07, A08) match the active rule set.
+## Check 4
 
-**Evidence:** Parallel edits applied to both scanners in this phase. Extension header comment updated to reflect 24 rules / 7 categories.
+- [ ] Active IDs and OWASP mappings agree between scanners and reports.
 
----
+**Result: FAIL**
 
-## ✅ A06 wording does not claim a confirmed vulnerable dependency from an import alone
+Both engines have the same 24 active IDs and seven categories, but reports do not preserve historical mappings. Loading a stored A10-001 finding leaves totalIssues at 1 while the category total becomes 0 and the JSON category profile omits A10. See P2-02 in 01-issues.md.
 
-**Result: PASS**
+## Check 5
 
-The `component-review` branch message was updated in both scanners to:
-> "Risky library imported: '{name}' — verify the installed version against current security advisories"
-
-The suggestion reads: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests."
-
-The `knownVulns.js` file comment explicitly states: "An import alone does not establish an affected version — this is an advisory signal prompting a manual version and advisory check."
-
-The removed `express-headers` branch previously claimed Express without helmet was a confirmed misconfiguration. That claim is now gone.
-
----
-
-## ✅ Advisory-only A06 signals remain visible for review but do not inflate vulnerability totals, deduct project-score points, or enter vulnerability accuracy calculations
-
-**Result: PARTIAL PASS — carry-forward to Phase 03**
-
-The `OWASP-A06-001` component-review finding is still emitted with `severity: "MEDIUM"` and is still counted in vulnerability totals and contributes a 5-point score penalty. Phase 01 removes the incorrect branches (express-headers, dynamic-request-target) but does not yet implement the advisory-only separation in scoring logic.
-
-Per the Phase 01 document and README decisions, the advisory-only scoring separation is explicitly a Phase 03 concern. This item cannot be fully satisfied until Phase 03 modifies the scoring pipeline.
-
-**Evidence:** Scoring logic in `App.jsx` `stats` useMemo still applies penalty for MEDIUM severity uniformly. This is the pre-existing behavior — Phase 01 does not worsen it, but also does not resolve it.
-
-**Disclosed honestly:** This checklist item is a known carry-forward. The independent verifier should flag this as a Phase 03 dependency.
-
----
-
-## ✅ Run the existing guidance checks and build checks appropriate to the changed code
+- [x] A06 wording does not claim a confirmed vulnerable dependency from an import alone.
 
 **Result: PASS**
 
-Build command: `npm run build`
-Exit code: 0
-Modules transformed: 232
-No compilation errors.
+The emitted component-review message asks the developer to verify the installed version against current advisories, and the guidance catalogs remain identical. This result covers the wording only. The MEDIUM severity and vulnerability treatment remain incorrect under item 6.
 
-The pre-existing chunk size warning (`index-*.js > 500 kB`) is from the Babel parser dependency included before Phase 01. It is not caused by Phase 01 changes.
+## Check 6
 
-Guidance catalog entries for retired rule IDs (OWASP-A10-001, OWASP-A05-002, OWASP-A05-004, OWASP-A06-001:express-headers, OWASP-A06-001:dynamic-request-target) remain in both `src/data/guidanceCatalog.js` and `vscode-extension/src/data/guidanceCatalog.js`. Historical scan results that reference these IDs can still resolve guidance.
+- [ ] Advisory-only A06 signals remain visible for review but do not inflate vulnerability totals, deduct project-score points, or enter vulnerability accuracy calculations.
+
+**Result: FAIL**
+
+A literal Axios request produces one MEDIUM component-review finding and a JSON file score of 95 instead of 100. Both engines emit the same finding, and the app and extension counting/scoring paths treat it as a vulnerability. Phase 01 requires informational handling now; Phase 03 verifies downstream consistency. The earlier carry-forward claim was incorrect. Future evaluator exclusion cannot be verified before that evaluator exists.
+
+## Check 7
+
+- [ ] Run the existing guidance checks and build checks appropriate to the changed code. Add focused scope regressions without treating them as research accuracy results.
+
+**Result: FAIL**
+
+npm.cmd run build passed, and node --test validation/guidance.test.cjs passed 13/13. The independent review also ran 15 targeted inputs on both engines and the 116-file regression comparison. However, the implementation diff adds no persistent focused regression tests for the changed scope, advisory behavior, or historical results. The existing guidance suite does not cover these defects. This compound checklist item remains incomplete despite the passing commands.
+
+## Independent check evidence
+
+| Check | Command or method | Observed result |
+| --- | --- | --- |
+| Comparison base | `git merge-base HEAD plan/research-phases` | `348a107`; local comparison branch and its upstream had no divergence. |
+| Build | `npm.cmd run build` | Exit 0; 232 modules transformed; bundle-size warning remains. |
+| Guidance | `node --test validation/guidance.test.cjs` | 13 passed, 0 failed. Includes mirrored catalogs and historical guidance lookup. |
+| Registry | Import active browser rule arrays and extension `allRules`; compare sorted IDs | 24 matching IDs, seven categories; retired IDs absent. |
+| Focused probes | 15 inputs passed to actual web and extension engines under Node | No parse/rule errors; A06 scoring failure reproduced. Inputs included JS, JSX, TypeScript, fetch, Axios, Express, CORS, HTTP, eval, redirect, logging, and component review. |
+| Existing samples | 116 files through both engines at base and current revisions | 464 engine invocations; zero parse/rule failures; zero retired-rule findings in current results. Unrelated ID/location/severity outputs unchanged. |
+| Historical report | Execute actual App.jsx memo callbacks with one stored A10 finding; inspect JSON profile path | Before: total 1, category total 1. After: total 1, category total 0. |
+| Whitespace | `git diff --check 348a107` during review | Reported extension line-ending/whitespace and verification-file EOF issues; not a functional defect. |
+
+The ad hoc probes were executed in memory through `node --input-type=module`. Baseline rule source was read with `git show`; sample code was parsed, not executed. For regression preservation, the comparison excluded A06-001 and the three intentionally retired base IDs, then compared all other findings by ID, line, column, and severity. These checks are development evidence, not research accuracy results.
+
+## Limits and next action
+
+Interactive browser behavior, installed VS Code/VSIX behavior, and rendered PDF pages were not tested in this audit. Guidance lookup passing does not prove that every historical report remains correct.
+
+Fix the failures and the completion gaps in [01-issues.md](01-issues.md), add focused regressions, and repeat independent verification. Do not mark Phase 01 complete, merge it, or start Phase 02 on the basis of this report.
