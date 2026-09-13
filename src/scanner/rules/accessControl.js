@@ -2,56 +2,284 @@
  * A01 - Broken Access Control Rules
  * Targets: Open redirects, client-side role checks guarding conditional logic
  */
-function isValidated(path, varName) {
-  if (!varName) return false;
-  let currentPath = path;
-  while (currentPath) {
-    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
-      const test = currentPath.node.test;
-      
-      const checkTestNode = (node) => {
-        if (!node) return false;
-        
-        // Match methods like includes, indexOf, test, validate, or check
-        if (node.type === 'CallExpression') {
-          const callee = node.callee;
-          const hasVarArg = node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
-          if (hasVarArg) {
-            let funcName = '';
-            if (callee.type === 'Identifier') {
-              funcName = callee.name;
-            } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
-              funcName = callee.property.name;
-            }
-            const lowerFunc = funcName.toLowerCase();
-            if (lowerFunc.includes('include') || lowerFunc.includes('indexof') || lowerFunc.includes('test') || lowerFunc.includes('validate') || lowerFunc.includes('check')) {
-              return true;
+function isDescendant(childPath, ancestorPath) {
+  let cur = childPath;
+  while (cur) {
+    if (cur === ancestorPath) return true;
+    cur = cur.parentPath;
+  }
+  return false;
+}
+
+function getValidAllowlistBinding(scope, arrayName) {
+  if (!scope || !arrayName) return null;
+  const binding = scope.getBinding(arrayName);
+  if (!binding) return null;
+
+  if (!binding.constant || (binding.constantViolations && binding.constantViolations.length > 0)) {
+    return null;
+  }
+
+  const declarator = binding.path;
+  if (!declarator || !declarator.node || declarator.node.type !== 'VariableDeclarator') {
+    return null;
+  }
+
+  const init = declarator.node.init;
+  if (!init || init.type !== 'ArrayExpression' || !Array.isArray(init.elements) || init.elements.length === 0) {
+    return null;
+  }
+
+  for (const elem of init.elements) {
+    if (!elem) return null;
+    if (elem.type === 'StringLiteral') continue;
+    if (elem.type === 'Literal' && typeof elem.value === 'string') continue;
+    if (elem.type === 'TemplateLiteral' && Array.isArray(elem.expressions) && elem.expressions.length === 0) continue;
+    return null;
+  }
+
+  const mutatingMethods = new Set([
+    'push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort', 'fill', 'copyWithin'
+  ]);
+
+  if (Array.isArray(binding.referencePaths)) {
+    for (const refPath of binding.referencePaths) {
+      const parent = refPath.parentPath;
+      if (parent && parent.isMemberExpression && parent.isMemberExpression() && parent.node.object === refPath.node) {
+        const grandParent = parent.parentPath;
+        if (grandParent && grandParent.isCallExpression && grandParent.isCallExpression() && grandParent.node.callee === parent.node) {
+          const prop = parent.node.property;
+          const methodName = prop.name || (prop.type === 'StringLiteral' ? prop.value : null);
+          if (mutatingMethods.has(methodName)) {
+            return null;
+          }
+        }
+        if (grandParent && grandParent.isAssignmentExpression && grandParent.isAssignmentExpression() && grandParent.node.left === parent.node) {
+          return null;
+        }
+        if (grandParent && grandParent.isUpdateExpression && grandParent.isUpdateExpression()) {
+          return null;
+        }
+      }
+    }
+  }
+
+  return binding;
+}
+
+function parseValidationCondition(node, varName, scope, targetBinding) {
+  if (!node || !scope) return null;
+
+  while (node.type === 'ParenthesizedExpression') {
+    node = node.expression;
+  }
+
+  if (node.type === 'UnaryExpression' && node.operator === '!') {
+    const inner = parseValidationCondition(node.argument, varName, scope, targetBinding);
+    if (inner && inner.kind === 'POSITIVE') {
+      return { kind: 'NEGATED', arrayName: inner.arrayName };
+    }
+    return null;
+  }
+
+  if (node.type === 'CallExpression') {
+    const callee = node.callee;
+    if (callee && callee.type === 'MemberExpression' && callee.property && callee.property.type === 'Identifier') {
+      const propName = callee.property.name;
+      if (propName === 'includes') {
+        const obj = callee.object;
+        if (obj && obj.type === 'Identifier') {
+          const arrayName = obj.name;
+          const arg = node.arguments && node.arguments[0];
+          if (arg && arg.type === 'Identifier' && arg.name === varName) {
+            if (scope.getBinding(varName) === targetBinding) {
+              const allowBinding = getValidAllowlistBinding(scope, arrayName);
+              if (allowBinding) {
+                return { kind: 'POSITIVE', arrayName };
+              }
             }
           }
         }
-        
-        if (node.type === 'BinaryExpression') {
-          return checkTestNode(node.left) || checkTestNode(node.right);
-        }
-        if (node.type === 'LogicalExpression') {
-          return checkTestNode(node.left) || checkTestNode(node.right);
-        }
-        if (node.type === 'UnaryExpression') {
-          return checkTestNode(node.argument);
-        }
-        return false;
-      };
-      
-      if (checkTestNode(test)) {
-        return true;
       }
     }
-    // Stop traversal if we leave the current function
+    return null;
+  }
+
+  if (node.type === 'BinaryExpression') {
+    let callNode = null;
+    let otherNode = null;
+    let op = node.operator;
+
+    if (node.left && node.left.type === 'CallExpression') {
+      callNode = node.left;
+      otherNode = node.right;
+    } else if (node.right && node.right.type === 'CallExpression') {
+      callNode = node.right;
+      otherNode = node.left;
+      if (op === '>') op = '<';
+      else if (op === '<') op = '>';
+      else if (op === '>=') op = '<=';
+      else if (op === '<=') op = '>=';
+    }
+
+    if (callNode && callNode.callee && callNode.callee.type === 'MemberExpression' &&
+        callNode.callee.property && callNode.callee.property.name === 'indexOf') {
+      const obj = callNode.callee.object;
+      if (obj && obj.type === 'Identifier') {
+        const arrayName = obj.name;
+        const arg = callNode.arguments && callNode.arguments[0];
+        if (arg && arg.type === 'Identifier' && arg.name === varName) {
+          if (scope.getBinding(varName) === targetBinding) {
+            const allowBinding = getValidAllowlistBinding(scope, arrayName);
+            if (allowBinding) {
+              let compVal = null;
+              if (otherNode && otherNode.type === 'UnaryExpression' && otherNode.operator === '-' &&
+                  otherNode.argument && otherNode.argument.type === 'NumericLiteral' && otherNode.argument.value === 1) {
+                compVal = -1;
+              } else if (otherNode && otherNode.type === 'NumericLiteral') {
+                compVal = otherNode.value;
+              }
+
+              if (compVal === -1) {
+                if (op === '!==' || op === '!=') return { kind: 'POSITIVE', arrayName };
+                if (op === '===' || op === '==') return { kind: 'NEGATED', arrayName };
+                if (op === '>') return { kind: 'POSITIVE', arrayName };
+                if (op === '<=') return { kind: 'NEGATED', arrayName };
+              } else if (compVal === 0) {
+                if (op === '>=') return { kind: 'POSITIVE', arrayName };
+                if (op === '<') return { kind: 'NEGATED', arrayName };
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  return null;
+}
+
+function doesConsequentUnconditionallyExit(node) {
+  if (!node) return false;
+  if (node.type === 'ReturnStatement' || node.type === 'ThrowStatement') {
+    return true;
+  }
+  if (node.type === 'BlockStatement') {
+    const body = node.body;
+    if (!Array.isArray(body) || body.length === 0) return false;
+    const lastStmt = body[body.length - 1];
+    if (lastStmt && (lastStmt.type === 'ReturnStatement' || lastStmt.type === 'ThrowStatement')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isTargetReassignedInPath(targetBinding, startLoc, endLoc) {
+  if (!targetBinding || !targetBinding.constantViolations || targetBinding.constantViolations.length === 0) {
+    return false;
+  }
+  for (const violation of targetBinding.constantViolations) {
+    const loc = violation.node?.loc?.start;
+    if (!loc || !startLoc || !endLoc) {
+      return true;
+    }
+    if ((loc.line > startLoc.line || (loc.line === startLoc.line && loc.column >= startLoc.column)) &&
+        (loc.line < endLoc.line || (loc.line === endLoc.line && loc.column <= endLoc.column))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isValidated(path, varName) {
+  if (!varName || !path || !path.scope) return false;
+  const targetBinding = path.scope.getBinding(varName);
+
+  // Pattern 1: Check enclosing IfStatements (matching allowed branch)
+  let currentPath = path;
+  while (currentPath) {
+    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
+      const ifPath = currentPath;
+      const testNode = ifPath.node.test;
+      const cond = parseValidationCondition(testNode, varName, ifPath.scope, targetBinding);
+
+      if (cond) {
+        const consequentPath = ifPath.get('consequent');
+        const alternatePath = ifPath.node.alternate ? ifPath.get('alternate') : null;
+
+        let inMatchingBranch = false;
+        let branchStart = null;
+        const branchEnd = path.node.loc?.start;
+
+        if (cond.kind === 'POSITIVE' && isDescendant(path, consequentPath)) {
+          inMatchingBranch = true;
+          branchStart = consequentPath.node.loc?.start;
+        } else if (cond.kind === 'NEGATED' && alternatePath && isDescendant(path, alternatePath)) {
+          inMatchingBranch = true;
+          branchStart = alternatePath.node.loc?.start;
+        }
+
+        if (inMatchingBranch) {
+          if (!isTargetReassignedInPath(targetBinding, branchStart, branchEnd)) {
+            return true;
+          }
+        }
+      }
+    }
+
     if (currentPath.isFunction && currentPath.isFunction()) {
       break;
     }
     currentPath = currentPath.parentPath;
   }
+
+  // Pattern 2: Check preceding sibling statements for early return guard
+  let stmt = null;
+  try {
+    stmt = path.getStatementParent ? path.getStatementParent() : null;
+  } catch {
+    stmt = null;
+  }
+
+  while (stmt) {
+    const parentBlock = stmt.parentPath;
+    if (parentBlock && Array.isArray(parentBlock.node?.body)) {
+      const siblings = parentBlock.get('body');
+      if (Array.isArray(siblings)) {
+        const currentIndex = siblings.findIndex(s => s === stmt);
+
+        if (currentIndex > 0) {
+          for (let i = currentIndex - 1; i >= 0; i--) {
+            const sibling = siblings[i];
+            if (sibling.isIfStatement && sibling.isIfStatement()) {
+              const ifNode = sibling.node;
+              const cond = parseValidationCondition(ifNode.test, varName, sibling.scope, targetBinding);
+
+              if (cond && cond.kind === 'NEGATED' && doesConsequentUnconditionallyExit(ifNode.consequent)) {
+                const guardEnd = ifNode.loc?.end;
+                const sinkStart = path.node.loc?.start;
+                if (!isTargetReassignedInPath(targetBinding, guardEnd, sinkStart)) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!parentBlock || (parentBlock.isFunction && parentBlock.isFunction()) || (parentBlock.isProgram && parentBlock.isProgram())) {
+      break;
+    }
+    try {
+      stmt = parentBlock.getStatementParent();
+    } catch {
+      break;
+    }
+  }
+
   return false;
 }
 
@@ -82,11 +310,11 @@ export const accessControlRules = [
         AssignmentExpression(path) {
           const left = path.node.left;
           if (left && left.type === 'MemberExpression') {
-            const isLocationHref = 
+            const isLocationHref =
               (left.object.name === 'location' && left.property.name === 'href') ||
-              (left.object.type === 'MemberExpression' && 
-               left.object.object.name === 'window' && 
-               left.object.property.name === 'location' && 
+              (left.object.type === 'MemberExpression' &&
+               left.object.object.name === 'window' &&
+               left.object.property.name === 'location' &&
                left.property.name === 'href');
 
             if (isLocationHref) {
@@ -134,10 +362,10 @@ export const accessControlRules = [
           const callee = path.node.callee;
           if (callee && callee.type === 'MemberExpression') {
             const isReplace = callee.property.name === 'replace';
-            const isLocationObject = 
-              callee.object.name === 'location' || 
-              (callee.object.type === 'MemberExpression' && 
-               callee.object.object.name === 'window' && 
+            const isLocationObject =
+              callee.object.name === 'location' ||
+              (callee.object.type === 'MemberExpression' &&
+               callee.object.object.name === 'window' &&
                callee.object.property.name === 'location');
 
             if (isReplace && isLocationObject) {
@@ -251,3 +479,4 @@ export const accessControlRules = [
     }
   }
 ];
+
