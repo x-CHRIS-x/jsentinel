@@ -162,38 +162,56 @@ test('actual app history, category memo and extension stats consume the advisory
   assert.equal(categories.find(cat => cat.name.startsWith('A10')).count, 1);
 });
 
-test('both PDF generators execute and separate advisories in their actual tables', async () => {
-  const [result] = await scanBoth('import axios from "axios";');
+test('both PDF generators label advisory-only and mixed detail output', async () => {
+  const [advisoryOnly] = await scanBoth('import axios from "axios";');
+  const [mixed] = await scanBoth('import axios from "axios"; eval(userInput);');
   const { jsPDF } = require('jspdf');
   const realAutoTable = require('jspdf-autotable').autoTable;
   const guidance = require('../vscode-extension/src/data/guidanceCatalog.js');
   for (const file of ['../src/utils/pdfGenerator.js', '../vscode-extension/src/utils/pdfGenerator.js']) {
-    const tables = [];
-    let saved = false;
-    class TestPDF extends jsPDF {
-      constructor() { super(); this.save = () => { saved = true; }; }
-    }
-    const autoTable = (doc, options) => { tables.push(options); realAutoTable(doc, options); };
     const source = readFileSync(new URL(file, import.meta.url), 'utf8');
-    const context = { ...policy, ...guidance, jsPDF: TestPDF, autoTable, Buffer, module: { exports: {} } };
-    if (file.startsWith('../src/')) {
-      const runnable = source.replace(/^import .*;\r?\n/gm, '').replace('export const generatePDFReport', 'const generatePDFReport');
-      vm.runInNewContext(runnable + '\ngeneratePDFReport(results, {});', { ...context, results: [result] });
-      assert.equal(saved, true);
-    } else {
-      const runnable = source.replace(/^const .* = require\(.*;\r?\n/gm, '');
-      vm.runInNewContext(runnable, context);
-      const buffer = context.module.exports.generatePDFBuffer({ scannedFiles: [result] });
-      assert.equal(buffer.subarray(0, 5).toString(), '%PDF-');
+    for (const [caseName, result, expectedTypes] of [
+      ['advisory-only', advisoryOnly, ['INFORMATIONAL ADVISORY']],
+      ['mixed', mixed, ['INFORMATIONAL ADVISORY', 'VULNERABILITY PATTERN']]
+    ]) {
+      const tables = [];
+      const headings = [];
+      let saved = false;
+      class TestPDF extends jsPDF {
+        constructor() {
+          super();
+          const realText = this.text.bind(this);
+          this.text = (value, ...args) => { headings.push(value); return realText(value, ...args); };
+          this.save = () => { saved = true; };
+        }
+      }
+      const autoTable = (doc, options) => { tables.push(options); realAutoTable(doc, options); };
+      const context = { ...policy, ...guidance, jsPDF: TestPDF, autoTable, Buffer, module: { exports: {} } };
+      if (file.startsWith('../src/')) {
+        const runnable = source.replace(/^import .*;\r?\n/gm, '').replace('export const generatePDFReport', 'const generatePDFReport');
+        vm.runInNewContext(runnable + '\ngeneratePDFReport(results, {});', { ...context, results: [result] });
+        assert.equal(saved, true);
+      } else {
+        const runnable = source.replace(/^const .* = require\(.*;\r?\n/gm, '');
+        vm.runInNewContext(runnable, context);
+        const buffer = context.module.exports.generatePDFBuffer({ scannedFiles: [result] });
+        assert.equal(buffer.subarray(0, 5).toString(), '%PDF-');
+      }
+      assert.ok(headings.includes('5. DETAILED SECURITY FINDINGS AND ADVISORIES REPORT'), `${file} ${caseName} heading`);
+      assert.ok(!headings.includes('5. DETAILED VULNERABILITY FINDINGS REPORT'));
+      const details = tables.find(table => table.head[0][0] === 'Finding Type');
+      assert.deepEqual([...new Set(details.body.map(row => row[0]))].sort(), expectedTypes.sort(), `${file} ${caseName} types`);
+      if (caseName === 'advisory-only') {
+        const matrix = tables.find(table => table.head[0][0] === 'Resource File');
+        assert.equal(matrix.body[0][2], 0, file + ' raw vulnerability count');
+        assert.equal(matrix.body[0][3], 0, file + ' active vulnerability count');
+        assert.equal(matrix.body[0][4], '100.0%');
+        assert.ok(tables.some(table => table.body.some(row => row[0] === 'Component-review Advisories (not scored)' && row[1] === '1 informational findings')));
+        const category = tables.find(table => table.head[0][0] === 'OWASP Core Category Profile Description');
+        assert.equal(category.body.length, 7);
+        assert.ok(category.body.some(row => row[0].startsWith('A06') && row[1] === '0 active findings; 1 advisories'));
+      }
     }
-    const matrix = tables.find(table => table.head[0][0] === 'Resource File');
-    assert.equal(matrix.body[0][2], 0, file + ' raw vulnerability count');
-    assert.equal(matrix.body[0][3], 0, file + ' active vulnerability count');
-    assert.equal(matrix.body[0][4], '100.0%');
-    assert.ok(tables.some(table => table.body.some(row => row[0] === 'Component-review Advisories (not scored)' && row[1] === '1 informational findings')));
-    const category = tables.find(table => table.head[0][0] === 'OWASP Core Category Profile Description');
-    assert.equal(category.body.length, 7);
-    assert.ok(category.body.some(row => row[0].startsWith('A06') && row[1] === '0 active findings; 1 advisories'));
   }
 });
 

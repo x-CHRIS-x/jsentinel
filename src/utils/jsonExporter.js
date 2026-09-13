@@ -18,6 +18,10 @@ import { getGuidance, FALLBACK_GUIDANCE, GUIDANCE_DISCLAIMER } from '../data/gui
  * @returns {Object} Structured report object.
  */
 export const formatJSONReport = (results = [], stats = {}, owaspCategories = [], fpFlags = []) => {
+  // Retain legacy positional arguments for caller compatibility. Report metrics are
+  // intentionally recomputed below so stale caller summaries cannot classify advisories.
+  void stats;
+  void owaspCategories;
   const safeResults = Array.isArray(results) ? results : [];
   const safeFpFlags = Array.isArray(fpFlags) ? fpFlags : [];
   // Recompute from findings so stale caller totals cannot include advisories.

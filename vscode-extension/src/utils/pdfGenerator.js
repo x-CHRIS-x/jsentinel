@@ -232,7 +232,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
   y = checkHeightAndPageBreak(doc, 60, y);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('5. DETAILED VULNERABILITY FINDINGS REPORT', 14, y);
+  doc.text('5. DETAILED SECURITY FINDINGS AND ADVISORIES REPORT', 14, y);
   y += 5;
 
   const activeIssuesList = [];
@@ -249,6 +249,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
           line: issue.line,
           id: issue.id,
           guidanceId: issue.guidanceId || issue.id,
+          findingType: isAdvisory(issue) ? 'INFORMATIONAL ADVISORY' : 'VULNERABILITY PATTERN',
           severity: issue.severity,
           message: issue.message
         });
@@ -265,10 +266,11 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...brand.gray);
-    doc.text('No active unmitigated security vulnerabilities are logged in this scanning session.', 14, y);
+    doc.text('No active security findings or informational advisories are logged in this scanning session.', 14, y);
     y += 10;
   } else {
     const findingsBody = activeIssuesList.map(issue => [
+      issue.findingType,
       issue.severity,
       issue.id,
       `Line ${issue.line}`,
@@ -278,13 +280,13 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
 
     autoTable(doc, {
       startY: y,
-      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Finding Description']],
+      head: [['Finding Type', 'Severity', 'Rule ID', 'Location', 'Resource', 'Finding Description']],
       body: findingsBody,
       theme: 'grid',
       styles: { fontSize: 7.5, cellPadding: 3.5 },
       headStyles: { fillColor: brand.slate, fontStyle: 'bold' },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 0) {
+        if (data.section === 'body' && data.column.index === 1) {
           const sev = data.cell.raw;
           if (sev === 'CRITICAL') data.cell.styles.textColor = brand.maroon;
           else if (sev === 'HIGH') data.cell.styles.textColor = [194, 65, 12];
@@ -292,7 +294,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
           data.cell.styles.fontStyle = 'bold';
         }
       },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 15 }, 3: { cellWidth: 35 } }
+      columnStyles: { 0: { cellWidth: 25 }, 1: { cellWidth: 18 }, 2: { cellWidth: 23 }, 3: { cellWidth: 14 }, 4: { cellWidth: 30 } }
     });
     y = doc.lastAutoTable.finalY + 12;
   }
