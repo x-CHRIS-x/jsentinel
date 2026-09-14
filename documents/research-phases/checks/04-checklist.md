@@ -25,27 +25,29 @@ Manager: Astra coordinator (`jsentinel-4`). Verifier: Opus HOLD.
 | 14. Generator support synchronized for full 54 pairs | **PASS** | `test-samples/generate-samples.cjs` implements all 54 pairs with `--check`, `--pilot`, and Windows CRLF normalization. `node test-samples/generate-samples.cjs --check` confirms 108/108 matches. |
 | 15. Manifest covers all 116 files with preserved pilot metadata and explicit partial coverage | **PASS** | `test-samples/dataset-manifest.json` preserves all 12 accepted pilot metadata records from canonical record, sets `partialCoverageExplicit: true`, and marks 8 scenarios as `pending-batch-c`. |
 | 16. Unit tests execute actual sample code in isolated VM contexts | **PASS** | `validation/pilot-manifest.test.mjs` executes actual sample code in isolated VM contexts to verify redirects, prototype pollution filters, sink contracts, schema validation, 256-bit entropy, and origin listeners. |
-| 17. Full validation test suite passes with zero regressions | **PASS** | 47 test cases pass across all validation suites in `validation/` (7 manifest tests + 40 existing regression tests). |
-| 18. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (1.73s). |
+| 17. Full validation test suite passes with zero regressions | **PASS** | 48 test cases pass across all validation suites in `validation/` (8 manifest tests + 40 existing regression tests). |
+| 18. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (2.25s). |
 | 19. Two-stage commit discipline | **PASS** | Implementation committed first, followed by evidence documentation. |
 | 20. Manifest structural integrity and canonical categories | **PASS** | Automated audit and Test 7 confirm 0 placeholder coordinates, 0 rule/category mismatches, and explicit `ruleId: null` with `unsupported: true` for missing scanner rules. |
+| 21. Observation invariance and expected finding decoupling | **PASS** | Automated audit and Test 8 confirm manifest expected findings, security ground truth, and labels are derived exclusively from reviewed pair metadata and remain 100% invariant under mock empty or noisy scanner observations. |
 
 ## 2. Execution Record and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify generator reproducibility against disk | 0 | Check Mode: 108 matches, 0 mismatches out of 108 checked. |
-| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, and VM tests | 0 | 7 of 7 tests passed (duration ~798ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 47 of 47 tests passed (duration ~4207ms). |
+| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, VM, and invariance tests | 0 | 8 of 8 tests passed (duration ~2783ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 48 of 48 tests passed (duration ~6910ms). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.73s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 2.25s; 233 modules transformed. |
 
 ## 3. Disclosed Unrun Checks (NOT RUN)
 
 In accordance with `AGENTS.md` and research integrity guidelines, the following paths were deliberately **NOT RUN**:
 1. Live browser DOM event execution / layout rendering: **NOT RUN**. Real DOM Element tree parsing and event loop execution (such as `onerror` event firing) require a live rendering browser engine and are explicitly not run in this Node.js test harness.
-2. Formal accuracy measurement or benchmark scoring: **NOT RUN**. Accuracy scoring is reserved for Phase 05 and Phase 07.
-3. Phase 05 evaluator execution: **NOT RUN**. Evaluator prototype scripts will execute after the complete dataset is frozen.
-4. Eight simulated browser application scenarios: **NOT RUN** / **NOT MODIFIED**. All 8 scenario files remain byte-identical to their pre-change baseline state and are explicitly pending Batch C.
-5. Push to remote or branch merge: **NOT RUN**. Work branches remain local in the AO workspace pending manager acceptance.
+2. Live backend server verification and server RBAC enforcement: **NOT RUN**. The test suite runs in a client-side unit test environment without a live backend HTTP server or live role-enforcement endpoints.
+3. Formal accuracy measurement or benchmark scoring: **NOT RUN**. Accuracy scoring is reserved for Phase 05 and Phase 07.
+4. Phase 05 evaluator execution: **NOT RUN**. Evaluator prototype scripts will execute after the complete dataset is frozen.
+5. Eight simulated browser application scenarios: **NOT RUN** / **NOT MODIFIED**. All 8 scenario files remain byte-identical to their pre-change baseline state and are explicitly pending Batch C.
+6. Push to remote or branch merge: **NOT RUN**. Work branches remain local in the AO workspace pending manager acceptance.

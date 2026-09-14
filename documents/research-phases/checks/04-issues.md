@@ -87,16 +87,39 @@ Manager inspection of commit `697ccb4` identified manifest and sample defects, w
    - `PAIR-045`: Added `accessAdministrativeDiagnostics()` in `V-A8-045.js` that exposes confidential diagnostic data when `window.__adminMode` is true. `C-A8-045.js` notes that schema validation checks structure and types, while authorization is enforced by setting `role: 'standard_user'`.
    - `PAIR-046`: `V-A8-046.js` defines an unvalidated telemetry exfiltration context under browser CORS. `C-A8-046.js` updates `verifyAppConfig` to return `{ endpointUrl: '/api/v1/feed' }` for `null`, `undefined`, or primitive inputs, preventing unhandled `TypeError` exceptions.
 
-## 4. Authoritative Web Standards References
+## 4. Resolved: Post-Commit fd17002 Manifest Observation Invariance and Evidence Accuracy
+
+Manager inspection of commit `fd17002` identified remaining circularity where `build-dataset-manifest.cjs` relied on scanner output count to build expected findings, alongside evidence claims requiring precision:
+
+1. **Elimination of Expected-Output Scanner Dependence:**
+   - Previous manifest builder logic checked `meta.trueLocation && vScan.issues.length === 0`, and otherwise populated `expectedVFindings = vScan.issues.map(...)`.
+   - Separating raw scanner output into `observedScannerFindings` did not fix this circularity because expected findings still depended on scanner detections.
+   - We removed all runtime scanner dependence from expected finding generation. Every controlled pair (`001` through `054`) now explicitly defines its complete `expectedFindings` list in `pairMetadata` with canonical rule ID, canonical category, severity, exact AST coordinates, and reviewed weakness description.
+   - Clean files uniformly record `expectedScannerFindings: []`. Raw scanner output populates only `observedScannerFindings`.
+
+2. **Automated Manifest Observation Invariance Test (Test 8):**
+   - Added Test 8 to `validation/pilot-manifest.test.mjs`.
+   - The test builds the manifest under an empty mock scanner (`issues: []`) and a noisy mock scanner (`issues: [fabricatedRule]`).
+   - The test asserts that `expectedScannerFindings`, `securityGroundTruth`, and `label` remain 100% byte-for-byte identical across all 116 files.
+   - Only `observedScannerFindings` changes, confirming complete decoupling of benchmark truth from scanner output.
+
+3. **Evidence Accuracy and Scope Corrections:**
+   - `PAIR-029`: Replaced claims of a "verified server contract" with an assumed server-side RBAC contract. Explicitly disclosed that live backend enforcement was NOT RUN in this client-only unit test scope.
+   - `PAIR-045`: Documented that `accessAdministrativeDiagnostics()` models a simulated protected-resource contract in client memory. Noted that client-side code is public and cannot guarantee production confidentiality without server enforcement.
+   - `PAIR-046`: Updated payload to transmit synthetic sensitive client credentials (`token_synthetic_telemetry_user_session_441`, `researcher@example.internal`). Removed misleading "simple-request" claims, explicitly noting that `application/json` POST triggers a CORS preflight (`OPTIONS`). The clean counterpart preserves legitimate telemetry to approved application endpoints (`/api/v1/feed`, `/api/v1/profile`) with a null-safe fallback.
+
+## 5. Authoritative Web Standards References
 
 Manifest entries, test suites, and documentation cite authoritative, stable web specifications:
 - WHATWG HTML Living Standard: Section 8.4 Dynamic markup insertion (`Element.innerHTML`)
 - WHATWG DOM Standard: Section 4.2.3 Interface Node attribute `textContent`
-- WHATWG Fetch Standard: Section 4.4 HTTP-network-fetch and credentials scoping
+- WHATWG Fetch Standard: Section 4.4 HTTP-network-fetch and CORS preflight triggers
 - RFC 6265: Section 5.3 Step 10 (Storage Model non-HTTP API rejection)
 - NIST SP 800-131A / SP 800-90A: Cryptographic Key Length and Random Number Generation
 
-## 5. Carry-Forward Items
+## 6. Carry-Forward Items and Disclosed Ambiguities
 
-- A03-001 Column-Zero Coordinate Mismatch: Unrelated `eval()` check at column zero reports column `'unknown'` in web scanner vs column `0` in VS Code extension. Inherited from Phase 01/02 and carried forward.
-- Scenario Migration (Batch C): The 8 simulated browser application scenarios remain byte-identical to their baseline hashes. They are marked `pending-batch-c` with `isVulnerable: null` and are scheduled for review and migration in Phase 04 Batch C.
+- **A03-001 Column-Zero Coordinate Mismatch:** An unrelated `eval()` check at column zero reports column `'unknown'` in the web scanner versus column `0` in the VS Code extension. This discrepancy is inherited from Phase 01/02 and is carried forward without altering engine behavior.
+- **Client-Side Unit Test Scope:** Tests execute inside Node.js isolated VM contexts. Real browser DOM rendering, layout calculation, event loop dispatching (such as `onerror`), and live backend HTTP server enforcement were NOT RUN.
+- **Client Visibility Limitations:** Client-side JavaScript is publicly visible to end users. Simulated access controls (such as `PAIR-045` diagnostic data) demonstrate client logic flaws, but production security requires backend authorization.
+- **Scenario Migration (Batch C):** The 8 simulated browser application scenarios remain byte-identical to their baseline hashes. They are marked `pending-batch-c` with `isVulnerable: null` and are scheduled for review and migration in Phase 04 Batch C.

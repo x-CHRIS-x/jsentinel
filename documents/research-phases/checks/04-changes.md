@@ -84,31 +84,41 @@ Following manager inspection of commit `089b864`, bounded corrections were appli
      - `PAIR-046`: `V-A8-046.js` defines an unvalidated telemetry exfiltration context under browser CORS. `C-A8-046.js` updates `verifyAppConfig` to return a safe fallback object `{ endpointUrl: '/api/v1/feed' }` for `null`, `undefined`, or primitive inputs, avoiding unhandled `TypeError` exceptions.
    - **Structural Integrity Validation:** Added Test 7 to `validation/pilot-manifest.test.mjs` verifying canonical category mappings, positive non-placeholder coordinates, unsupported rule contracts, and runtime safety. Total passing tests: 47/47.
 
+9. **Manifest Observation Invariance and Evidence Accuracy Corrections (Post-Commit fd17002):**
+   - **Elimination of Expected-Output Scanner Dependence:** Completely removed runtime scanner dependence from `build-dataset-manifest.cjs`. Every controlled pair (`001` through `054`) now explicitly defines its complete `expectedFindings` array directly in `pairMetadata` with canonical rule ID, canonical category, severity, exact AST coordinates, and reviewed weakness description. Clean files uniformly record `expectedScannerFindings: []`.
+   - **Decoupling Scanner Execution to Observed Fields Only:** Scanner executions (`scanCode`) now populate only `observedScannerFindings`. Expected findings and security ground truth are strictly derived from reviewed pair metadata.
+   - **Manifest Observation Invariance Test (Test 8):** Added Test 8 to `validation/pilot-manifest.test.mjs`. Confirms that replacing the observation provider with an empty mock scanner or a noisy mock scanner leaves `expectedScannerFindings`, `securityGroundTruth`, and `label` 100% deep-equal across all 116 files.
+   - **Evidence Accuracy and Scope Clarifications:**
+     - `PAIR-029`: Replaced "verified server contract" claims with assumed/simulated server RBAC contract; explicitly noted live backend enforcement was NOT RUN in this client-only unit scope.
+     - `PAIR-045`: Documented that `accessAdministrativeDiagnostics()` models a simulated protected-resource contract; client source code is public and cannot assure production secrecy without server enforcement.
+     - `PAIR-046`: Transmits synthetic sensitive client credentials (`token_synthetic_telemetry_user_session_441`, `researcher@example.internal`). Removed misleading simple-request claims, explicitly noting that `application/json` POST triggers a CORS preflight (`OPTIONS`). In `C-A8-046.js`, benign telemetry to approved destinations is preserved while blocking untrusted external destinations with a null-safe fallback.
+
 ## 4. Implementation Files Changed
 
 | File | Change | Consequence |
 | --- | --- | --- |
-| `test-samples/samples/` (12 files updated) | Corrected PAIR-016, PAIR-017, PAIR-029, PAIR-030, PAIR-034, PAIR-045, and PAIR-046. | Eliminates undefined helpers, fixes entropy, establishes concrete consumers, and delegates auth cookies. |
+| `test-samples/samples/` (12 files updated) | Corrected PAIR-016, PAIR-017, PAIR-029, PAIR-030, PAIR-034, PAIR-045, and PAIR-046. | Eliminates undefined helpers, fixes entropy, establishes concrete consumers, models CORS preflights, and removes unverified server claims. |
 | `test-samples/generate-samples.cjs` | Synchronized templates for corrected pairs; verified with `--check`. | Deterministic reproducibility for all 108 controlled samples. |
 | `test-samples/pilot-manifest-entries.json` | Extracted and preserved the 12 canonical accepted pilot manifest entries from `92951de`. | Safeguards pilot metadata from automated overwrite. |
-| `test-samples/build-dataset-manifest.cjs` | Resolves canonical categories, removes borrowed rules, eliminates placeholder coordinates, separates ground truth, and sets explicit partial coverage. | Produces comprehensive, defensible 116-file manifest. |
-| `test-samples/dataset-manifest.json` | Regenerated complete 116-file manifest reflecting all corrections. | Canonical dataset specification for Phase 04 with zero placeholders and zero category mismatches. |
-| `validation/pilot-manifest.test.mjs` | Added Test 6 (VM execution of helpers) and Test 7 (structural integrity, categories, coordinates, and null safety). | Automated verification of Batch B corrections and structural manifest integrity. |
-| `documents/research-phases/checks/04-batch-b-manifest-defect-self-check-2026-09-14.md` | Recorded itemized defect resolutions and structural integrity audit report. | Audit evidence document for manifest defect fixes. |
-| `documents/research-phases/checks/04-changes.md` | Updated changes document with Batch B corrections and manifest defect resolution. | Permanent changes log. |
-| `documents/research-phases/checks/04-checklist.md` | Updated checklist with 47 tests and pass status. | Quality checklist. |
-| `documents/research-phases/checks/04-issues.md` | Updated issues document with resolved findings, cookie/fetch audits, and manifest defect breakdown. | Issues log. |
+| `test-samples/build-dataset-manifest.cjs` | Embeds explicit `expectedFindings` across all 54 pairs in `pairMetadata`, decouples scanner executions to `observedScannerFindings` only, and parameterizes observation provider. | Produces fully decoupled, defensible 116-file manifest with zero scanner circularity. |
+| `test-samples/dataset-manifest.json` | Regenerated complete 116-file manifest reflecting all corrections and explicit expected findings. | Canonical dataset specification for Phase 04 with zero placeholders, zero category mismatches, and complete scanner independence. |
+| `validation/pilot-manifest.test.mjs` | Added Test 7 (structural integrity) and Test 8 (manifest observation invariance under mock empty and noisy scanners). | Automated verification of Batch B corrections, structural integrity, and observation invariance. |
+| `documents/research-phases/checks/04-batch-b-manifest-invariance-self-check-2026-09-14.md` | Recorded itemized defect resolutions, observation invariance audit, and remaining limitations. | Audit evidence document for post-fd17002 fixes. |
+| `documents/research-phases/checks/04-changes.md` | Updated changes document with Batch B corrections and observation invariance resolution. | Permanent changes log. |
+| `documents/research-phases/checks/04-checklist.md` | Updated checklist with 48 tests and pass status. | Quality checklist. |
+| `documents/research-phases/checks/04-issues.md` | Updated issues document with observation invariance resolution, evidence accuracy audits, and carry-forwards. | Issues log. |
 
 ## 5. Verification Commands and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify disk samples match generator templates | 0 | Check Mode: 108 matches, 0 mismatches out of 108 checked. |
-| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, and VM correction tests | 0 | 7 of 7 tests passed (~798ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 47 of 47 tests passed (~4207ms, zero regressions). |
+| `node test-samples/build-dataset-manifest.cjs` | Rebuild manifest from explicit metadata | 0 | Generated 116 files (108 controlled reviewed, 8 scenarios pending). |
+| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, VM, structural, and invariance tests | 0 | 8 of 8 tests passed (~2783ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 48 of 48 tests passed (~6910ms, zero regressions). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.73s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 2.25s; 233 modules transformed. |
 
 ## 6. Disclosed Unrun Checks (NOT RUN)
 
