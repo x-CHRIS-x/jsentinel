@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import * as babelParser from '@babel/parser';
@@ -134,88 +135,121 @@ test('3. All 12 pilot sample files parse cleanly with Babel AST parser', () => {
   }
 });
 
-test('4. Bounded runtime security behavior demonstrations (independent of scanner)', () => {
-  // Disclosed simulated fixture harness: Exercises core security semantics of the pilot pairs
-  // independent of static analysis scanner rules.
+test('4. Bounded runtime execution of actual pilot sample code in isolated VM contexts', () => {
+  const samplesDir = path.join(rootDir, 'test-samples', 'samples');
 
-  // A. Redirects (PAIR-027): Unvalidated assignment vs allowlist validation
+  // A. Redirects (PAIR-027): Execute actual sample code V-A5-027.js and C-A5-027.js
+  // Disclosed fixture context: minimal mock window object tracking window.location.href.
   {
-    const allowedDomains = ["https://app.example.com", "https://api.example.com"];
-    const maliciousTarget = "https://phishing.evil.com/login";
+    const vCode = fs.readFileSync(path.join(samplesDir, 'V-A5-027.js'), 'utf8');
+    const vWindow = { location: { href: 'https://app.example.com/initial' } };
+    const vContext = vm.createContext({ window: vWindow });
+    vm.runInContext(vCode, vContext);
 
-    // Vulnerable pattern: unvalidated assignment directly sets location
-    let vulnerableLocation = null;
-    function redirectToExternal(targetUrl) {
-      vulnerableLocation = targetUrl;
-    }
-    redirectToExternal(maliciousTarget);
-    assert.equal(vulnerableLocation, maliciousTarget, 'Vulnerable redirect allows arbitrary target URL');
+    // Call actual sample function redirectToExternal loaded from V-A5-027.js
+    assert.equal(typeof vContext.redirectToExternal, 'function', 'V-A5-027 must declare redirectToExternal');
+    vContext.redirectToExternal('https://phishing.evil.com/login');
+    assert.equal(vWindow.location.href, 'https://phishing.evil.com/login',
+      'V-A5-027 unconditionally navigates to unvalidated external destination');
 
-    // Clean pattern: allowlist membership check prevents arbitrary navigation
-    let cleanLocation = "https://app.example.com/home";
-    function redirectToExternalSecure(targetUrl) {
-      if (allowedDomains.includes(targetUrl)) {
-        cleanLocation = targetUrl;
-      }
-    }
-    redirectToExternalSecure(maliciousTarget);
-    assert.equal(cleanLocation, "https://app.example.com/home", 'Clean redirect rejects non-allowlisted destination');
+    const cCode = fs.readFileSync(path.join(samplesDir, 'C-A5-027.js'), 'utf8');
+    const cWindow = { location: { href: 'https://app.example.com/initial' } };
+    const cContext = vm.createContext({ window: cWindow });
+    vm.runInContext(cCode, cContext);
+
+    // Call actual sample function redirectToExternalSecure loaded from C-A5-027.js
+    assert.equal(typeof cContext.redirectToExternalSecure, 'function', 'C-A5-027 must declare redirectToExternalSecure');
+    // Non-allowlisted destination rejected: location remains initial
+    cContext.redirectToExternalSecure('https://phishing.evil.com/login');
+    assert.equal(cWindow.location.href, 'https://app.example.com/initial',
+      'C-A5-027 rejects non-allowlisted destination');
+    // Allowlisted destination accepted: location updates
+    cContext.redirectToExternalSecure('https://api.example.com');
+    assert.equal(cWindow.location.href, 'https://api.example.com',
+      'C-A5-027 permits navigation to allowlisted destination');
   }
 
-  // B. Object Merge (PAIR-049): Prototype pollution vs sanitized merge into fresh object
+  // B. Object Merge (PAIR-049): Execute actual sample code V-A8-049.js and C-A8-049.js
+  // Evaluates prototype pollution on target using JSON-parsed own __proto__ payload.
   {
-    // Attacker input parsed from JSON carrying an own __proto__ property
-    const attackPayload = JSON.parse('{"__proto__": {"pollutedKey": "compromised"}}');
+    const untrustedPayload = JSON.parse('{"__proto__": {"pollutedPilot": true}}');
 
-    // Vulnerable pattern: Object.assign directly mutates target
-    const vulnerableConfig = { theme: 'dark' };
-    Object.assign(vulnerableConfig, attackPayload);
-    assert.equal(vulnerableConfig.pollutedKey, 'compromised', 'Vulnerable Object.assign copies prototype property to target');
+    // Vulnerable: V-A8-049.js uses Object.assign(defaultConfig, userPayload)
+    const vCode = fs.readFileSync(path.join(samplesDir, 'V-A8-049.js'), 'utf8');
+    const vContext = vm.createContext({ Object, JSON });
+    vm.runInContext(vCode, vContext);
 
-    // Clean pattern: sanitizeInputProperties strips prototype properties and targets fresh object {}
-    function sanitizeInputProperties(obj) {
-      if (!obj || typeof obj !== 'object') return {};
-      const clean = {};
-      for (const key of Object.keys(obj)) {
-        if (key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
-          clean[key] = obj[key];
-        }
-      }
-      return clean;
-    }
-    const cleanBaseConfig = { theme: 'dark' };
-    const sanitized = sanitizeInputProperties(attackPayload);
-    const cleanResult = Object.assign({}, cleanBaseConfig, sanitized);
+    assert.equal(typeof vContext.mergeConfigurations, 'function', 'V-A8-049 must declare mergeConfigurations');
+    const vTarget = { theme: 'dark' };
+    vContext.mergeConfigurations(vTarget, untrustedPayload);
+    assert.equal(vTarget.pollutedPilot, true,
+      'V-A8-049 Object.assign copies own __proto__ property, mutating target prototype chain');
 
-    assert.equal(cleanBaseConfig.pollutedKey, undefined, 'Clean base config is not mutated in-place');
-    assert.equal(cleanResult.pollutedKey, undefined, 'Clean merged config excludes polluted prototype properties');
+    // Clean: C-A8-049.js uses sanitizeInputProperties and merges into fresh object {}
+    const cCode = fs.readFileSync(path.join(samplesDir, 'C-A8-049.js'), 'utf8');
+    const cContext = vm.createContext({ Object, JSON });
+    vm.runInContext(cCode, cContext);
+
+    assert.equal(typeof cContext.mergeConfigurationsSecure, 'function', 'C-A8-049 must declare mergeConfigurationsSecure');
+    assert.equal(typeof cContext.sanitizeInputProperties, 'function', 'C-A8-049 must declare sanitizeInputProperties');
+    const cTarget = { theme: 'dark' };
+    const cleanResult = cContext.mergeConfigurationsSecure(cTarget, untrustedPayload);
+    assert.equal(cTarget.pollutedPilot, undefined,
+      'C-A8-049 base config target is not mutated in-place');
+    assert.equal(cleanResult.pollutedPilot, undefined,
+      'C-A8-049 clean result excludes polluted prototype properties');
+    assert.equal(Object.prototype.hasOwnProperty.call(cleanResult, '__proto__'), false,
+      'C-A8-049 clean result does not contain own __proto__ property');
   }
 
-  // C. Function-Result HTML (PAIR-009): Attacker-controlled contract vs plain text
+  // C. Function-Result Helper and Sink Contracts (PAIR-009): Execute V-A1-009.js and C-A1-009.js
+  // Disclosed fixture context: records property assignments to sink properties.
   {
-    // Simulated endpoint helper returning dynamic markup with event handler payload
-    function getRawHtmlFromEndpoint(source) {
-      return (source && source.htmlContent) || "<img src=x onerror=alert(1)>";
-    }
-    const sourceWithXss = { htmlContent: "<img src=x onerror=stealTokens()>" };
-    const vulnerableReturn = getRawHtmlFromEndpoint(sourceWithXss);
-    assert.ok(vulnerableReturn.includes('onerror='), 'Vulnerable helper returns unneutralized event handler payload');
+    const vCode = fs.readFileSync(path.join(samplesDir, 'V-A1-009.js'), 'utf8');
+    const vContext = vm.createContext({});
+    vm.runInContext(vCode, vContext);
 
-    function getCleanTextFromEndpoint(source) {
-      return (source && source.textContent) || "Safe notification text";
-    }
-    const cleanReturn = getCleanTextFromEndpoint({ textContent: "Clean notification" });
-    assert.equal(cleanReturn, "Clean notification", 'Clean helper returns plain text string');
+    assert.equal(typeof vContext.getRawHtmlFromEndpoint, 'function', 'V-A1-009 must declare getRawHtmlFromEndpoint');
+    assert.equal(typeof vContext.updateContent, 'function', 'V-A1-009 must declare updateContent');
+
+    // Helper returns attacker-controlled markup string
+    const attackMarkup = '<img src=x onerror=alert(1)>';
+    const returnedMarkup = vContext.getRawHtmlFromEndpoint({ htmlContent: attackMarkup });
+    assert.equal(returnedMarkup, attackMarkup, 'V-A1-009 helper returns raw markup from endpoint source');
+
+    // updateContent assigns helper return value to container.innerHTML sink property
+    const vContainer = { innerHTML: '' };
+    vContext.updateContent(vContainer, { htmlContent: attackMarkup });
+    assert.equal(vContainer.innerHTML, attackMarkup,
+      'V-A1-009 transports unneutralized markup payload directly to innerHTML sink');
+
+    const cCode = fs.readFileSync(path.join(samplesDir, 'C-A1-009.js'), 'utf8');
+    const cContext = vm.createContext({});
+    vm.runInContext(cCode, cContext);
+
+    assert.equal(typeof cContext.getCleanTextFromEndpoint, 'function', 'C-A1-009 must declare getCleanTextFromEndpoint');
+    assert.equal(typeof cContext.updateContentSecure, 'function', 'C-A1-009 must declare updateContentSecure');
+
+    // Helper returns plain text string
+    const cleanText = 'Safe notification text';
+    const returnedText = cContext.getCleanTextFromEndpoint({ textContent: cleanText });
+    assert.equal(returnedText, cleanText, 'C-A1-009 helper returns plain text string');
+
+    // updateContentSecure assigns helper return value to container.textContent sink property
+    const cContainer = { textContent: '' };
+    cContext.updateContentSecure(cContainer, { textContent: cleanText });
+    assert.equal(cContainer.textContent, cleanText,
+      'C-A1-009 transports plain text string to textContent sink');
   }
 
-  // D. HTML Text Representation (PAIR-007, PAIR-039): textContent renders plain text rather than parsing markup
-  {
-    const untrustedPayload = "<img src=x onerror=alert(1)>";
-    // In DOM nodes, textContent treats markup as character data:
-    const textNodeMock = { content: '' };
-    textNodeMock.content = untrustedPayload; // Simulated textContent assignment
-    assert.equal(textNodeMock.content, "<img src=x onerror=alert(1)>", 'textContent stores character data without HTML parsing');
-  }
+  // D. Disclosed Boundary for Live Browser DOM Execution:
+  // Live browser parsing, DOM Element tree construction, and script/event dispatch (such as
+  // onerror event execution during image load failure) require a browser rendering engine and
+  // are explicitly NOT RUN in this Node.js test harness. Asserting string property assignment
+  // proves sink data transport and helper contracts; authoritative security distinction
+  // between innerHTML (HTML parser execution per HTML Living Standard Section 4.12.1.2) and
+  // textContent (character data rendering per HTML Living Standard Section 2.5.3) is established
+  // via web platform specifications and AST code structure, not tautological mock objects.
 });
 
 test('5. Scanner observations match expected findings (distinct from ground truth proof)', async () => {
