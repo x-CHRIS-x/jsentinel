@@ -16,25 +16,31 @@
     "pilotReviewedCount": 12,
     "pendingBatchBCount": 96,
     "pendingBatchCCount": 8,
-    "statement": "Draft coverage is explicitly partial: only the six pilot pairs (12 files) have undergone full ground-truth and scanner expectation review in Batch A. The remaining 104 files are recorded in the inventory but explicitly marked pending Batch B (controlled pairs) and Batch C (scenarios)."
+    "statement": "Draft coverage is explicitly partial: only the six pilot pairs (12 files) have undergone full ground-truth and scanner expectation review in Batch A. The remaining 104 files are recorded in the inventory with legacy classification preserved, reviewed ground truth set to null/unreviewed, expected findings set to null (distinguishable from verified zero findings []), and development exposure documented."
   },
   "files": [
     {
       "fileName": "C-A1-001.js",
       "filePath": "test-samples/samples/C-A1-001.js",
-      "sampleId": "C-A1-001",
+      "sampleId": "C-A1-001.js",
       "pairId": "PAIR-001",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -45,19 +51,25 @@
     {
       "fileName": "C-A1-002.js",
       "filePath": "test-samples/samples/C-A1-002.js",
-      "sampleId": "C-A1-002",
+      "sampleId": "C-A1-002.js",
       "pairId": "PAIR-002",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -68,19 +80,25 @@
     {
       "fileName": "C-A1-003.js",
       "filePath": "test-samples/samples/C-A1-003.js",
-      "sampleId": "C-A1-003",
+      "sampleId": "C-A1-003.js",
       "pairId": "PAIR-003",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -91,19 +109,25 @@
     {
       "fileName": "C-A1-004.js",
       "filePath": "test-samples/samples/C-A1-004.js",
-      "sampleId": "C-A1-004",
+      "sampleId": "C-A1-004.js",
       "pairId": "PAIR-004",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -114,19 +138,25 @@
     {
       "fileName": "C-A1-005.js",
       "filePath": "test-samples/samples/C-A1-005.js",
-      "sampleId": "C-A1-005",
+      "sampleId": "C-A1-005.js",
       "pairId": "PAIR-005",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -137,19 +167,25 @@
     {
       "fileName": "C-A1-006.js",
       "filePath": "test-samples/samples/C-A1-006.js",
-      "sampleId": "C-A1-006",
+      "sampleId": "C-A1-006.js",
       "pairId": "PAIR-006",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -164,6 +200,10 @@
       "pairId": "PAIR-007-TEMPLATE-HTML",
       "primaryModule": "injection.js",
       "label": "clean",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Renders greeting text by setting element.textContent safely.",
       "securityGroundTruth": {
         "isVulnerable": false,
@@ -174,31 +214,45 @@
           "https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Dynamic username assigned to textContent property of DOM node.",
+        "attackerControlledInput": "Arbitrary string, including markup characters.",
+        "executionEnvironment": "Browser DOM node property update.",
+        "impactSupportingSeverity": "Benign / Clean: DOM engine creates text node content, preventing script execution.",
+        "safePartnerAssumptions": "textContent renders plain text characters directly; it does not parse or sanitize HTML tags."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Mitigates XSS by enforcing plain text representation."
+      "ambiguityOrKnownLimitations": "Renders strictly plain text. If HTML formatting is needed, safe DOM construction or DOMPurify is required."
     },
     {
       "fileName": "C-A1-008.js",
       "filePath": "test-samples/samples/C-A1-008.js",
-      "sampleId": "C-A1-008",
+      "sampleId": "C-A1-008.js",
       "pairId": "PAIR-008",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -213,41 +267,59 @@
       "pairId": "PAIR-009-FUNCTION-RESULT-HTML",
       "primaryModule": "injection.js",
       "label": "clean",
-      "intendedBehavior": "Updates container with plain text retrieved from endpoint helper function.",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Updates container with plain text retrieved from endpoint helper function getCleanTextFromEndpoint.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Using textContent ensures returned data is rendered as text without HTML parsing, eliminating DOM XSS.",
+        "rationale": "Using container.textContent ensures returned data is rendered as text without HTML parsing, eliminating DOM XSS.",
         "sourceReferences": [
           "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
           "https://cwe.mitre.org/data/definitions/79.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Endpoint data assigned to textContent of DOM element.",
+        "attackerControlledInput": "Data payload from endpoint.",
+        "executionEnvironment": "Browser DOM update.",
+        "impactSupportingSeverity": "Benign / Clean: textContent prevents HTML interpretation.",
+        "safePartnerAssumptions": "Assumes getCleanTextFromEndpoint returns text content and textContent renders character data without HTML parsing."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Assumes endpoint returns text. If HTML is required, client-side sanitization is necessary."
+      "ambiguityOrKnownLimitations": "Assumes plain text data."
     },
     {
       "fileName": "C-A1-010.js",
       "filePath": "test-samples/samples/C-A1-010.js",
-      "sampleId": "C-A1-010",
+      "sampleId": "C-A1-010.js",
       "pairId": "PAIR-010",
       "primaryModule": "injection.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -258,19 +330,25 @@
     {
       "fileName": "C-A10-053.js",
       "filePath": "test-samples/samples/C-A10-053.js",
-      "sampleId": "C-A10-053",
+      "sampleId": "C-A10-053.js",
       "pairId": "PAIR-053",
       "primaryModule": "retired-ssrf",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -281,19 +359,25 @@
     {
       "fileName": "C-A10-054.js",
       "filePath": "test-samples/samples/C-A10-054.js",
-      "sampleId": "C-A10-054",
+      "sampleId": "C-A10-054.js",
       "pairId": "PAIR-054",
       "primaryModule": "retired-ssrf",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -304,19 +388,25 @@
     {
       "fileName": "C-A2-011.js",
       "filePath": "test-samples/samples/C-A2-011.js",
-      "sampleId": "C-A2-011",
+      "sampleId": "C-A2-011.js",
       "pairId": "PAIR-011",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -327,19 +417,25 @@
     {
       "fileName": "C-A2-012.js",
       "filePath": "test-samples/samples/C-A2-012.js",
-      "sampleId": "C-A2-012",
+      "sampleId": "C-A2-012.js",
       "pairId": "PAIR-012",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -350,19 +446,25 @@
     {
       "fileName": "C-A2-013.js",
       "filePath": "test-samples/samples/C-A2-013.js",
-      "sampleId": "C-A2-013",
+      "sampleId": "C-A2-013.js",
       "pairId": "PAIR-013",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -373,19 +475,25 @@
     {
       "fileName": "C-A2-014.js",
       "filePath": "test-samples/samples/C-A2-014.js",
-      "sampleId": "C-A2-014",
+      "sampleId": "C-A2-014.js",
       "pairId": "PAIR-014",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -396,19 +504,25 @@
     {
       "fileName": "C-A2-015.js",
       "filePath": "test-samples/samples/C-A2-015.js",
-      "sampleId": "C-A2-015",
+      "sampleId": "C-A2-015.js",
       "pairId": "PAIR-015",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -419,19 +533,25 @@
     {
       "fileName": "C-A2-016.js",
       "filePath": "test-samples/samples/C-A2-016.js",
-      "sampleId": "C-A2-016",
+      "sampleId": "C-A2-016.js",
       "pairId": "PAIR-016",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -442,19 +562,25 @@
     {
       "fileName": "C-A2-017.js",
       "filePath": "test-samples/samples/C-A2-017.js",
-      "sampleId": "C-A2-017",
+      "sampleId": "C-A2-017.js",
       "pairId": "PAIR-017",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -465,19 +591,25 @@
     {
       "fileName": "C-A2-018.js",
       "filePath": "test-samples/samples/C-A2-018.js",
-      "sampleId": "C-A2-018",
+      "sampleId": "C-A2-018.js",
       "pairId": "PAIR-018",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -488,19 +620,25 @@
     {
       "fileName": "C-A2-019.js",
       "filePath": "test-samples/samples/C-A2-019.js",
-      "sampleId": "C-A2-019",
+      "sampleId": "C-A2-019.js",
       "pairId": "PAIR-019",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -511,19 +649,25 @@
     {
       "fileName": "C-A2-020.js",
       "filePath": "test-samples/samples/C-A2-020.js",
-      "sampleId": "C-A2-020",
+      "sampleId": "C-A2-020.js",
       "pairId": "PAIR-020",
       "primaryModule": "auth.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -534,19 +678,25 @@
     {
       "fileName": "C-A3-021.js",
       "filePath": "test-samples/samples/C-A3-021.js",
-      "sampleId": "C-A3-021",
+      "sampleId": "C-A3-021.js",
       "pairId": "PAIR-021",
       "primaryModule": "sensitiveData.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -557,19 +707,25 @@
     {
       "fileName": "C-A3-022.js",
       "filePath": "test-samples/samples/C-A3-022.js",
-      "sampleId": "C-A3-022",
+      "sampleId": "C-A3-022.js",
       "pairId": "PAIR-022",
       "primaryModule": "sensitiveData.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -584,6 +740,10 @@
       "pairId": "PAIR-023-API-SECRETS",
       "primaryModule": "sensitiveData.js",
       "label": "clean",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Dispatches API operations via backend proxy route (/api/gateway/dispatch) without client-stored secrets.",
       "securityGroundTruth": {
         "isVulnerable": false,
@@ -594,31 +754,45 @@
           "https://cwe.mitre.org/data/definitions/798.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Client sends request payload to internal endpoint /api/gateway/dispatch; secret credentials remain on the server.",
+        "attackerControlledInput": "Client request payload.",
+        "executionEnvironment": "Browser client fetch invocation.",
+        "impactSupportingSeverity": "Benign / Clean: Eliminates client-side secret exposure.",
+        "safePartnerAssumptions": "Assumes the server-side proxy endpoint enforces authentication and authorization checks and manages credentials securely. Moving secrets off the client eliminates bundle exposure but does not prove the backend endpoint is immune to server-side flaws."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Updated in Phase 04 Batch A to replace server-only process.env with genuine browser backend delegation.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Replaced earlier server-oriented process.env pattern with genuine browser backend delegation."
+      "ambiguityOrKnownLimitations": "Replaces earlier legacy template that used process.env."
     },
     {
       "fileName": "C-A3-024.js",
       "filePath": "test-samples/samples/C-A3-024.js",
-      "sampleId": "C-A3-024",
+      "sampleId": "C-A3-024.js",
       "pairId": "PAIR-024",
       "primaryModule": "sensitiveData.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -629,19 +803,25 @@
     {
       "fileName": "C-A3-025.js",
       "filePath": "test-samples/samples/C-A3-025.js",
-      "sampleId": "C-A3-025",
+      "sampleId": "C-A3-025.js",
       "pairId": "PAIR-025",
       "primaryModule": "sensitiveData.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -652,19 +832,25 @@
     {
       "fileName": "C-A3-026.js",
       "filePath": "test-samples/samples/C-A3-026.js",
-      "sampleId": "C-A3-026",
+      "sampleId": "C-A3-026.js",
       "pairId": "PAIR-026",
       "primaryModule": "sensitiveData.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -679,6 +865,10 @@
       "pairId": "PAIR-027-REDIRECT",
       "primaryModule": "accessControl.js",
       "label": "clean",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Navigates browser location only when targetUrl matches pre-approved allowedDomains allowlist.",
       "securityGroundTruth": {
         "isVulnerable": false,
@@ -689,8 +879,16 @@
           "https://cwe.mitre.org/data/definitions/601.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "targetUrl received from external source is checked at the allowlist boundary before reaching the navigation sink.",
+        "attackerControlledInput": "External URL string supplied as parameter.",
+        "executionEnvironment": "Browser window navigation.",
+        "impactSupportingSeverity": "Benign / Clean: Navigation only occurs for verified domains, eliminating open redirect exposure.",
+        "safePartnerAssumptions": "Assumes allowedDomains is maintained securely with trusted, protocol-restricted URLs; exact string match prevents prefix or subdomain spoofing."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; verified as clean partner in Phase 02 validation testing.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -701,19 +899,25 @@
     {
       "fileName": "C-A5-028.js",
       "filePath": "test-samples/samples/C-A5-028.js",
-      "sampleId": "C-A5-028",
+      "sampleId": "C-A5-028.js",
       "pairId": "PAIR-028",
       "primaryModule": "accessControl.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -724,19 +928,25 @@
     {
       "fileName": "C-A5-029.js",
       "filePath": "test-samples/samples/C-A5-029.js",
-      "sampleId": "C-A5-029",
+      "sampleId": "C-A5-029.js",
       "pairId": "PAIR-029",
       "primaryModule": "accessControl.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -747,19 +957,25 @@
     {
       "fileName": "C-A5-030.js",
       "filePath": "test-samples/samples/C-A5-030.js",
-      "sampleId": "C-A5-030",
+      "sampleId": "C-A5-030.js",
       "pairId": "PAIR-030",
       "primaryModule": "accessControl.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -770,19 +986,25 @@
     {
       "fileName": "C-A6-031.js",
       "filePath": "test-samples/samples/C-A6-031.js",
-      "sampleId": "C-A6-031",
+      "sampleId": "C-A6-031.js",
       "pairId": "PAIR-031",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -793,19 +1015,25 @@
     {
       "fileName": "C-A6-032.js",
       "filePath": "test-samples/samples/C-A6-032.js",
-      "sampleId": "C-A6-032",
+      "sampleId": "C-A6-032.js",
       "pairId": "PAIR-032",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -816,19 +1044,25 @@
     {
       "fileName": "C-A6-033.js",
       "filePath": "test-samples/samples/C-A6-033.js",
-      "sampleId": "C-A6-033",
+      "sampleId": "C-A6-033.js",
       "pairId": "PAIR-033",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -839,19 +1073,25 @@
     {
       "fileName": "C-A6-034.js",
       "filePath": "test-samples/samples/C-A6-034.js",
-      "sampleId": "C-A6-034",
+      "sampleId": "C-A6-034.js",
       "pairId": "PAIR-034",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -862,19 +1102,25 @@
     {
       "fileName": "C-A6-035.js",
       "filePath": "test-samples/samples/C-A6-035.js",
-      "sampleId": "C-A6-035",
+      "sampleId": "C-A6-035.js",
       "pairId": "PAIR-035",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -885,19 +1131,25 @@
     {
       "fileName": "C-A6-036.js",
       "filePath": "test-samples/samples/C-A6-036.js",
-      "sampleId": "C-A6-036",
+      "sampleId": "C-A6-036.js",
       "pairId": "PAIR-036",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -908,19 +1160,25 @@
     {
       "fileName": "C-A6-037.js",
       "filePath": "test-samples/samples/C-A6-037.js",
-      "sampleId": "C-A6-037",
+      "sampleId": "C-A6-037.js",
       "pairId": "PAIR-037",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -931,19 +1189,25 @@
     {
       "fileName": "C-A6-038.js",
       "filePath": "test-samples/samples/C-A6-038.js",
-      "sampleId": "C-A6-038",
+      "sampleId": "C-A6-038.js",
       "pairId": "PAIR-038",
       "primaryModule": "misconfig.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -958,6 +1222,10 @@
       "pairId": "PAIR-039-GENERAL-HTML",
       "primaryModule": "xss.js",
       "label": "clean",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Loads user badge text into an element via textContent safely.",
       "securityGroundTruth": {
         "isVulnerable": false,
@@ -968,8 +1236,16 @@
           "https://cwe.mitre.org/data/definitions/79.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "badgeHtml input assigned to textContent property.",
+        "attackerControlledInput": "Dynamic string value.",
+        "executionEnvironment": "DOM node text assignment.",
+        "impactSupportingSeverity": "Benign / Clean: textContent treats all characters as text.",
+        "safePartnerAssumptions": "textContent renders text directly without invoking HTML parser."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -980,19 +1256,25 @@
     {
       "fileName": "C-A7-040.js",
       "filePath": "test-samples/samples/C-A7-040.js",
-      "sampleId": "C-A7-040",
+      "sampleId": "C-A7-040.js",
       "pairId": "PAIR-040",
       "primaryModule": "xss.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1003,19 +1285,25 @@
     {
       "fileName": "C-A7-041.js",
       "filePath": "test-samples/samples/C-A7-041.js",
-      "sampleId": "C-A7-041",
+      "sampleId": "C-A7-041.js",
       "pairId": "PAIR-041",
       "primaryModule": "xss.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1026,19 +1314,25 @@
     {
       "fileName": "C-A7-042.js",
       "filePath": "test-samples/samples/C-A7-042.js",
-      "sampleId": "C-A7-042",
+      "sampleId": "C-A7-042.js",
       "pairId": "PAIR-042",
       "primaryModule": "xss.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1049,19 +1343,25 @@
     {
       "fileName": "C-A7-043.js",
       "filePath": "test-samples/samples/C-A7-043.js",
-      "sampleId": "C-A7-043",
+      "sampleId": "C-A7-043.js",
       "pairId": "PAIR-043",
       "primaryModule": "xss.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1072,19 +1372,25 @@
     {
       "fileName": "C-A7-044.js",
       "filePath": "test-samples/samples/C-A7-044.js",
-      "sampleId": "C-A7-044",
+      "sampleId": "C-A7-044.js",
       "pairId": "PAIR-044",
       "primaryModule": "xss.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1095,19 +1401,25 @@
     {
       "fileName": "C-A8-045.js",
       "filePath": "test-samples/samples/C-A8-045.js",
-      "sampleId": "C-A8-045",
+      "sampleId": "C-A8-045.js",
       "pairId": "PAIR-045",
       "primaryModule": "deserialization.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1118,19 +1430,25 @@
     {
       "fileName": "C-A8-046.js",
       "filePath": "test-samples/samples/C-A8-046.js",
-      "sampleId": "C-A8-046",
+      "sampleId": "C-A8-046.js",
       "pairId": "PAIR-046",
       "primaryModule": "deserialization.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1141,19 +1459,25 @@
     {
       "fileName": "C-A8-047.js",
       "filePath": "test-samples/samples/C-A8-047.js",
-      "sampleId": "C-A8-047",
+      "sampleId": "C-A8-047.js",
       "pairId": "PAIR-047",
       "primaryModule": "deserialization.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1164,19 +1488,25 @@
     {
       "fileName": "C-A8-048.js",
       "filePath": "test-samples/samples/C-A8-048.js",
-      "sampleId": "C-A8-048",
+      "sampleId": "C-A8-048.js",
       "pairId": "PAIR-048",
       "primaryModule": "deserialization.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1191,6 +1521,10 @@
       "pairId": "PAIR-049-OBJECT-MERGE",
       "primaryModule": "deserialization.js",
       "label": "clean",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Safely merges configuration into a fresh empty object after sanitizing payload keys.",
       "securityGroundTruth": {
         "isVulnerable": false,
@@ -1201,8 +1535,16 @@
           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Input userPayload is filtered before merging; target is an isolated fresh object literal {}.",
+        "attackerControlledInput": "Dynamic user payload object.",
+        "executionEnvironment": "JavaScript client object merge routine.",
+        "impactSupportingSeverity": "Benign / Clean: Preserves object integrity and prevents prototype mutation.",
+        "safePartnerAssumptions": "Assumes defaultConfig contains trusted application baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties strips prototype-polluting keys."
+      },
       "expectedScannerFindings": [],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; updated in Phase 04 Batch A with self-contained prototype property filtering.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1213,19 +1555,25 @@
     {
       "fileName": "C-A8-050.js",
       "filePath": "test-samples/samples/C-A8-050.js",
-      "sampleId": "C-A8-050",
+      "sampleId": "C-A8-050.js",
       "pairId": "PAIR-050",
       "primaryModule": "deserialization.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1236,19 +1584,25 @@
     {
       "fileName": "C-A9-051.js",
       "filePath": "test-samples/samples/C-A9-051.js",
-      "sampleId": "C-A9-051",
+      "sampleId": "C-A9-051.js",
       "pairId": "PAIR-051",
       "primaryModule": "knownVulns.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1259,19 +1613,25 @@
     {
       "fileName": "C-A9-052.js",
       "filePath": "test-samples/samples/C-A9-052.js",
-      "sampleId": "C-A9-052",
+      "sampleId": "C-A9-052.js",
       "pairId": "PAIR-052",
       "primaryModule": "knownVulns.js",
-      "label": "clean",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "clean",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
+        "isVulnerable": null,
         "flawType": null,
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1282,19 +1642,25 @@
     {
       "fileName": "V-A1-001.js",
       "filePath": "test-samples/samples/V-A1-001.js",
-      "sampleId": "V-A1-001",
+      "sampleId": "V-A1-001.js",
       "pairId": "PAIR-001",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1305,19 +1671,25 @@
     {
       "fileName": "V-A1-002.js",
       "filePath": "test-samples/samples/V-A1-002.js",
-      "sampleId": "V-A1-002",
+      "sampleId": "V-A1-002.js",
       "pairId": "PAIR-002",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1328,19 +1700,25 @@
     {
       "fileName": "V-A1-003.js",
       "filePath": "test-samples/samples/V-A1-003.js",
-      "sampleId": "V-A1-003",
+      "sampleId": "V-A1-003.js",
       "pairId": "PAIR-003",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1351,19 +1729,25 @@
     {
       "fileName": "V-A1-004.js",
       "filePath": "test-samples/samples/V-A1-004.js",
-      "sampleId": "V-A1-004",
+      "sampleId": "V-A1-004.js",
       "pairId": "PAIR-004",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1374,19 +1758,25 @@
     {
       "fileName": "V-A1-005.js",
       "filePath": "test-samples/samples/V-A1-005.js",
-      "sampleId": "V-A1-005",
+      "sampleId": "V-A1-005.js",
       "pairId": "PAIR-005",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1397,19 +1787,25 @@
     {
       "fileName": "V-A1-006.js",
       "filePath": "test-samples/samples/V-A1-006.js",
-      "sampleId": "V-A1-006",
+      "sampleId": "V-A1-006.js",
       "pairId": "PAIR-006",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1424,23 +1820,33 @@
       "pairId": "PAIR-007-TEMPLATE-HTML",
       "primaryModule": "injection.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Renders greeting banner interpolating dynamic username parameter into an HTML template literal.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Interpolates unescaped username directly into template literal assigned to element.innerHTML, allowing execution of attacker-supplied HTML/scripts.",
+        "rationale": "Interpolates unescaped username directly into template literal assigned to element.innerHTML, allowing execution of attacker-supplied markup with event handlers.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "User-supplied input username crosses trust boundary into client DOM rendering sink without encoding.",
+        "attackerControlledInput": "username containing HTML markup with event-handler payload semantics (e.g. <img src=x onerror=alert(1)>). Inline script tags are not executed by innerHTML per HTML5 Section 4.12.1, but event-handler attributes execute upon element insertion.",
+        "executionEnvironment": "Browser DOM execution environment during page render.",
+        "impactSupportingSeverity": "HIGH severity: Arbitrary script execution within victim origin allows reading DOM state, non-HttpOnly cookies, storage tokens, and executing actions on behalf of the user.",
+        "safePartnerAssumptions": "C-A1-007.js uses element.textContent to render text directly. The browser DOM engine treats input strictly as character data and never invokes the HTML parser; it renders plain text rather than sanitizing HTML."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A03-004",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "HIGH",
-          "scenarioAssumptions": "innerHTML assigned template literal with expressions; prioritized over A03-006 per Phase 03 deduplication.",
           "location": {
             "line": 8,
             "column": 4
@@ -1449,6 +1855,7 @@
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1459,19 +1866,25 @@
     {
       "fileName": "V-A1-008.js",
       "filePath": "test-samples/samples/V-A1-008.js",
-      "sampleId": "V-A1-008",
+      "sampleId": "V-A1-008.js",
       "pairId": "PAIR-008",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1486,54 +1899,71 @@
       "pairId": "PAIR-009-FUNCTION-RESULT-HTML",
       "primaryModule": "injection.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Updates container innerHTML with markup returned by endpoint helper function getRawHtmlFromEndpoint.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Directly assigns the return value of an external endpoint retrieval function to innerHTML without sanitization, exposing the DOM to script injection.",
+        "rationale": "Directly assigns the return value of an external endpoint retrieval function to innerHTML without sanitization, exposing the DOM to script injection via event-handler payloads.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Data source parameter apiSource represents an untrusted endpoint or external data payload whose returned markup is assigned to the DOM.",
+        "attackerControlledInput": "The helper function getRawHtmlFromEndpoint(apiSource) provides an executable synchronous contract returning attacker-controlled markup with event-handler payload semantics.",
+        "executionEnvironment": "Browser DOM content update cycle.",
+        "impactSupportingSeverity": "HIGH severity: Dynamic unneutralized markup assigned to innerHTML executes embedded event handlers in the victim session (DOM XSS).",
+        "safePartnerAssumptions": "C-A1-009.js retrieves text via getCleanTextFromEndpoint and assigns to container.textContent, ensuring the browser renders the string as plain text without parsing markup."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A03-005",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "HIGH",
-          "scenarioAssumptions": "innerHTML assigned CallExpression result; prioritized over A03-006 per Phase 03 deduplication.",
           "location": {
-            "line": 8,
+            "line": 13,
             "column": 4
           },
           "weaknessDescription": "Unsafe innerHTML assignment using function return value."
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Phase 03 deduplication ensures only A03-005 is emitted and A03-006 is suppressed."
+      "ambiguityOrKnownLimitations": "Executable helper getRawHtmlFromEndpoint defined to provide a synchronous attacker-controlled return contract."
     },
     {
       "fileName": "V-A1-010.js",
       "filePath": "test-samples/samples/V-A1-010.js",
-      "sampleId": "V-A1-010",
+      "sampleId": "V-A1-010.js",
       "pairId": "PAIR-010",
       "primaryModule": "injection.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1544,19 +1974,25 @@
     {
       "fileName": "V-A10-053.js",
       "filePath": "test-samples/samples/V-A10-053.js",
-      "sampleId": "V-A10-053",
+      "sampleId": "V-A10-053.js",
       "pairId": "PAIR-053",
       "primaryModule": "retired-ssrf",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1567,19 +2003,25 @@
     {
       "fileName": "V-A10-054.js",
       "filePath": "test-samples/samples/V-A10-054.js",
-      "sampleId": "V-A10-054",
+      "sampleId": "V-A10-054.js",
       "pairId": "PAIR-054",
       "primaryModule": "retired-ssrf",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1590,19 +2032,25 @@
     {
       "fileName": "V-A2-011.js",
       "filePath": "test-samples/samples/V-A2-011.js",
-      "sampleId": "V-A2-011",
+      "sampleId": "V-A2-011.js",
       "pairId": "PAIR-011",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1613,19 +2061,25 @@
     {
       "fileName": "V-A2-012.js",
       "filePath": "test-samples/samples/V-A2-012.js",
-      "sampleId": "V-A2-012",
+      "sampleId": "V-A2-012.js",
       "pairId": "PAIR-012",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1636,19 +2090,25 @@
     {
       "fileName": "V-A2-013.js",
       "filePath": "test-samples/samples/V-A2-013.js",
-      "sampleId": "V-A2-013",
+      "sampleId": "V-A2-013.js",
       "pairId": "PAIR-013",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1659,19 +2119,25 @@
     {
       "fileName": "V-A2-014.js",
       "filePath": "test-samples/samples/V-A2-014.js",
-      "sampleId": "V-A2-014",
+      "sampleId": "V-A2-014.js",
       "pairId": "PAIR-014",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1682,19 +2148,25 @@
     {
       "fileName": "V-A2-015.js",
       "filePath": "test-samples/samples/V-A2-015.js",
-      "sampleId": "V-A2-015",
+      "sampleId": "V-A2-015.js",
       "pairId": "PAIR-015",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1705,19 +2177,25 @@
     {
       "fileName": "V-A2-016.js",
       "filePath": "test-samples/samples/V-A2-016.js",
-      "sampleId": "V-A2-016",
+      "sampleId": "V-A2-016.js",
       "pairId": "PAIR-016",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1728,19 +2206,25 @@
     {
       "fileName": "V-A2-017.js",
       "filePath": "test-samples/samples/V-A2-017.js",
-      "sampleId": "V-A2-017",
+      "sampleId": "V-A2-017.js",
       "pairId": "PAIR-017",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1751,19 +2235,25 @@
     {
       "fileName": "V-A2-018.js",
       "filePath": "test-samples/samples/V-A2-018.js",
-      "sampleId": "V-A2-018",
+      "sampleId": "V-A2-018.js",
       "pairId": "PAIR-018",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1774,19 +2264,25 @@
     {
       "fileName": "V-A2-019.js",
       "filePath": "test-samples/samples/V-A2-019.js",
-      "sampleId": "V-A2-019",
+      "sampleId": "V-A2-019.js",
       "pairId": "PAIR-019",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1797,19 +2293,25 @@
     {
       "fileName": "V-A2-020.js",
       "filePath": "test-samples/samples/V-A2-020.js",
-      "sampleId": "V-A2-020",
+      "sampleId": "V-A2-020.js",
       "pairId": "PAIR-020",
       "primaryModule": "auth.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1820,19 +2322,25 @@
     {
       "fileName": "V-A3-021.js",
       "filePath": "test-samples/samples/V-A3-021.js",
-      "sampleId": "V-A3-021",
+      "sampleId": "V-A3-021.js",
       "pairId": "PAIR-021",
       "primaryModule": "sensitiveData.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1843,19 +2351,25 @@
     {
       "fileName": "V-A3-022.js",
       "filePath": "test-samples/samples/V-A3-022.js",
-      "sampleId": "V-A3-022",
+      "sampleId": "V-A3-022.js",
       "pairId": "PAIR-022",
       "primaryModule": "sensitiveData.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1870,6 +2384,10 @@
       "pairId": "PAIR-023-API-SECRETS",
       "primaryModule": "sensitiveData.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Declares static credentials intended for authenticating API gateway communications.",
       "securityGroundTruth": {
         "isVulnerable": true,
@@ -1881,12 +2399,18 @@
           "https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Client-side JavaScript executes in untrusted browser runtime environments accessible to end users, browser extensions, and reverse engineering tools.",
+        "attackerControlledInput": "None required for exposure; static assets are publicly retrievable and inspectable by any visitor or adversary.",
+        "executionEnvironment": "Client-side web application source bundle delivered to browser.",
+        "impactSupportingSeverity": "CRITICAL severity: Privileged nonpublic service secret keys grant unauthorized, direct access to backend administrative APIs or cloud resources, bypassing client authentication entirely.",
+        "safePartnerAssumptions": "C-A3-023.js delegates operations to an internal backend proxy route (/api/gateway/dispatch) without client-stored secrets. Assumes backend proxy enforces server authentication and authorization."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A02-006",
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "CRITICAL",
-          "scenarioAssumptions": "Hardcoded API key in variable declaration string literal length > 8.",
           "location": {
             "line": 7,
             "column": 6
@@ -1897,7 +2421,6 @@
           "ruleId": "OWASP-A02-006",
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "CRITICAL",
-          "scenarioAssumptions": "Hardcoded gateway token in variable declaration string literal length > 8.",
           "location": {
             "line": 8,
             "column": 6
@@ -1906,29 +2429,36 @@
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and guidance catalog tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Synthetic secret literals used. Scanner matches sensitive variable names with string literal initialization."
+      "ambiguityOrKnownLimitations": "Synthetic secret strings represent privileged nonpublic credentials. Scanner matches sensitive identifier names with string literal initialization."
     },
     {
       "fileName": "V-A3-024.js",
       "filePath": "test-samples/samples/V-A3-024.js",
-      "sampleId": "V-A3-024",
+      "sampleId": "V-A3-024.js",
       "pairId": "PAIR-024",
       "primaryModule": "sensitiveData.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1939,19 +2469,25 @@
     {
       "fileName": "V-A3-025.js",
       "filePath": "test-samples/samples/V-A3-025.js",
-      "sampleId": "V-A3-025",
+      "sampleId": "V-A3-025.js",
       "pairId": "PAIR-025",
       "primaryModule": "sensitiveData.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1962,19 +2498,25 @@
     {
       "fileName": "V-A3-026.js",
       "filePath": "test-samples/samples/V-A3-026.js",
-      "sampleId": "V-A3-026",
+      "sampleId": "V-A3-026.js",
       "pairId": "PAIR-026",
       "primaryModule": "sensitiveData.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -1989,23 +2531,33 @@
       "pairId": "PAIR-027-REDIRECT",
       "primaryModule": "accessControl.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Navigates browser location to dynamic targetUrl destination parameter.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')",
-        "rationale": "Directly assigns unvalidated targetUrl parameter to window.location.href without allowlist validation, enabling attacker-directed client redirection.",
+        "rationale": "Directly assigns unvalidated targetUrl parameter to window.location.href without allowlist validation, enabling attacker-directed client redirection to arbitrary external hosts.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/601.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Window/location"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Input targetUrl crosses the client trust boundary from an untrusted origin, such as a URL query parameter or unverified post-auth redirect target.",
+        "attackerControlledInput": "targetUrl parameter containing arbitrary external URI (e.g. https://attacker.example.com or malicious scheme).",
+        "executionEnvironment": "Browser client executing window navigation in victim session.",
+        "impactSupportingSeverity": "HIGH severity: Arbitrary navigation enables credential phishing, social engineering attacks, and session deception under the application origin.",
+        "safePartnerAssumptions": "C-A5-027.js assumes allowedDomains is an immutable allowlist of trusted origins; exact array lookup rejects arbitrary external hosts and non-HTTP schemes."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A01-001",
           "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "HIGH",
-          "scenarioAssumptions": "Browser script navigation with dynamic unvalidated parameter.",
           "location": {
             "line": 8,
             "column": 4
@@ -2014,6 +2566,7 @@
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; specifically evaluated for validation-handling in Phase 02.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2024,19 +2577,25 @@
     {
       "fileName": "V-A5-028.js",
       "filePath": "test-samples/samples/V-A5-028.js",
-      "sampleId": "V-A5-028",
+      "sampleId": "V-A5-028.js",
       "pairId": "PAIR-028",
       "primaryModule": "accessControl.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2047,19 +2606,25 @@
     {
       "fileName": "V-A5-029.js",
       "filePath": "test-samples/samples/V-A5-029.js",
-      "sampleId": "V-A5-029",
+      "sampleId": "V-A5-029.js",
       "pairId": "PAIR-029",
       "primaryModule": "accessControl.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2070,19 +2635,25 @@
     {
       "fileName": "V-A5-030.js",
       "filePath": "test-samples/samples/V-A5-030.js",
-      "sampleId": "V-A5-030",
+      "sampleId": "V-A5-030.js",
       "pairId": "PAIR-030",
       "primaryModule": "accessControl.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2093,19 +2664,25 @@
     {
       "fileName": "V-A6-031.js",
       "filePath": "test-samples/samples/V-A6-031.js",
-      "sampleId": "V-A6-031",
+      "sampleId": "V-A6-031.js",
       "pairId": "PAIR-031",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2116,19 +2693,25 @@
     {
       "fileName": "V-A6-032.js",
       "filePath": "test-samples/samples/V-A6-032.js",
-      "sampleId": "V-A6-032",
+      "sampleId": "V-A6-032.js",
       "pairId": "PAIR-032",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2139,19 +2722,25 @@
     {
       "fileName": "V-A6-033.js",
       "filePath": "test-samples/samples/V-A6-033.js",
-      "sampleId": "V-A6-033",
+      "sampleId": "V-A6-033.js",
       "pairId": "PAIR-033",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2162,19 +2751,25 @@
     {
       "fileName": "V-A6-034.js",
       "filePath": "test-samples/samples/V-A6-034.js",
-      "sampleId": "V-A6-034",
+      "sampleId": "V-A6-034.js",
       "pairId": "PAIR-034",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2185,19 +2780,25 @@
     {
       "fileName": "V-A6-035.js",
       "filePath": "test-samples/samples/V-A6-035.js",
-      "sampleId": "V-A6-035",
+      "sampleId": "V-A6-035.js",
       "pairId": "PAIR-035",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2208,19 +2809,25 @@
     {
       "fileName": "V-A6-036.js",
       "filePath": "test-samples/samples/V-A6-036.js",
-      "sampleId": "V-A6-036",
+      "sampleId": "V-A6-036.js",
       "pairId": "PAIR-036",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2231,19 +2838,25 @@
     {
       "fileName": "V-A6-037.js",
       "filePath": "test-samples/samples/V-A6-037.js",
-      "sampleId": "V-A6-037",
+      "sampleId": "V-A6-037.js",
       "pairId": "PAIR-037",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2254,19 +2867,25 @@
     {
       "fileName": "V-A6-038.js",
       "filePath": "test-samples/samples/V-A6-038.js",
-      "sampleId": "V-A6-038",
+      "sampleId": "V-A6-038.js",
       "pairId": "PAIR-038",
       "primaryModule": "misconfig.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2281,23 +2900,33 @@
       "pairId": "PAIR-039-GENERAL-HTML",
       "primaryModule": "xss.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Loads user badge content into an element via direct innerHTML assignment.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns unvalidated badgeHtml variable to element.innerHTML, allowing DOM-based XSS when dynamic input contains markup.",
+        "rationale": "Assigns unvalidated badgeHtml variable to element.innerHTML, allowing DOM-based XSS when dynamic input contains markup with event handlers.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "Variable badgeHtml carries dynamic input from external source or user profile.",
+        "attackerControlledInput": "badgeHtml variable containing markup with inline event handler attributes (e.g. <img src=x onerror=alert(1)>).",
+        "executionEnvironment": "Browser DOM rendering of UI component.",
+        "impactSupportingSeverity": "HIGH severity: Direct assignment of unvalidated input to innerHTML triggers DOM XSS in victim session.",
+        "safePartnerAssumptions": "C-A7-039.js assigns badgeHtml to element.textContent, rendering the value strictly as plain text characters without markup evaluation."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A03-006",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "HIGH",
-          "scenarioAssumptions": "Direct assignment of generic variable to innerHTML without template literal or call expression.",
           "location": {
             "line": 8,
             "column": 4
@@ -2306,6 +2935,7 @@
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2316,19 +2946,25 @@
     {
       "fileName": "V-A7-040.js",
       "filePath": "test-samples/samples/V-A7-040.js",
-      "sampleId": "V-A7-040",
+      "sampleId": "V-A7-040.js",
       "pairId": "PAIR-040",
       "primaryModule": "xss.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2339,19 +2975,25 @@
     {
       "fileName": "V-A7-041.js",
       "filePath": "test-samples/samples/V-A7-041.js",
-      "sampleId": "V-A7-041",
+      "sampleId": "V-A7-041.js",
       "pairId": "PAIR-041",
       "primaryModule": "xss.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2362,19 +3004,25 @@
     {
       "fileName": "V-A7-042.js",
       "filePath": "test-samples/samples/V-A7-042.js",
-      "sampleId": "V-A7-042",
+      "sampleId": "V-A7-042.js",
       "pairId": "PAIR-042",
       "primaryModule": "xss.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2385,19 +3033,25 @@
     {
       "fileName": "V-A7-043.js",
       "filePath": "test-samples/samples/V-A7-043.js",
-      "sampleId": "V-A7-043",
+      "sampleId": "V-A7-043.js",
       "pairId": "PAIR-043",
       "primaryModule": "xss.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2408,19 +3062,25 @@
     {
       "fileName": "V-A7-044.js",
       "filePath": "test-samples/samples/V-A7-044.js",
-      "sampleId": "V-A7-044",
+      "sampleId": "V-A7-044.js",
       "pairId": "PAIR-044",
       "primaryModule": "xss.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2431,19 +3091,25 @@
     {
       "fileName": "V-A8-045.js",
       "filePath": "test-samples/samples/V-A8-045.js",
-      "sampleId": "V-A8-045",
+      "sampleId": "V-A8-045.js",
       "pairId": "PAIR-045",
       "primaryModule": "deserialization.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2454,19 +3120,25 @@
     {
       "fileName": "V-A8-046.js",
       "filePath": "test-samples/samples/V-A8-046.js",
-      "sampleId": "V-A8-046",
+      "sampleId": "V-A8-046.js",
       "pairId": "PAIR-046",
       "primaryModule": "deserialization.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2477,19 +3149,25 @@
     {
       "fileName": "V-A8-047.js",
       "filePath": "test-samples/samples/V-A8-047.js",
-      "sampleId": "V-A8-047",
+      "sampleId": "V-A8-047.js",
       "pairId": "PAIR-047",
       "primaryModule": "deserialization.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2500,19 +3178,25 @@
     {
       "fileName": "V-A8-048.js",
       "filePath": "test-samples/samples/V-A8-048.js",
-      "sampleId": "V-A8-048",
+      "sampleId": "V-A8-048.js",
       "pairId": "PAIR-048",
       "primaryModule": "deserialization.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2527,23 +3211,33 @@
       "pairId": "PAIR-049-OBJECT-MERGE",
       "primaryModule": "deserialization.js",
       "label": "vulnerable",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Merges default configuration with user payload.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
-        "rationale": "Mutates target defaultConfig object directly with userPayload using Object.assign, allowing prototype pollution if payload contains dangerous properties.",
+        "rationale": "Mutates target defaultConfig object directly with userPayload using Object.assign. If userPayload contains an own __proto__ property, prototype pollution occurs on the target prototype chain.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"
         ]
       },
+      "threatModelAndAssumptions": {
+        "trustBoundary": "userPayload represents an untrusted JSON object received from an external caller, API response, or user input.",
+        "attackerControlledInput": "userPayload containing an own __proto__ property (e.g. parsed from JSON data) holding injected properties.",
+        "executionEnvironment": "JavaScript client runtime executing Object.assign on mutable application configuration object.",
+        "impactSupportingSeverity": "MEDIUM severity: Mutating the prototype chain of defaultConfig affects downstream prototype-sensitive property lookups across components sharing that object structure, potentially overriding settings or altering execution logic if suitable gadgets exist.",
+        "safePartnerAssumptions": "C-A8-049.js assumes defaultConfig represents trusted baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties filters dangerous property keys (__proto__, constructor, prototype) and Object.assign({}, ...) merges into a fresh empty object, preventing mutation of defaultConfig."
+      },
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A08-003",
           "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
           "severity": "MEDIUM",
-          "scenarioAssumptions": "Object.assign call with identifier target and dynamic payload.",
           "location": {
             "line": 8,
             "column": 11
@@ -2552,29 +3246,36 @@
         }
       ],
       "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier."
+      "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier. It does not perform deep taint analysis."
     },
     {
       "fileName": "V-A8-050.js",
       "filePath": "test-samples/samples/V-A8-050.js",
-      "sampleId": "V-A8-050",
+      "sampleId": "V-A8-050.js",
       "pairId": "PAIR-050",
       "primaryModule": "deserialization.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2585,19 +3286,25 @@
     {
       "fileName": "V-A9-051.js",
       "filePath": "test-samples/samples/V-A9-051.js",
-      "sampleId": "V-A9-051",
+      "sampleId": "V-A9-051.js",
       "pairId": "PAIR-051",
       "primaryModule": "knownVulns.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2608,19 +3315,25 @@
     {
       "fileName": "V-A9-052.js",
       "filePath": "test-samples/samples/V-A9-052.js",
-      "sampleId": "V-A9-052",
+      "sampleId": "V-A9-052.js",
       "pairId": "PAIR-052",
       "primaryModule": "knownVulns.js",
-      "label": "vulnerable",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "vulnerable",
+        "source": "filename-prefix"
+      },
       "intendedBehavior": "Controlled benchmark sample (pending Phase 04 Batch B review).",
       "securityGroundTruth": {
-        "isVulnerable": true,
-        "flawType": "Pending review",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch B.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch B; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-b",
         "aiReviewer": null,
@@ -2631,19 +3344,25 @@
     {
       "fileName": "admin-dashboard.jsx",
       "filePath": "test-samples/samples/admin-dashboard.jsx",
-      "sampleId": "admin-dashboard",
-      "pairId": "SCENARIO-ADMIN-DASHBOARD",
+      "sampleId": "admin-dashboard.jsx",
+      "pairId": "SCENARIO-ADMIN-DASHBOARD.JSX",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2654,19 +3373,25 @@
     {
       "fileName": "api-gateway.js",
       "filePath": "test-samples/samples/api-gateway.js",
-      "sampleId": "api-gateway",
-      "pairId": "SCENARIO-API-GATEWAY",
+      "sampleId": "api-gateway.js",
+      "pairId": "SCENARIO-API-GATEWAY.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2677,19 +3402,25 @@
     {
       "fileName": "chat-application.js",
       "filePath": "test-samples/samples/chat-application.js",
-      "sampleId": "chat-application",
-      "pairId": "SCENARIO-CHAT-APPLICATION",
+      "sampleId": "chat-application.js",
+      "pairId": "SCENARIO-CHAT-APPLICATION.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2700,19 +3431,25 @@
     {
       "fileName": "data-pipeline.js",
       "filePath": "test-samples/samples/data-pipeline.js",
-      "sampleId": "data-pipeline",
-      "pairId": "SCENARIO-DATA-PIPELINE",
+      "sampleId": "data-pipeline.js",
+      "pairId": "SCENARIO-DATA-PIPELINE.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2723,19 +3460,25 @@
     {
       "fileName": "ecommerce-checkout.js",
       "filePath": "test-samples/samples/ecommerce-checkout.js",
-      "sampleId": "ecommerce-checkout",
-      "pairId": "SCENARIO-ECOMMERCE-CHECKOUT",
+      "sampleId": "ecommerce-checkout.js",
+      "pairId": "SCENARIO-ECOMMERCE-CHECKOUT.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2746,19 +3489,25 @@
     {
       "fileName": "payment-processor.js",
       "filePath": "test-samples/samples/payment-processor.js",
-      "sampleId": "payment-processor",
-      "pairId": "SCENARIO-PAYMENT-PROCESSOR",
+      "sampleId": "payment-processor.js",
+      "pairId": "SCENARIO-PAYMENT-PROCESSOR.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2769,19 +3518,25 @@
     {
       "fileName": "student-portal.jsx",
       "filePath": "test-samples/samples/student-portal.jsx",
-      "sampleId": "student-portal",
-      "pairId": "SCENARIO-STUDENT-PORTAL",
+      "sampleId": "student-portal.jsx",
+      "pairId": "SCENARIO-STUDENT-PORTAL.JSX",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2792,19 +3547,25 @@
     {
       "fileName": "user-auth-service.js",
       "filePath": "test-samples/samples/user-auth-service.js",
-      "sampleId": "user-auth-service",
-      "pairId": "SCENARIO-USER-AUTH-SERVICE",
+      "sampleId": "user-auth-service.js",
+      "pairId": "SCENARIO-USER-AUTH-SERVICE.JS",
       "primaryModule": "scenario-composite",
-      "label": "scenario",
-      "intendedBehavior": "Simulated browser application scenario (unreviewed draft).",
+      "label": "unreviewed",
+      "legacyClassification": {
+        "legacyLabel": "scenario",
+        "source": "filename-prefix"
+      },
+      "intendedBehavior": "Simulated browser application scenario (pending Phase 04 Batch C review).",
       "securityGroundTruth": {
-        "isVulnerable": false,
-        "flawType": "Multiple potential findings in simulated application",
-        "rationale": "Unreviewed baseline draft; formal ground truth determination scheduled for Batch C.",
+        "isVulnerable": null,
+        "flawType": null,
+        "rationale": "Pending formal ground truth review in Batch C; legacy filename classification preserved separately without asserting verified vulnerability status.",
         "sourceReferences": []
       },
-      "expectedScannerFindings": [],
-      "developmentUse": false,
+      "threatModelAndAssumptions": null,
+      "expectedScannerFindings": null,
+      "developmentUse": true,
+      "developmentUseRationale": "Included in Phase 01-03 116-file engine parity regression harness; specific rule-tuning history pending Batch B audit.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,

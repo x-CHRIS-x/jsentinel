@@ -49,7 +49,12 @@ function renderGreeting(element, username) {
     },
     {
       id: '05',
-      code: `// Vulnerable: function call returned value assigned to innerHTML (OWASP-A1-005)
+      code: `// Simulated endpoint helper returning attacker-controlled markup
+function getRawHtmlFromEndpoint(source) {
+    return (source && source.htmlContent) || "<img src=x onerror=alert(1)>";
+}
+
+// Vulnerable: function call returned value assigned to innerHTML (OWASP-A1-005)
 function updateContent(container, apiSource) {
     container.innerHTML = getRawHtmlFromEndpoint(apiSource);
 }`
@@ -271,7 +276,12 @@ function renderGreetingSecure(element, username) {
     },
     {
       id: '05',
-      code: `// Clean: textContent assignment
+      code: `// Helper returning plain text string from data source
+function getCleanTextFromEndpoint(source) {
+    return (source && source.textContent) || "Safe notification text";
+}
+
+// Clean: textContent assignment renders plain text without HTML interpretation
 function updateContentSecure(container, apiSource) {
     container.textContent = getCleanTextFromEndpoint(apiSource);
 }`
