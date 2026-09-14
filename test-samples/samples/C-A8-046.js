@@ -3,10 +3,13 @@
  * Safe, compliant implementations.
  */
 
-// Clean: schema verified parsing processes
-function loadSerializedPayloadSecure(jsonInput) {
-    const parsed = JSON.parse(jsonInput);
-    return validateSchema(parsed);
+// Clean: JSON parsing followed by explicit property type validation
+function parseUserPreferencesSecure(rawJson) {
+    const data = JSON.parse(rawJson);
+    return {
+        theme: typeof data.theme === 'string' ? data.theme : 'light',
+        fontSize: typeof data.fontSize === 'number' ? data.fontSize : 14
+    };
 }
 
 // Variation signature: #2

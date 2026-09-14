@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: innerHTML with template literal interpolation (OWASP-A1-004)
-function renderGreeting(element, username) {
-    element.innerHTML = `<div>Hello, ${username}!</div>`;
+// Vulnerable: innerHTML template literal with user profile markup (OWASP-A1-004)
+function renderUserProfile(container, bioText) {
+    container.innerHTML = `<span class="bio-display">${bioText}</span>`;
 }
 
 // Variation signature: #2

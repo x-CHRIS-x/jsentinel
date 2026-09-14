@@ -3,10 +3,10 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: express initialization without helmet middleware (OWASP-A6-004)
-const express = require('express');
-const app = express();
-app.listen(3002);
-
+// Vulnerable: unencrypted WebSocket connection transmitting sensitive telemetry (OWASP-A02-004)
+const telemetryWsUrl = "ws://telemetry.unencrypted.internal-services.com/stream";
+function connectTelemetryStream() {
+    return new WebSocket(telemetryWsUrl);
+}
 
 // Variation signature: #1

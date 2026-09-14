@@ -3,9 +3,8 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: hardcoded API keys (OWASP-A3-002)
-const application_secret_key = "apikey_development_credential_987654321";
-const gatewayToken = "token_prod_abc123xyz789";
-
+// Vulnerable: hardcoded database service key (OWASP-A3-002)
+const databaseServiceApiKey = "apikey_production_db_key_555444332211";
+const clientSecretToken = "token_prod_webhook_secret_9988776655";
 
 // Variation signature: #2

@@ -3,10 +3,13 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: Plain http URLs used for communication (OWASP-A2-005)
-const defaultApiUrl = "http://unencrypted.internal-services.com/v1/auth";
-function fetchPayload() {
-    return fetch(defaultApiUrl + "/data");
+// Vulnerable: unencrypted HTTP telemetry reporting endpoint (OWASP-A2-005)
+const telemetryEndpoint = "http://telemetry.logging-service.net/events";
+function sendTelemetry(eventData) {
+    return fetch(telemetryEndpoint, {
+        method: "POST",
+        body: JSON.stringify(eventData)
+    });
 }
 
 // Variation signature: #2

@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: Open redirect path assignment (OWASP-A5-001)
-function redirectToExternal(targetUrl) {
-    window.location.href = targetUrl;
+// Vulnerable: open redirect via window.location.replace (OWASP-A5-001)
+function navigateToPartnerSite(partnerUrl) {
+    window.location.replace(partnerUrl);
 }
 
 // Variation signature: #2

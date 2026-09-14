@@ -3,10 +3,18 @@
  * Safe, compliant implementations.
  */
 
-// Clean: safe mapping copy operations
-function mergeConfigurationsSecure(defaultConfig, userPayload) {
-    const sanitizedPayload = sanitizeInputProperties(userPayload);
-    return Object.assign({}, defaultConfig, sanitizedPayload);
+// Clean: strict property picking allowlist preventing prototype pollution
+function applyUserThemeSettingsSecure(baseSettings, untrustedOptions) {
+    const safeOptions = {};
+    const allowedKeys = ['theme', 'accentColor', 'layoutMode'];
+    if (untrustedOptions && typeof untrustedOptions === 'object') {
+        for (const key of allowedKeys) {
+            if (Object.prototype.hasOwnProperty.call(untrustedOptions, key)) {
+                safeOptions[key] = untrustedOptions[key];
+            }
+        }
+    }
+    return Object.assign({}, baseSettings, safeOptions);
 }
 
 // Variation signature: #2

@@ -3,13 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: validated remote SSFR calls
-const axios = require('axios');
-const safelistEndpoints = ["https://api.verified.com/v1", "https://api.verified.com/v2"];
-function proxyRemoteResourceSecure(targetUri) {
-    if (safelistEndpoints.includes(targetUri)) {
-        return axios.get(targetUri);
+// Clean: destination domain verified against allowlist before sending credentials
+const trustedOrigins = ["https://api.verified.com", "https://auth.verified.com"];
+function fetchRemoteDataSecure(targetUrl) {
+    const parsed = new URL(targetUrl, window.location.href);
+    if (trustedOrigins.includes(parsed.origin)) {
+        return fetch(targetUrl, { credentials: "include" });
     }
+    throw new Error("Untrusted destination origin");
 }
 
 // Variation signature: #1

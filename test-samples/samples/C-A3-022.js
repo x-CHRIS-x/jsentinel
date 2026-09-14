@@ -3,9 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: cryptographic settings loaded from environment
-const AWS_ACCESS_SECRET = process.env.AWS_SECRET_ACCESS_KEY;
-const STATIC_JWT_TOKEN = process.env.AUTH_JWT_PRIVATE_SIGNATURE;
-
+// Clean: payment creation handled server-side; client uses restricted publishable token
+async function createPaymentIntentSecure(orderId) {
+    const res = await fetch("/api/checkout/create-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId })
+    });
+    return res.json();
+}
 
 // Variation signature: #2

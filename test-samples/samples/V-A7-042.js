@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: document.write calls (OWASP-A7-002)
-function writeOutputSnippet(content) {
-    document.write("<div>" + content + "</div>");
+// Vulnerable: document.writeln with dynamic user status message (OWASP-A7-002)
+function outputUserStatus(statusText) {
+    document.writeln("<div>Status: " + statusText + "</div>");
 }
 
 // Variation signature: #2

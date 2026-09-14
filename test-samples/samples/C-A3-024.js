@@ -3,9 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: API keys stored in configuration files loaded at runtime
-const application_secret_key = process.env.SECRET_KEY;
-const gatewayToken = process.env.API_GATEWAY_TOKEN;
-
+// Clean: database operations proxied through backend API route
+async function queryDatabaseServiceSecure(queryPayload) {
+    const response = await fetch("/api/data/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queryPayload)
+    });
+    return response.json();
+}
 
 // Variation signature: #2

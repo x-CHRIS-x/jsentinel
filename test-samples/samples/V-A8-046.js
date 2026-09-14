@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: general JSON parsing flagged for safety inspections (OWASP-A8-001)
-function loadSerializedPayload(jsonInput) {
-    return JSON.parse(jsonInput);
+// Vulnerable: parsing untrusted configuration JSON without schema check (OWASP-A8-001)
+function parseUserPreferences(rawJson) {
+    return JSON.parse(rawJson);
 }
 
 // Variation signature: #2

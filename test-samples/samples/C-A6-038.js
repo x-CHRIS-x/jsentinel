@@ -3,12 +3,12 @@
  * Safe, compliant implementations.
  */
 
-// Clean: express loaded with helmet protection headers
-const express = require('express');
-const helmet = require('helmet');
-const app = express();
-app.use(helmet());
-app.listen(3002);
-
+// Clean: encrypted HTTPS script source URL
+const scriptSourceUrlSecure = "https://cdn.encrypted.internal-services.com/library.js";
+function injectExternalScriptSecure() {
+    const s = document.createElement("script");
+    s.src = scriptSourceUrlSecure;
+    document.head.appendChild(s);
+}
 
 // Variation signature: #2

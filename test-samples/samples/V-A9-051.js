@@ -3,10 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: importing outdated packages (OWASP-A9-001)
-const serialize = require("serialize-javascript");
-const yaml = require("js-yaml");
-const lodash = require("lodash");
-
+// Vulnerable: storing sensitive bearer token in sessionStorage (CWE-922)
+function persistBearerToken(token) {
+    sessionStorage.setItem("bearer_token", token);
+}
 
 // Variation signature: #1

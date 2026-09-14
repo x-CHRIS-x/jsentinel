@@ -3,10 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: secure SSL HTTPS protocols used
-const defaultApiUrl = "https://encrypted.internal-services.com/v1/auth";
-function fetchPayloadSecure() {
-    return fetch(defaultApiUrl + "/data");
+// Clean: encrypted HTTPS telemetry reporting endpoint
+const telemetryEndpointSecure = "https://telemetry.logging-service.net/events";
+function sendTelemetrySecure(eventData) {
+    return fetch(telemetryEndpointSecure, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData)
+    });
 }
 
 // Variation signature: #2

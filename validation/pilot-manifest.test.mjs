@@ -34,7 +34,22 @@ const PILOT_FILES = [
   'V-A8-049.js', 'C-A8-049.js'
 ];
 
-test('1. Total 116 dataset files preserved and untouched 104 match baseline hashes', () => {
+const PILOT_HASHES = {
+  'V-A5-027.js': '102c5f42615175b8d4c67533f83d472ac4905eaf4ee96215f908a193dc987ee3',
+  'C-A5-027.js': '664fa83fe850b77a04837cabfe4151db81d9b60a25b9b35c4e2ff9923e20b0dc',
+  'V-A3-023.js': '7f6b0c5425c2fac8fb5383b72987e74703b9032a78994bc8ecf9967eeab93357',
+  'C-A3-023.js': 'edef15bf96c01e9718e8777e1899117115b162d7bf3c6052be8203d64f29de84',
+  'V-A1-007.js': 'e2a7e07d93a335267d01900b435d1b4f66e0b128fecaae35e011194e9d18eda4',
+  'C-A1-007.js': 'ebf989d38ec99089decb8f9d7c29f55844cb0880cc5d96a4e702ba70c40837b3',
+  'V-A1-009.js': '49e36a47469c63c436e4944518190d62b59a93382af60a3342a7b5b5163bd14c',
+  'C-A1-009.js': '20c97e0954e0286a64c610607f6b448375744afed37529601da50f2df55819d6',
+  'V-A7-039.js': '4a3fe5cc126186b8ea61561afec6e4655c5fe0785bac8932e45bdc255b4d0aad',
+  'C-A7-039.js': '69478b8c252dd2c2803d873d568859e053195d0c08bdae2c8a4963b041923e59',
+  'V-A8-049.js': 'f97d172dfe6be3a35fb06d6d18b7134b8e87e46618be10e8c8a386df45d5c436',
+  'C-A8-049.js': '3b3b24c35dfc88efdea1be6d55800fca8d77d66e19e6a4d6498c02d1a1e777c1'
+};
+
+test('1. Total 116 dataset files: 108 controlled and 8 scenarios with baseline hash preservation', () => {
   const samplesDir = path.join(rootDir, 'test-samples', 'samples');
   const files = fs.readdirSync(samplesDir);
   assert.equal(files.length, 116, 'Total files in test-samples/samples must be exactly 116');
@@ -52,78 +67,86 @@ test('1. Total 116 dataset files preserved and untouched 104 match baseline hash
   assert.ok(fs.existsSync(hashFile), '04-baseline-hashes.json must exist');
   const baseline = JSON.parse(fs.readFileSync(hashFile, 'utf8'));
 
-  // All 104 unreviewed files must match their baseline SHA-256 hashes exactly
-  const pilotSet = new Set(PILOT_FILES);
+  // All 8 scenario files must match their baseline SHA-256 hashes byte-for-byte
   for (const entry of baseline.files) {
-    if (!pilotSet.has(entry.fileName)) {
+    if (!entry.fileName.startsWith('V-') && !entry.fileName.startsWith('C-')) {
       const currentContent = fs.readFileSync(path.join(samplesDir, entry.fileName));
       const currentHash = crypto.createHash('sha256').update(currentContent).digest('hex');
-      assert.equal(currentHash, entry.sha256, `Untouched file ${entry.fileName} must match baseline hash`);
+      assert.equal(currentHash, entry.sha256, `Scenario file ${entry.fileName} must match baseline hash`);
     }
+  }
+
+  // All 12 pilot files must match their committed pilot hashes byte-for-byte
+  for (const [pName, expectedHash] of Object.entries(PILOT_HASHES)) {
+    const currentContent = fs.readFileSync(path.join(samplesDir, pName));
+    const currentHash = crypto.createHash('sha256').update(currentContent).digest('hex');
+    assert.equal(currentHash, expectedHash, `Pilot file ${pName} must match committed pilot hash`);
   }
 });
 
-test('2. Manifest ground truth schema, threat models, and explicit unreviewed status', () => {
+test('2. Manifest ground truth schema, threat models, and Batch B controlled review status', () => {
   const manifestPath = path.join(rootDir, 'test-samples', 'dataset-manifest.json');
   assert.ok(fs.existsSync(manifestPath), 'dataset-manifest.json must exist');
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.phase, 'Phase 04 Batch A');
+  assert.equal(manifest.phase, 'Phase 04 Batch B');
   assert.equal(manifest.datasetSummary.totalFiles, 116);
-  assert.equal(manifest.datasetSummary.reviewedPilotFilesCount, 12);
-  assert.equal(manifest.datasetSummary.pendingReviewFilesCount, 104);
-  assert.equal(manifest.coverageStatus.partialCoverageExplicit, true);
+  assert.equal(manifest.datasetSummary.controlledFilesCount, 108);
+  assert.equal(manifest.datasetSummary.scenarioFilesCount, 8);
+  assert.equal(manifest.datasetSummary.reviewedControlledFilesCount, 108);
+  assert.equal(manifest.datasetSummary.pendingReviewFilesCount, 8);
 
   assert.equal(manifest.files.length, 116, 'Manifest must contain all 116 entries');
 
-  const reviewedFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'pilot-reviewed');
-  assert.equal(reviewedFiles.length, 12, 'Exactly 12 files are pilot-reviewed');
+  const controlledFiles = manifest.files.filter(f => f.reviewStatus.coverage !== 'pending-batch-c');
+  assert.equal(controlledFiles.length, 108, 'Exactly 108 files are controlled reviewed');
 
-  const pendingFiles = manifest.files.filter(f => f.reviewStatus.coverage !== 'pilot-reviewed');
-  assert.equal(pendingFiles.length, 104, 'Exactly 104 files are pending review');
+  const scenarioFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'pending-batch-c');
+  assert.equal(scenarioFiles.length, 8, 'Exactly 8 files are pending Batch C review');
 
-  // Verify pilot ground truth and threat modeling schema
-  for (const pf of reviewedFiles) {
-    assert.ok(pf.sampleId, `${pf.fileName} must have sampleId`);
-    assert.ok(pf.pairId, `${pf.fileName} must have pairId`);
-    assert.ok(pf.primaryModule, `${pf.fileName} must have primaryModule`);
-    assert.ok(pf.intendedBehavior, `${pf.fileName} must have intendedBehavior`);
-    assert.ok(pf.securityGroundTruth.rationale, `${pf.fileName} must have security ground truth rationale`);
-    assert.ok(Array.isArray(pf.securityGroundTruth.sourceReferences), `${pf.fileName} must have sourceReferences array`);
-    assert.ok(pf.securityGroundTruth.sourceReferences.length > 0, `${pf.fileName} must have sourceReferences`);
+  // Verify controlled ground truth and threat modeling schema
+  for (const cf of controlledFiles) {
+    assert.ok(cf.sampleId, `${cf.fileName} must have sampleId`);
+    assert.ok(cf.pairId, `${cf.fileName} must have pairId`);
+    assert.ok(cf.primaryModule, `${cf.fileName} must have primaryModule`);
+    assert.ok(cf.intendedBehavior, `${cf.fileName} must have intendedBehavior`);
+    assert.ok(cf.securityGroundTruth.rationale, `${cf.fileName} must have security ground truth rationale`);
+    assert.ok(Array.isArray(cf.securityGroundTruth.sourceReferences), `${cf.fileName} must have sourceReferences array`);
+    assert.ok(cf.securityGroundTruth.sourceReferences.length > 0, `${cf.fileName} must have sourceReferences`);
 
     // Threat model & scenario assumptions
-    assert.ok(pf.threatModelAndAssumptions.trustBoundary, `${pf.fileName} must define trustBoundary`);
-    assert.ok(pf.threatModelAndAssumptions.attackerControlledInput, `${pf.fileName} must define attackerControlledInput`);
-    assert.ok(pf.threatModelAndAssumptions.executionEnvironment, `${pf.fileName} must define executionEnvironment`);
-    assert.ok(pf.threatModelAndAssumptions.impactSupportingSeverity, `${pf.fileName} must define impactSupportingSeverity`);
-    assert.ok(pf.threatModelAndAssumptions.safePartnerAssumptions, `${pf.fileName} must define safePartnerAssumptions`);
+    assert.ok(cf.threatModelAndAssumptions.trustBoundary, `${cf.fileName} must define trustBoundary`);
+    assert.ok(cf.threatModelAndAssumptions.attackerControlledInput, `${cf.fileName} must define attackerControlledInput`);
+    assert.ok(cf.threatModelAndAssumptions.executionEnvironment, `${cf.fileName} must define executionEnvironment`);
+    assert.ok(cf.threatModelAndAssumptions.impactSupportingSeverity, `${cf.fileName} must define impactSupportingSeverity`);
+    assert.ok(cf.threatModelAndAssumptions.safePartnerAssumptions, `${cf.fileName} must define safePartnerAssumptions`);
 
-    // Clean pilot files must have expectedScannerFindings as empty array [] (verified zero findings)
-    if (pf.label === 'clean') {
-      assert.deepEqual(pf.expectedScannerFindings, [], `${pf.fileName} clean pilot must have expectedScannerFindings: []`);
+    if (cf.label === 'clean') {
+      assert.equal(cf.securityGroundTruth.isVulnerable, false, `${cf.fileName} clean ground truth isVulnerable must be false`);
+      assert.deepEqual(cf.expectedScannerFindings, [], `${cf.fileName} clean must have expectedScannerFindings: []`);
     } else {
-      assert.ok(pf.expectedScannerFindings.length > 0, `${pf.fileName} vulnerable pilot must have findings`);
+      assert.equal(cf.securityGroundTruth.isVulnerable, true, `${cf.fileName} vulnerable ground truth isVulnerable must be true`);
+      assert.ok(cf.securityGroundTruth.flawType, `${cf.fileName} vulnerable must define flawType CWE`);
     }
 
-    assert.equal(pf.reviewStatus.aiReviewer, 'Agy (Gemini 3.8 Flash High)');
-    assert.equal(pf.reviewStatus.humanReview, 'PENDING');
+    assert.equal(cf.reviewStatus.aiReviewer, 'Agy (Gemini 3.8 Flash High)');
+    assert.equal(cf.reviewStatus.humanReview, 'PENDING');
   }
 
-  // Verify pending files: isVulnerable is null, expectedScannerFindings is null (distinguishable from []), developmentUse documented
-  for (const pend of pendingFiles) {
-    assert.equal(pend.securityGroundTruth.isVulnerable, null, `${pend.fileName} isVulnerable must be null until reviewed`);
-    assert.equal(pend.expectedScannerFindings, null, `${pend.fileName} expectedScannerFindings must be null (unknown, not verified none)`);
-    assert.ok(pend.legacyClassification.legacyLabel, `${pend.fileName} must preserve legacyLabel`);
-    assert.equal(pend.legacyClassification.source, 'filename-prefix');
-    assert.equal(pend.developmentUse, true);
-    assert.ok(pend.developmentUseRationale, `${pend.fileName} must have developmentUseRationale`);
+  // Verify scenario files: isVulnerable is null, expectedScannerFindings is null
+  for (const sc of scenarioFiles) {
+    assert.equal(sc.securityGroundTruth.isVulnerable, null, `${sc.fileName} isVulnerable must be null until Batch C`);
+    assert.equal(sc.expectedScannerFindings, null, `${sc.fileName} expectedScannerFindings must be null`);
+    assert.equal(sc.reviewStatus.coverage, 'pending-batch-c');
+    assert.equal(sc.developmentUse, true);
   }
 });
 
-test('3. All 12 pilot sample files parse cleanly with Babel AST parser', () => {
+test('3. All 116 dataset files parse cleanly with Babel AST parser', () => {
   const samplesDir = path.join(rootDir, 'test-samples', 'samples');
-  for (const fileName of PILOT_FILES) {
+  const files = fs.readdirSync(samplesDir).filter(name => /\.(js|jsx)$/.test(name));
+  assert.equal(files.length, 116);
+  for (const fileName of files) {
     const filePath = path.join(samplesDir, fileName);
     const code = fs.readFileSync(filePath, 'utf8');
     assert.doesNotThrow(() => {

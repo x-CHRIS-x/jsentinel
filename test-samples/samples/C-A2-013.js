@@ -3,9 +3,13 @@
  * Safe, compliant implementations.
  */
 
-// Clean: secure session cookie state management
+// Clean: transient session token stored in module-scoped memory closure
+let sessionTokenMemory = null;
 function cacheSessionTokenSecure(jwtToken) {
-    document.cookie = "session_token=" + jwtToken + "; Secure; HttpOnly; SameSite=Strict";
+    sessionTokenMemory = jwtToken;
+}
+function getSessionTokenSecure() {
+    return sessionTokenMemory;
 }
 
 // Variation signature: #1

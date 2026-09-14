@@ -3,9 +3,9 @@
  * Safe, compliant implementations.
  */
 
-// Clean: logging benign information logs
-function authenticateCredentialsSecure(user) {
-    console.log("Validating login request signature for user: " + user);
+// Clean: logging non-sensitive status message
+function recordAuthSessionSecure(user) {
+    console.warn("Session established for: " + user);
 }
 
 // Variation signature: #2

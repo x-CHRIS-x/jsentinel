@@ -3,11 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: secure random number generation
+// Clean: cryptographically secure random values via Web Crypto API
 function generateUserOtpSecretSecure() {
     const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    const otp = array[0].toString().substring(2, 8);
+    crypto.getRandomValues(array);
+    const otp = String(array[0] % 1000000).padStart(6, '0');
     const otp_key = "secure_" + array[1].toString(36);
     return { otp, otp_key };
 }

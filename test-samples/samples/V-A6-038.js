@@ -3,10 +3,12 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: express initialization without helmet middleware (OWASP-A6-004)
-const express = require('express');
-const app = express();
-app.listen(3002);
-
+// Vulnerable: unencrypted HTTP script source URL (OWASP-A02-004)
+const scriptSourceUrl = "http://cdn.unencrypted.internal-services.com/library.js";
+function injectExternalScript() {
+    const s = document.createElement("script");
+    s.src = scriptSourceUrl;
+    document.head.appendChild(s);
+}
 
 // Variation signature: #2

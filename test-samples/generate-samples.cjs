@@ -1,55 +1,154 @@
 /**
- * JSentinel Test Samples Generator (CommonJS Version)
+ * JSentinel Test Samples Generator (Phase 04 Batch B Version)
  * 
- * Programmatically generates ~100 realistic JavaScript and React files:
- * - 50 Vulnerable files (V-*.js) illustrating all 27 detection rules across 9 OWASP categories.
- * - 50 Clean files (C-*.js) illustrating secure remediations of the same features.
+ * Programmatically generates the 108 controlled benchmark samples:
+ * - 54 Vulnerable samples (V-*.js) illustrating browser security vulnerabilities.
+ * - 54 Clean samples (C-*.js) illustrating secure client remediations.
+ * 
+ * Eight simulated browser application scenarios remain preserved separately (pending Batch C).
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const outputDir = path.join(__dirname, 'samples');
+// CLI options
+const args = process.argv.slice(2);
+const isPilotMode = args.includes('--pilot');
+const isCheckMode = args.includes('--check') || args.includes('--dry-run');
+const outputDirIndex = args.indexOf('--output');
+const targetOutputDir = (outputDirIndex !== -1 && args[outputDirIndex + 1])
+  ? path.resolve(args[outputDirIndex + 1])
+  : path.join(__dirname, 'samples');
 
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+const PILOT_FILES = new Set([
+  'V-A5-027.js', 'C-A5-027.js',
+  'V-A3-023.js', 'C-A3-023.js',
+  'V-A1-007.js', 'C-A1-007.js',
+  'V-A1-009.js', 'C-A1-009.js',
+  'V-A7-039.js', 'C-A7-039.js',
+  'V-A8-049.js', 'C-A8-049.js'
+]);
 
-// 1. Templates for Vulnerable Samples (V-*.js)
-const vulnerableTemplates = {
-  'A1': [
-    {
-      id: '01',
-      code: `// Vulnerable: eval usage (OWASP-A1-001)
+const EOL = '\r\n';
+
+// 54 Controlled Benchmark Pairs (108 Files)
+const controlledPairs = [
+  // A1: Injection & Dynamic Code (10 pairs: 001 - 010)
+  {
+    cat: 'A1', id: '001', varSig: 1,
+    vCode: `// Vulnerable: eval usage (OWASP-A1-001)
 function executeCode(userInput) {
     eval("console.log('Result: ' + " + userInput + ");");
+}`,
+    cCode: `// Clean: safe function parsing
+function executeCodeSecure(userInput) {
+    try {
+        const parsed = JSON.parse(userInput);
+        console.log('Result:', parsed);
+    } catch (e) {
+        console.error('Invalid input');
+    }
 }`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: string in setTimeout (OWASP-A1-002)
+  },
+  {
+    cat: 'A1', id: '002', varSig: 2,
+    vCode: `// Vulnerable: dynamic arithmetic expression evaluated via eval (OWASP-A1-001)
+function calculateFormula(userFormula) {
+    return eval("3 * (" + userFormula + ")");
+}`,
+    cCode: `// Clean: safe mathematical formula parsing using tokenized arithmetic evaluator
+function calculateFormulaSecure(baseValue, multiplier) {
+    const safeBase = Number(baseValue) || 0;
+    const safeMult = Number(multiplier) || 1;
+    return 3 * (safeBase * safeMult);
+}`
+  },
+  {
+    cat: 'A1', id: '003', varSig: 1,
+    vCode: `// Vulnerable: string in setTimeout (OWASP-A1-002)
 function scheduleTask(callbackStr, delay) {
     setTimeout(callbackStr + "()", delay);
+}`,
+    cCode: `// Clean: passing callback function reference to setTimeout
+function scheduleTaskSecure(taskFn, delay) {
+    if (typeof taskFn === 'function') {
+        setTimeout(taskFn, delay);
+    }
 }`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: new Function with dynamic argument (OWASP-A1-003)
+  },
+  {
+    cat: 'A1', id: '004', varSig: 2,
+    vCode: `// Vulnerable: dynamic string code in setInterval (OWASP-A1-002)
+function startPollingTimer(actionCode, intervalMs) {
+    return setInterval(actionCode + "()", intervalMs);
+}`,
+    cCode: `// Clean: setInterval passing callback function closure
+function startPollingTimerSecure(actionCallback, intervalMs) {
+    if (typeof actionCallback === 'function') {
+        return setInterval(() => actionCallback(), intervalMs);
+    }
+    return null;
+}`
+  },
+  {
+    cat: 'A1', id: '005', varSig: 1,
+    vCode: `// Vulnerable: new Function with dynamic argument (OWASP-A1-003)
 function compileExpression(dynamicFormula) {
     const fn = new Function("x", "return " + dynamicFormula);
     return fn(10);
+}`,
+    cCode: `// Clean: predefined operator lookup table instead of dynamic code compilation
+const operators = {
+    double: (x) => x * 2,
+    square: (x) => x * x,
+    increment: (x) => x + 1
+};
+function compileExpressionSecure(operatorName, value) {
+    const op = operators[operatorName] || ((x) => x);
+    return op(value);
 }`
-    },
-    {
-      id: '04',
-      code: `// Vulnerable: innerHTML with template literal interpolation (OWASP-A1-004)
+  },
+  {
+    cat: 'A1', id: '006', varSig: 2,
+    vCode: `// Vulnerable: dynamic filter predicate compiled via new Function (OWASP-A1-003)
+function buildFilterPredicate(userPredicateStr) {
+    const filterFn = new Function("item", "return " + userPredicateStr);
+    return [1, 2, 3, 4, 5].filter(filterFn);
+}`,
+    cCode: `// Clean: parameterized array filtering using standard callback functions
+function buildFilterPredicateSecure(items, threshold) {
+    const minVal = Number(threshold) || 0;
+    return items.filter(item => typeof item === 'number' && item >= minVal);
+}`
+  },
+  {
+    cat: 'A1', id: '007', varSig: 1, // PILOT
+    vCode: `// Vulnerable: innerHTML with template literal interpolation (OWASP-A1-004)
 function renderGreeting(element, username) {
     element.innerHTML = \`<div>Hello, \${username}!</div>\`;
+}`,
+    cCode: `// Clean: textContent sanitizes values safely
+function renderGreetingSecure(element, username) {
+    element.textContent = "Hello, " + username + "!";
 }`
-    },
-    {
-      id: '05',
-      code: `// Simulated endpoint helper returning attacker-controlled markup
+  },
+  {
+    cat: 'A1', id: '008', varSig: 2,
+    vCode: `// Vulnerable: innerHTML template literal with user profile markup (OWASP-A1-004)
+function renderUserProfile(container, bioText) {
+    container.innerHTML = \`<span class="bio-display">\${bioText}</span>\`;
+}`,
+    cCode: `// Clean: DOM element creation and textContent assignment for user profile
+function renderUserProfileSecure(container, bioText) {
+    const span = document.createElement("span");
+    span.className = "bio-display";
+    span.textContent = bioText;
+    container.replaceChildren(span);
+}`
+  },
+  {
+    cat: 'A1', id: '009', varSig: 1, // PILOT
+    vCode: `// Simulated endpoint helper returning attacker-controlled markup
 function getRawHtmlFromEndpoint(source) {
     return (source && source.htmlContent) || "<img src=x onerror=alert(1)>";
 }
@@ -57,226 +156,8 @@ function getRawHtmlFromEndpoint(source) {
 // Vulnerable: function call returned value assigned to innerHTML (OWASP-A1-005)
 function updateContent(container, apiSource) {
     container.innerHTML = getRawHtmlFromEndpoint(apiSource);
-}`
-    }
-  ],
-  'A2': [
-    {
-      id: '01',
-      code: `// Vulnerable: hardcoded credential variables (OWASP-A2-001)
-const adminAuthPassword = "SuperSecretFallbackPassword2026!";
-function loginMaster(pwd) {
-    return pwd === adminAuthPassword;
-}`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: localStorage token caching (OWASP-A2-002)
-function cacheSessionToken(jwtToken) {
-    localStorage.setItem("session_token", jwtToken);
-}`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: insecure cookie properties (OWASP-A2-003)
-function createSessionCookie(userId) {
-    document.cookie = "session=" + userId + "; path=/;";
-}`
-    },
-    {
-      id: '04',
-      code: `// Vulnerable: Math.random for security tokens (OWASP-A2-004)
-function generateUserOtpSecret() {
-    const otp = Math.random().toString().substring(2, 8);
-    const otp_key = "secret_" + Math.random().toString(36);
-    return { otp, otp_key };
-}`
-    },
-    {
-      id: '05',
-      code: `// Vulnerable: Plain http URLs used for communication (OWASP-A2-005)
-const defaultApiUrl = "http://unencrypted.internal-services.com/v1/auth";
-function fetchPayload() {
-    return fetch(defaultApiUrl + "/data");
-}`
-    }
-  ],
-  'A3': [
-    {
-      id: '01',
-      code: `// Vulnerable: hardcoded cryptographic token signatures (OWASP-A3-001)
-const AWS_ACCESS_SECRET = "AKIAIOSFODNN7EXAMPLE";
-const STATIC_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";
-`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: hardcoded API keys (OWASP-A3-002)
-const application_secret_key = "apikey_development_credential_987654321";
-const gatewayToken = "token_prod_abc123xyz789";
-`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: sensitive tokens exposed in query URL parameters (OWASP-A3-003)
-function constructRedirectUrl(username, pwdVal) {
-    return "/auth/callback?user=" + username + "&password=" + pwdVal;
-}`
-    }
-  ],
-  'A5': [
-    {
-      id: '01',
-      code: `// Vulnerable: Open redirect path assignment (OWASP-A5-001)
-function redirectToExternal(targetUrl) {
-    window.location.href = targetUrl;
-}`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: Client-side role checking guarding access (OWASP-A5-002)
-function renderSecureComponents(userContext) {
-    if (userContext.role === "admin" || userContext.isAdmin === true) {
-        showSpecialSuperAdminMenu();
-    }
-}`
-    }
-  ],
-  'A6': [
-    {
-      id: '01',
-      code: `// Vulnerable: sensitive password name logged in console (OWASP-A6-001)
-function authenticateCredentials(user, password) {
-    console.log("Validating payload info for secret: " + password);
-}`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: CORS wildcards configured (OWASP-A6-002)
-function setupCorsHeaders(res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-}`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: full request or session objects printed to logging endpoints (OWASP-A6-003)
-function debugGateway(req) {
-    console.log("Full request context logs:", req);
-}`
-    },
-    {
-      id: '04',
-      code: `// Vulnerable: express initialization without helmet middleware (OWASP-A6-004)
-const express = require('express');
-const app = express();
-app.listen(3002);
-`
-    }
-  ],
-  'A7': [
-    {
-      id: '01',
-      code: `// Vulnerable: direct innerHTML assignments (OWASP-A7-001)
-function loadUserBadge(element, badgeHtml) {
-    element.innerHTML = badgeHtml;
-}`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: document.write calls (OWASP-A7-002)
-function writeOutputSnippet(content) {
-    document.write("<div>" + content + "</div>");
-}`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: dangerouslySetInnerHTML React properties (OWASP-A7-003)
-function renderDynamicPost(contentStr) {
-    return <div dangerouslySetInnerHTML={{ __html: contentStr }} />;
-}`
-    }
-  ],
-  'A8': [
-    {
-      id: '01',
-      code: `// Vulnerable: general JSON parsing flagged for safety inspections (OWASP-A8-001)
-function loadSerializedPayload(jsonInput) {
-    return JSON.parse(jsonInput);
-}`
-    },
-    {
-      id: '02',
-      code: `// Vulnerable: constructor prototype overrides (OWASP-A8-002)
-function pollutePrototype(target, customKey, value) {
-    target.__proto__[customKey] = value;
-}`
-    },
-    {
-      id: '03',
-      code: `// Vulnerable: Object.assign with untrusted second argument parameters (OWASP-A8-003)
-function mergeConfigurations(defaultConfig, userPayload) {
-    return Object.assign(defaultConfig, userPayload);
-}`
-    }
-  ],
-  'A9': [
-    {
-      id: '01',
-      code: `// Vulnerable: importing outdated packages (OWASP-A9-001)
-const serialize = require("serialize-javascript");
-const yaml = require("js-yaml");
-const lodash = require("lodash");
-`
-    }
-  ],
-  'A10': [
-    {
-      id: '01',
-      code: `// Vulnerable: dynamic SSRF connection endpoints (OWASP-A10-001)
-const axios = require('axios');
-function proxyRemoteResource(targetUri) {
-    return axios.get(targetUri);
-}`
-    }
-  ]
-};
-
-// 2. Templates for Clean/Secure Samples (C-*.js)
-const cleanTemplates = {
-  'A1': [
-    {
-      id: '01',
-      code: `// Clean: safe function parsing
-function executeCodeSecure(userInput) {
-    const val = Number(userInput);
-    console.log('Result: ' + val);
-}`
-    },
-    {
-      id: '02',
-      code: `// Clean: passing callback reference directly
-function scheduleTaskSecure(callbackFn, delay) {
-    setTimeout(callbackFn, delay);
-}`
-    },
-    {
-      id: '03',
-      code: `// Clean: structured formula invocation
-function compileExpressionSecure(staticFormula) {
-    const allowedFormulas = { 'add': (a) => a + 5 };
-    return allowedFormulas[staticFormula]?.(10) || 0;
-}`
-    },
-    {
-      id: '04',
-      code: `// Clean: textContent sanitizes values safely
-function renderGreetingSecure(element, username) {
-    element.textContent = "Hello, " + username + "!";
-}`
-    },
-    {
-      id: '05',
-      code: `// Helper returning plain text string from data source
+}`,
+    cCode: `// Helper returning plain text string from data source
 function getCleanTextFromEndpoint(source) {
     return (source && source.textContent) || "Safe notification text";
 }
@@ -285,62 +166,227 @@ function getCleanTextFromEndpoint(source) {
 function updateContentSecure(container, apiSource) {
     container.textContent = getCleanTextFromEndpoint(apiSource);
 }`
-    }
-  ],
-  'A2': [
-    {
-      id: '01',
-      code: `// Clean: passwords loaded from environment variables
-const adminAuthPassword = process.env.ADMIN_FALLBACK_PASSWORD;
-function loginMasterSecure(pwd) {
+  },
+  {
+    cat: 'A1', id: '010', varSig: 2,
+    vCode: `// Helper returning raw notification markup from external feed
+function fetchNotificationMarkup(notificationFeed) {
+    return (notificationFeed && notificationFeed.body) || "<b onmouseover=alert(1)>Notice</b>";
+}
+
+// Vulnerable: function return value assigned directly to innerHTML (OWASP-A1-005)
+function displayNotificationBanner(bannerElement, feedSource) {
+    bannerElement.innerHTML = fetchNotificationMarkup(feedSource);
+}`,
+    cCode: `// Helper returning plain text notification message
+function fetchNotificationText(notificationFeed) {
+    return (notificationFeed && notificationFeed.message) || "Standard notification";
+}
+
+// Clean: plain text notification assigned to textContent
+function displayNotificationBannerSecure(bannerElement, feedSource) {
+    bannerElement.textContent = fetchNotificationText(feedSource);
+}`
+  },
+
+  // A2: Cryptographic Failures & Sensitive Data (10 pairs: 011 - 020)
+  {
+    cat: 'A2', id: '011', varSig: 1,
+    vCode: `// Vulnerable: hardcoded credential variables (OWASP-A2-001)
+const adminAuthPassword = "SuperSecretFallbackPassword2026!";
+function loginMaster(pwd) {
     return pwd === adminAuthPassword;
+}`,
+    cCode: `// Clean: passwords verified server-side via authentication endpoint
+async function loginMasterSecure(username, pwd) {
+    const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, pwd })
+    });
+    return res.ok;
 }`
-    },
-    {
-      id: '02',
-      code: `// Clean: secure session cookie state management
+  },
+  {
+    cat: 'A2', id: '012', varSig: 2,
+    vCode: `// Vulnerable: hardcoded recovery secret password (OWASP-A2-001)
+const recoveryAuthKey = "EmergencyRestoreKey#9876543210";
+function verifyEmergencyAccess(providedKey) {
+    return providedKey === recoveryAuthKey;
+}`,
+    cCode: `// Clean: emergency access verification delegated to secure server challenge
+async function verifyEmergencyAccessSecure(challengeResponse) {
+    const res = await fetch("/api/auth/emergency-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeResponse })
+    });
+    return res.ok;
+}`
+  },
+  {
+    cat: 'A2', id: '013', varSig: 1,
+    vCode: `// Vulnerable: localStorage token caching (OWASP-A2-002)
+function cacheSessionToken(jwtToken) {
+    localStorage.setItem("session_token", jwtToken);
+}`,
+    cCode: `// Clean: transient session token stored in module-scoped memory closure
+let sessionTokenMemory = null;
 function cacheSessionTokenSecure(jwtToken) {
-    document.cookie = "session_token=" + jwtToken + "; Secure; HttpOnly; SameSite=Strict";
+    sessionTokenMemory = jwtToken;
+}
+function getSessionTokenSecure() {
+    return sessionTokenMemory;
 }`
-    },
-    {
-      id: '03',
-      code: `// Clean: cookies configured with secure properties
-function createSessionCookieSecure(userId) {
-    document.cookie = "session=" + userId + "; path=/; Secure; HttpOnly; SameSite=Strict;";
+  },
+  {
+    cat: 'A2', id: '014', varSig: 2,
+    vCode: `// Vulnerable: localStorage auth credential storage (OWASP-A2-002)
+function persistAuthCredentials(authToken) {
+    localStorage.setItem("user_auth_credential", authToken);
+}`,
+    cCode: `// Clean: session state managed via server-issued session cookie without client storage
+async function persistAuthCredentialsSecure(credentials) {
+    const res = await fetch("/api/auth/session-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+        credentials: "same-origin"
+    });
+    return res.ok;
 }`
-    },
-    {
-      id: '04',
-      code: `// Clean: secure random number generation
+  },
+  {
+    cat: 'A2', id: '015', varSig: 1,
+    vCode: `// Vulnerable: insecure cookie properties (OWASP-A2-003)
+function createSessionCookie(userId) {
+    document.cookie = "session=" + userId + "; path=/;";
+}`,
+    cCode: `// Clean: session cookie issued by server Set-Cookie header rather than client script
+async function createSessionCookieSecure(userId) {
+    const res = await fetch("/api/auth/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+        credentials: "same-origin"
+    });
+    return res.ok;
+}`
+  },
+  {
+    cat: 'A2', id: '016', varSig: 2,
+    vCode: `// Vulnerable: insecure cookie token storage (OWASP-A2-003)
+function storeAuthCookie(authToken) {
+    document.cookie = "auth_token=" + authToken + "; path=/;";
+}`,
+    cCode: `// Clean: non-sensitive UI preference cookie with Secure and SameSite attributes (no false HttpOnly write)
+function storeUiPreferenceCookieSecure(themeName) {
+    document.cookie = "ui_theme=" + encodeURIComponent(themeName) + "; path=/; Secure; SameSite=Strict;";
+}`
+  },
+  {
+    cat: 'A2', id: '017', varSig: 1,
+    vCode: `// Vulnerable: Math.random for security tokens (OWASP-A2-004)
+function generateUserOtpSecret() {
+    const otp = Math.random().toString().substring(2, 8);
+    const otp_key = "secret_" + Math.random().toString(36);
+    return { otp, otp_key };
+}`,
+    cCode: `// Clean: cryptographically secure random values via Web Crypto API
 function generateUserOtpSecretSecure() {
     const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    const otp = array[0].toString().substring(2, 8);
+    crypto.getRandomValues(array);
+    const otp = String(array[0] % 1000000).padStart(6, '0');
     const otp_key = "secure_" + array[1].toString(36);
     return { otp, otp_key };
 }`
-    },
-    {
-      id: '05',
-      code: `// Clean: secure SSL HTTPS protocols used
+  },
+  {
+    cat: 'A2', id: '018', varSig: 2,
+    vCode: `// Vulnerable: Math.random used for CSRF nonce generation (OWASP-A2-004)
+function generateCsrfNonce() {
+    const nonceVal = "nonce_" + Math.random().toString(36).substring(2);
+    const sessionNonce = Math.random().toString(16);
+    return { nonceVal, sessionNonce };
+}`,
+    cCode: `// Clean: standard cryptographically secure random UUID for nonce generation
+function generateCsrfNonceSecure() {
+    const nonceVal = "nonce_" + crypto.randomUUID();
+    const sessionNonce = crypto.randomUUID();
+    return { nonceVal, sessionNonce };
+}`
+  },
+  {
+    cat: 'A2', id: '019', varSig: 1,
+    vCode: `// Vulnerable: Plain http URLs used for communication (OWASP-A2-005)
+const defaultApiUrl = "http://unencrypted.internal-services.com/v1/auth";
+function fetchPayload() {
+    return fetch(defaultApiUrl + "/data");
+}`,
+    cCode: `// Clean: secure SSL HTTPS protocols used
 const defaultApiUrl = "https://encrypted.internal-services.com/v1/auth";
 function fetchPayloadSecure() {
     return fetch(defaultApiUrl + "/data");
 }`
-    }
-  ],
-  'A3': [
-    {
-      id: '01',
-      code: `// Clean: cryptographic settings loaded from environment
-const AWS_ACCESS_SECRET = process.env.AWS_SECRET_ACCESS_KEY;
-const STATIC_JWT_TOKEN = process.env.AUTH_JWT_PRIVATE_SIGNATURE;
-`
-    },
-    {
-      id: '02',
-      code: `// Clean: API requests dispatched through backend proxy without client-exposed secrets
+  },
+  {
+    cat: 'A2', id: '020', varSig: 2,
+    vCode: `// Vulnerable: unencrypted HTTP telemetry reporting endpoint (OWASP-A2-005)
+const telemetryEndpoint = "http://telemetry.logging-service.net/events";
+function sendTelemetry(eventData) {
+    return fetch(telemetryEndpoint, {
+        method: "POST",
+        body: JSON.stringify(eventData)
+    });
+}`,
+    cCode: `// Clean: encrypted HTTPS telemetry reporting endpoint
+const telemetryEndpointSecure = "https://telemetry.logging-service.net/events";
+function sendTelemetrySecure(eventData) {
+    return fetch(telemetryEndpointSecure, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData)
+    });
+}`
+  },
+
+  // A3: Cryptographic Token Signatures & API Secrets (6 pairs: 021 - 026)
+  {
+    cat: 'A3', id: '021', varSig: 1,
+    vCode: `// Vulnerable: hardcoded cryptographic token signatures (OWASP-A3-001)
+const AWS_ACCESS_SECRET = "AKIAIOSFODNN7EXAMPLE";
+const STATIC_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";`,
+    cCode: `// Clean: cloud storage operations dispatched through authenticated backend endpoint
+async function uploadToCloudStorageSecure(fileBlob) {
+    const res = await fetch("/api/cloud/upload", {
+        method: "POST",
+        body: fileBlob
+    });
+    return res.json();
+}`
+  },
+  {
+    cat: 'A3', id: '022', varSig: 2,
+    vCode: `// Vulnerable: hardcoded payment gateway secret keys (OWASP-A3-001)
+const STRIPE_SECRET_KEY = "sk_live_51Abc123Def456Ghi789Jkl012Mno345";
+const PRIVATE_JWT_SIGNATURE = "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9.ab12cd34ef56gh78";`,
+    cCode: `// Clean: payment creation handled server-side; client uses restricted publishable token
+async function createPaymentIntentSecure(orderId) {
+    const res = await fetch("/api/checkout/create-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId })
+    });
+    return res.json();
+}`
+  },
+  {
+    cat: 'A3', id: '023', varSig: 1, // PILOT
+    vCode: `// Vulnerable: hardcoded API keys (OWASP-A3-002)
+const application_secret_key = "apikey_development_credential_987654321";
+const gatewayToken = "token_prod_abc123xyz789";
+`,
+    cCode: `// Clean: API requests dispatched through backend proxy without client-exposed secrets
 async function callGatewayService(payload) {
     const response = await fetch("/api/gateway/dispatch", {
         method: "POST",
@@ -349,115 +395,360 @@ async function callGatewayService(payload) {
     });
     return response.json();
 }`
-    },
-    {
-      id: '03',
-      code: `// Clean: passing values in HTTP post bodies safely
-function constructRedirectUrlSecure(username) {
-    return "/auth/callback?user=" + encodeURIComponent(username);
+  },
+  {
+    cat: 'A3', id: '024', varSig: 2,
+    vCode: `// Vulnerable: hardcoded database service key (OWASP-A3-002)
+const databaseServiceApiKey = "apikey_production_db_key_555444332211";
+const clientSecretToken = "token_prod_webhook_secret_9988776655";`,
+    cCode: `// Clean: database operations proxied through backend API route
+async function queryDatabaseServiceSecure(queryPayload) {
+    const response = await fetch("/api/data/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queryPayload)
+    });
+    return response.json();
 }`
-    }
-  ],
-  'A5': [
-    {
-      id: '01',
-      code: `// Clean: safelist checked redirects
+  },
+  {
+    cat: 'A3', id: '025', varSig: 1,
+    vCode: `// Vulnerable: sensitive tokens exposed in query URL parameters (OWASP-A3-003)
+function constructRedirectUrl(username, pwdVal) {
+    return "/auth/callback?user=" + username + "&password=" + pwdVal;
+}`,
+    cCode: `// Clean: credentials sent in HTTP POST body rather than query URL parameters
+async function submitLoginCredentialsSecure(username, password) {
+    const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
+    return res.ok;
+}`
+  },
+  {
+    cat: 'A3', id: '026', varSig: 2,
+    vCode: `// Vulnerable: password reset token exposed in query string (OWASP-A3-003)
+function buildPasswordResetUrl(accountEmail, resetToken) {
+    return "/auth/reset?email=" + accountEmail + "&token=" + resetToken;
+}`,
+    cCode: `// Clean: reset token submitted via secure POST request body
+async function submitPasswordResetSecure(accountEmail, resetToken, newPassword) {
+    const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: accountEmail, token: resetToken, newPassword })
+    });
+    return res.ok;
+}`
+  },
+
+  // A5: Broken Access Control (4 pairs: 027 - 030)
+  {
+    cat: 'A5', id: '027', varSig: 1, // PILOT
+    vCode: `// Vulnerable: Open redirect path assignment (OWASP-A5-001)
+function redirectToExternal(targetUrl) {
+    window.location.href = targetUrl;
+}`,
+    cCode: `// Clean: safelist checked redirects
 const allowedDomains = ["https://app.example.com", "https://api.example.com"];
 function redirectToExternalSecure(targetUrl) {
     if (allowedDomains.includes(targetUrl)) {
         window.location.href = targetUrl;
     }
 }`
-    },
-    {
-      id: '02',
-      code: `// Clean: authorization checks validated on the server API side
-function renderSecureComponentsSecure(userContext) {
-    // Only query client UI components: server enforces real validation
-    if (userContext.isAuthenticated) {
-        showSuperUserMenu();
+  },
+  {
+    cat: 'A5', id: '028', varSig: 2,
+    vCode: `// Vulnerable: open redirect via window.location.replace (OWASP-A5-001)
+function navigateToPartnerSite(partnerUrl) {
+    window.location.replace(partnerUrl);
+}`,
+    cCode: `// Clean: domain allowlist verification before location.replace
+const trustedPartnerDomains = ["https://partner.example.com", "https://auth.example.com"];
+function navigateToPartnerSiteSecure(partnerUrl) {
+    if (trustedPartnerDomains.includes(partnerUrl)) {
+        window.location.replace(partnerUrl);
     }
 }`
+  },
+  {
+    cat: 'A5', id: '029', varSig: 1,
+    vCode: `// Vulnerable: Client-side role checking guarding access (OWASP-A5-002)
+function renderSecureComponents(userContext) {
+    if (userContext.role === "admin" || userContext.isAdmin === true) {
+        showSpecialSuperAdminMenu();
     }
-  ],
-  'A6': [
-    {
-      id: '01',
-      code: `// Clean: logging benign information logs
+}`,
+    cCode: `// Clean: authorization checks validated on the server API side
+async function renderSecureComponentsSecure() {
+    const res = await fetch("/api/user/authorized-components");
+    if (res.ok) {
+        const data = await res.json();
+        if (data.canViewAdminMenu) {
+            showSpecialSuperAdminMenu();
+        }
+    }
+}`
+  },
+  {
+    cat: 'A5', id: '030', varSig: 2,
+    vCode: `// Vulnerable: client-side permission flag guarding destructive action (OWASP-A5-002)
+function executePurgeOperation(userState) {
+    if (userState.role === "admin" || userState.hasPurgePermission === true) {
+        triggerSystemPurge();
+    }
+}`,
+    cCode: `// Clean: destructive action authorized server-side before execution
+async function executePurgeOperationSecure() {
+    const res = await fetch("/api/admin/purge", { method: "POST" });
+    if (res.ok) {
+        triggerSystemPurge();
+    }
+}`
+  },
+
+  // A6: Security Misconfiguration & Logging (8 pairs: 031 - 038)
+  {
+    cat: 'A6', id: '031', varSig: 1,
+    vCode: `// Vulnerable: sensitive password name logged in console (OWASP-A6-001)
+function authenticateCredentials(user, password) {
+    console.log("Validating login for user: " + user + " with password: " + password);
+}`,
+    cCode: `// Clean: logging benign information logs
 function authenticateCredentialsSecure(user) {
     console.log("Validating login request signature for user: " + user);
 }`
-    },
-    {
-      id: '02',
-      code: `// Clean: restrictive CORS configuration policies
-function setupCorsHeadersSecure(res) {
-    res.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain");
+  },
+  {
+    cat: 'A6', id: '032', varSig: 2,
+    vCode: `// Vulnerable: sensitive authentication secret printed to console (OWASP-A6-001)
+function recordAuthSession(user, secretKey) {
+    console.warn("Session established for: " + user + " secret: " + secretKey);
+}`,
+    cCode: `// Clean: logging non-sensitive status message
+function recordAuthSessionSecure(user) {
+    console.warn("Session established for: " + user);
 }`
-    },
-    {
-      id: '03',
-      code: `// Clean: logging specific properties
+  },
+  {
+    cat: 'A6', id: '033', varSig: 1, // REASSIGNED BROWSER WEAKNESS (former CORS wildcard)
+    vCode: `// Vulnerable: cross-window postMessage with wildcard target origin (OWASP-A01-001)
+function broadcastSessionToken(authToken) {
+    window.parent.postMessage({ sessionToken: authToken }, "*");
+}`,
+    cCode: `// Clean: cross-window postMessage with strict target origin restriction
+function broadcastSessionTokenSecure(authToken) {
+    window.parent.postMessage({ sessionToken: authToken }, "https://portal.trusted.domain");
+}`
+  },
+  {
+    cat: 'A6', id: '034', varSig: 2, // REASSIGNED BROWSER WEAKNESS (former CORS wildcard var 2)
+    vCode: `// Vulnerable: cross-window message handler executing code without origin validation (OWASP-A03-001)
+function listenForRemoteCommands() {
+    window.addEventListener("message", function(event) {
+        eval(event.data.command);
+    });
+}`,
+    cCode: `// Clean: cross-window message handler validating event origin before processing
+const trustedOrigins = ["https://trusted.portal.example.com"];
+function listenForRemoteCommandsSecure() {
+    window.addEventListener("message", function(event) {
+        if (!trustedOrigins.includes(event.origin)) return;
+        if (event.data && typeof event.data.action === "string") {
+            handleSafeAction(event.data.action);
+        }
+    });
+}`
+  },
+  {
+    cat: 'A6', id: '035', varSig: 1,
+    vCode: `// Vulnerable: full request or session objects printed to logging endpoints (OWASP-A6-003)
+function debugGateway(req) {
+    console.log("Full request:", req);
+}`,
+    cCode: `// Clean: logging specific properties
 function debugGatewaySecure(req) {
     console.log("Request incoming path:", req.path);
 }`
-    },
-    {
-      id: '04',
-      code: `// Clean: express loaded with helmet protection headers
-const express = require('express');
-const helmet = require('helmet');
-const app = express();
-app.use(helmet());
-app.listen(3002);
-`
-    }
-  ],
-  'A7': [
-    {
-      id: '01',
-      code: `// Clean: textContent prevents HTML execution injections
+  },
+  {
+    cat: 'A6', id: '036', varSig: 2,
+    vCode: `// Vulnerable: logging full user authentication context object (OWASP-A6-003)
+function auditLoginContext(authContext) {
+    console.error("Authentication context failure:", authContext);
+}`,
+    cCode: `// Clean: logging only specific non-sensitive status code
+function auditLoginContextSecure(statusCode) {
+    console.error("Authentication failure error code:", statusCode);
+}`
+  },
+  {
+    cat: 'A6', id: '037', varSig: 1, // REASSIGNED BROWSER WEAKNESS (former Express helmet)
+    vCode: `// Vulnerable: unencrypted WebSocket connection transmitting sensitive telemetry (OWASP-A02-004)
+const telemetryWsUrl = "ws://telemetry.unencrypted.internal-services.com/stream";
+function connectTelemetryStream() {
+    return new WebSocket(telemetryWsUrl);
+}`,
+    cCode: `// Clean: encrypted WebSocket connection using wss protocol
+const telemetryWsUrlSecure = "wss://telemetry.encrypted.internal-services.com/stream";
+function connectTelemetryStreamSecure() {
+    return new WebSocket(telemetryWsUrlSecure);
+}`
+  },
+  {
+    cat: 'A6', id: '038', varSig: 2, // REASSIGNED BROWSER WEAKNESS (former Express helmet var 2)
+    vCode: `// Vulnerable: unencrypted HTTP script source URL (OWASP-A02-004)
+const scriptSourceUrl = "http://cdn.unencrypted.internal-services.com/library.js";
+function injectExternalScript() {
+    const s = document.createElement("script");
+    s.src = scriptSourceUrl;
+    document.head.appendChild(s);
+}`,
+    cCode: `// Clean: encrypted HTTPS script source URL
+const scriptSourceUrlSecure = "https://cdn.encrypted.internal-services.com/library.js";
+function injectExternalScriptSecure() {
+    const s = document.createElement("script");
+    s.src = scriptSourceUrlSecure;
+    document.head.appendChild(s);
+}`
+  },
+
+  // A7: XSS & Direct DOM Injection (6 pairs: 039 - 044)
+  {
+    cat: 'A7', id: '039', varSig: 1, // PILOT
+    vCode: `// Vulnerable: direct innerHTML assignments (OWASP-A7-001)
+function loadUserBadge(element, badgeHtml) {
+    element.innerHTML = badgeHtml;
+}`,
+    cCode: `// Clean: textContent prevents HTML execution injections
 function loadUserBadgeSecure(element, badgeHtml) {
     element.textContent = badgeHtml;
 }`
-    },
-    {
-      id: '02',
-      code: `// Clean: standard text nodes created safely
+  },
+  {
+    cat: 'A7', id: '040', varSig: 2,
+    vCode: `// Vulnerable: direct innerHTML assignment with user comment markup (OWASP-A7-001)
+function renderUserComment(container, commentMarkup) {
+    container.innerHTML = commentMarkup;
+}`,
+    cCode: `// Clean: safe DOM node creation with textContent assignment
+function renderUserCommentSecure(container, commentText) {
+    const p = document.createElement("p");
+    p.textContent = commentText;
+    container.replaceChildren(p);
+}`
+  },
+  {
+    cat: 'A7', id: '041', varSig: 1,
+    vCode: `// Vulnerable: document.write calls (OWASP-A7-002)
+function writeOutputSnippet(content) {
+    document.write(content);
+}`,
+    cCode: `// Clean: standard text nodes created safely
 function writeOutputSnippetSecure(content) {
     const node = document.createTextNode(content);
     document.body.appendChild(node);
 }`
-    },
-    {
-      id: '03',
-      code: `// Clean: standard React templating values
+  },
+  {
+    cat: 'A7', id: '042', varSig: 2,
+    vCode: `// Vulnerable: document.writeln with dynamic user status message (OWASP-A7-002)
+function outputUserStatus(statusText) {
+    document.writeln("<div>Status: " + statusText + "</div>");
+}`,
+    cCode: `// Clean: safe DOM element insertion with textContent
+function outputUserStatusSecure(statusText) {
+    const div = document.createElement("div");
+    div.textContent = "Status: " + statusText;
+    document.body.appendChild(div);
+}`
+  },
+  {
+    cat: 'A7', id: '043', varSig: 1,
+    vCode: `// Vulnerable: dangerouslySetInnerHTML React properties (OWASP-A7-003)
+function renderDynamicPost(contentStr) {
+    return <div dangerouslySetInnerHTML={{ __html: contentStr }} />;
+}`,
+    cCode: `// Clean: standard React templating values
 function renderDynamicPostSecure(contentStr) {
     return <div>{contentStr}</div>;
 }`
-    }
-  ],
-  'A8': [
-    {
-      id: '01',
-      code: `// Clean: schema verified parsing processes
+  },
+  {
+    cat: 'A7', id: '044', varSig: 2,
+    vCode: `// Vulnerable: dangerouslySetInnerHTML React properties in article banner (OWASP-A7-003)
+function renderArticleBanner(bannerHtml) {
+    return <section dangerouslySetInnerHTML={{ __html: bannerHtml }} className="banner" />;
+}`,
+    cCode: `// Clean: React element children safely interpolating text
+function renderArticleBannerSecure(bannerText) {
+    return <section className="banner">{bannerText}</section>;
+}`
+  },
+
+  // A8: Software and Data Integrity Failures (6 pairs: 045 - 050)
+  {
+    cat: 'A8', id: '045', varSig: 1,
+    vCode: `// Vulnerable: general JSON parsing flagged for safety inspections (OWASP-A8-001)
+function loadSerializedPayload(jsonInput) {
+    return JSON.parse(jsonInput);
+}`,
+    cCode: `// Clean: schema verified parsing processes
 function loadSerializedPayloadSecure(jsonInput) {
     const parsed = JSON.parse(jsonInput);
     return validateSchema(parsed);
 }`
-    },
-    {
-      id: '02',
-      code: `// Clean: creating clean object interfaces
+  },
+  {
+    cat: 'A8', id: '046', varSig: 2,
+    vCode: `// Vulnerable: parsing untrusted configuration JSON without schema check (OWASP-A8-001)
+function parseUserPreferences(rawJson) {
+    return JSON.parse(rawJson);
+}`,
+    cCode: `// Clean: JSON parsing followed by explicit property type validation
+function parseUserPreferencesSecure(rawJson) {
+    const data = JSON.parse(rawJson);
+    return {
+        theme: typeof data.theme === 'string' ? data.theme : 'light',
+        fontSize: typeof data.fontSize === 'number' ? data.fontSize : 14
+    };
+}`
+  },
+  {
+    cat: 'A8', id: '047', varSig: 1,
+    vCode: `// Vulnerable: constructor prototype overrides (OWASP-A8-002)
+function pollutePrototype(target, customKey, value) {
+    target.__proto__[customKey] = value;
+}`,
+    cCode: `// Clean: creating clean object interfaces
 function createCleanProperties() {
     const targetObj = Object.create(null);
     targetObj.safe = true;
     return targetObj;
 }`
-    },
-    {
-      id: '03',
-      code: `// Clean: safe mapping copy operations with prototype property filtering
+  },
+  {
+    cat: 'A8', id: '048', varSig: 2,
+    vCode: `// Vulnerable: constructor prototype pollution via constructor attribute (OWASP-A8-002)
+function updateConstructorPrototype(targetObj, propName, propValue) {
+    targetObj.constructor.prototype[propName] = propValue;
+}`,
+    cCode: `// Clean: Map data structure avoiding Object.prototype pollution
+function createPropertyMapSecure() {
+    const map = new Map();
+    map.set("safe", true);
+    return map;
+}`
+  },
+  {
+    cat: 'A8', id: '049', varSig: 1, // PILOT
+    vCode: `// Vulnerable: Object.assign with untrusted second argument parameters (OWASP-A8-003)
+function mergeConfigurations(defaultConfig, userPayload) {
+    return Object.assign(defaultConfig, userPayload);
+}`,
+    cCode: `// Clean: safe mapping copy operations with prototype property filtering
 function sanitizeInputProperties(obj) {
     if (!obj || typeof obj !== 'object') return {};
     const clean = {};
@@ -473,98 +764,160 @@ function mergeConfigurationsSecure(defaultConfig, userPayload) {
     const sanitizedPayload = sanitizeInputProperties(userPayload);
     return Object.assign({}, defaultConfig, sanitizedPayload);
 }`
+  },
+  {
+    cat: 'A8', id: '050', varSig: 2,
+    vCode: `// Vulnerable: Object.assign copying untrusted options to settings object (OWASP-A8-003)
+function applyUserThemeSettings(baseSettings, untrustedOptions) {
+    return Object.assign(baseSettings, untrustedOptions);
+}`,
+    cCode: `// Clean: strict property picking allowlist preventing prototype pollution
+function applyUserThemeSettingsSecure(baseSettings, untrustedOptions) {
+    const safeOptions = {};
+    const allowedKeys = ['theme', 'accentColor', 'layoutMode'];
+    if (untrustedOptions && typeof untrustedOptions === 'object') {
+        for (const key of allowedKeys) {
+            if (Object.prototype.hasOwnProperty.call(untrustedOptions, key)) {
+                safeOptions[key] = untrustedOptions[key];
+            }
+        }
     }
-  ],
-  'A9': [
-    {
-      id: '01',
-      code: `// Clean: importing safe or patched libraries
-const lodashEs = require("lodash-es");
-const safeParser = require("safe-yaml-parser");
-`
-    }
-  ],
-  'A10': [
-    {
-      id: '01',
-      code: `// Clean: validated remote SSFR calls
-const axios = require('axios');
-const safelistEndpoints = ["https://api.verified.com/v1", "https://api.verified.com/v2"];
-function proxyRemoteResourceSecure(targetUri) {
-    if (safelistEndpoints.includes(targetUri)) {
-        return axios.get(targetUri);
-    }
+    return Object.assign({}, baseSettings, safeOptions);
 }`
-    }
-  ]
-};
+  },
 
-// 3. Generate files
-const isAllMode = process.argv.includes('--all');
-const isPilotMode = process.argv.includes('--pilot') || !isAllMode;
-
-const PILOT_FILES = new Set([
-  'V-A5-027.js', 'C-A5-027.js',
-  'V-A3-023.js', 'C-A3-023.js',
-  'V-A1-007.js', 'C-A1-007.js',
-  'V-A1-009.js', 'C-A1-009.js',
-  'V-A7-039.js', 'C-A7-039.js',
-  'V-A8-049.js', 'C-A8-049.js'
-]);
-
-// Determine line ending (preserve CRLF on Windows or existing samples)
-const EOL = '\r\n';
-
-let vulnerableGeneratedCount = 0;
-let cleanGeneratedCount = 0;
-let pilotWrittenCount = 0;
-
-// Loop over templates and duplicate with numbering variations to reach ~50 vulnerable and ~50 clean files
-const categories = ['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'];
-const filesPerTemplate = 2; // With 28 vulnerable templates * 2 = 56 files, and 28 clean templates * 2 = 56 files.
-
-categories.forEach(cat => {
-  const vList = vulnerableTemplates[cat] || [];
-  const cList = cleanTemplates[cat] || [];
-
-  // Generate Vulnerable variations
-  vList.forEach(template => {
-    for (let i = 1; i <= filesPerTemplate; i++) {
-      const padNum = String(vulnerableGeneratedCount + 1).padStart(3, '0');
-      const filename = `V-${cat}-${padNum}.js`;
-      const normalizedCode = template.code.replace(/\r?\n/g, EOL);
-      const finalCode = `/**${EOL} * Test Vulnerable Sample ${padNum} (${cat})${EOL} * Demonstrates OWASP vulnerabilities.${EOL} */${EOL}${EOL}${normalizedCode}${EOL}${EOL}// Variation signature: #${i}${EOL}`;
-
-      if (!isPilotMode || PILOT_FILES.has(filename)) {
-        fs.writeFileSync(path.join(outputDir, filename), finalCode);
-        if (PILOT_FILES.has(filename)) pilotWrittenCount++;
-      }
-      vulnerableGeneratedCount++;
-    }
-  });
-
-  // Generate Clean variations
-  cList.forEach(template => {
-    for (let i = 1; i <= filesPerTemplate; i++) {
-      const padNum = String(cleanGeneratedCount + 1).padStart(3, '0');
-      const filename = `C-${cat}-${padNum}.js`;
-      const normalizedCode = template.code.replace(/\r?\n/g, EOL);
-      const finalCode = `/**${EOL} * Test Clean Sample ${padNum} (${cat})${EOL} * Safe, compliant implementations.${EOL} */${EOL}${EOL}${normalizedCode}${EOL}${EOL}// Variation signature: #${i}${EOL}`;
-
-      if (!isPilotMode || PILOT_FILES.has(filename)) {
-        fs.writeFileSync(path.join(outputDir, filename), finalCode);
-        if (PILOT_FILES.has(filename)) pilotWrittenCount++;
-      }
-      cleanGeneratedCount++;
-    }
-  });
-});
-
-if (isPilotMode) {
-  console.log(`Phase 04 Batch A Pilot Mode: generated ${pilotWrittenCount} pilot files (6 V/C pairs).`);
-  console.log(`Other 104 files remain unchanged.`);
-} else {
-  console.log(`Successfully generated ${vulnerableGeneratedCount} vulnerable samples.`);
-  console.log(`Successfully generated ${cleanGeneratedCount} clean samples.`);
-  console.log(`Total samples generated: ${vulnerableGeneratedCount + cleanGeneratedCount}`);
+  // A9: Reassigned Browser Weaknesses (former package import advisories) (2 pairs: 051 - 052)
+  {
+    cat: 'A9', id: '051', varSig: 1, // REASSIGNED BROWSER WEAKNESS (former serialize-javascript/yaml import)
+    vCode: `// Vulnerable: storing sensitive bearer token in sessionStorage (CWE-922)
+function persistBearerToken(token) {
+    sessionStorage.setItem("bearer_token", token);
+}`,
+    cCode: `// Clean: transient in-memory token storage preventing persistent web storage exposure
+let memoryBearerToken = null;
+function persistBearerTokenSecure(token) {
+    memoryBearerToken = token;
 }
+function getBearerTokenSecure() {
+    return memoryBearerToken;
+}`
+  },
+  {
+    cat: 'A9', id: '052', varSig: 2, // REASSIGNED BROWSER WEAKNESS (former lodash import)
+    vCode: `// Vulnerable: sensitive authentication token exposed in window URL fragment (CWE-598)
+function publishAccessTokenInUrl(userToken) {
+    window.location.hash = "access_token=" + userToken;
+}`,
+    cCode: `// Clean: token transmitted in memory via authorization request header
+async function requestUserDataSecure(userToken) {
+    const res = await fetch("/api/user/profile", {
+        headers: { "Authorization": "Bearer " + userToken }
+    });
+    return res.json();
+}`
+  },
+
+  // A10: Reassigned Browser Weaknesses (former server-side SSRF) (2 pairs: 053 - 054)
+  {
+    cat: 'A10', id: '053', varSig: 1, // REASSIGNED BROWSER WEAKNESS (former axios.get SSRF)
+    vCode: `// Vulnerable: client-side fetch to arbitrary user-supplied URL with ambient credentials (CWE-20)
+function fetchRemoteData(userProvidedUrl) {
+    return fetch(userProvidedUrl, { credentials: "include" });
+}`,
+    cCode: `// Clean: destination domain verified against allowlist before sending credentials
+const trustedOrigins = ["https://api.verified.com", "https://auth.verified.com"];
+function fetchRemoteDataSecure(targetUrl) {
+    const parsed = new URL(targetUrl, window.location.href);
+    if (trustedOrigins.includes(parsed.origin)) {
+        return fetch(targetUrl, { credentials: "include" });
+    }
+    throw new Error("Untrusted destination origin");
+}`
+  },
+  {
+    cat: 'A10', id: '054', varSig: 2, // REASSIGNED BROWSER WEAKNESS (former axios.get SSRF var 2)
+    vCode: `// Vulnerable: dynamic script inclusion from arbitrary user-controlled URL (CWE-829)
+function loadExternalPlugin(untrustedScriptUrl) {
+    const script = document.createElement("script");
+    script.src = untrustedScriptUrl;
+    document.head.appendChild(script);
+}`,
+    cCode: `// Clean: dynamic script loaded only from trusted CDN with Subresource Integrity verification
+const approvedPluginUrl = "https://cdn.verified.com/plugins/editor.v1.js";
+function loadExternalPluginSecure() {
+    const script = document.createElement("script");
+    script.src = approvedPluginUrl;
+    script.integrity = "sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC";
+    script.crossOrigin = "anonymous";
+    document.head.appendChild(script);
+}`
+  }
+];
+
+// Helper to format sample file content
+function formatFileContent(type, cat, id, varSig, rawCode) {
+  const isV = type === 'V';
+  const label = isV ? 'Vulnerable' : 'Clean';
+  const subDesc = isV ? 'Demonstrates OWASP vulnerabilities.' : 'Safe, compliant implementations.';
+  const normCode = rawCode.replace(/\r?\n/g, EOL);
+  return `/**${EOL} * Test ${label} Sample ${id} (${cat})${EOL} * ${subDesc}${EOL} */${EOL}${EOL}${normCode}${EOL}${EOL}// Variation signature: #${varSig}${EOL}`;
+}
+
+// Generate or check files
+if (!fs.existsSync(targetOutputDir) && !isCheckMode) {
+  fs.mkdirSync(targetOutputDir, { recursive: true });
+}
+
+let generatedCount = 0;
+let matchCount = 0;
+let mismatchCount = 0;
+
+for (const pair of controlledPairs) {
+  const vFileName = `V-${pair.cat}-${pair.id}.js`;
+  const cFileName = `C-${pair.cat}-${pair.id}.js`;
+
+  const shouldProcessV = !isPilotMode || PILOT_FILES.has(vFileName);
+  const shouldProcessC = !isPilotMode || PILOT_FILES.has(cFileName);
+
+  if (shouldProcessV) {
+    const vContent = formatFileContent('V', pair.cat, pair.id, pair.varSig, pair.vCode);
+    const vPath = path.join(targetOutputDir, vFileName);
+
+    if (isCheckMode) {
+      if (fs.existsSync(vPath) && fs.readFileSync(vPath, 'utf8') === vContent) {
+        matchCount++;
+      } else {
+        mismatchCount++;
+      }
+    } else {
+      fs.writeFileSync(vPath, vContent);
+      generatedCount++;
+    }
+  }
+
+  if (shouldProcessC) {
+    const cContent = formatFileContent('C', pair.cat, pair.id, pair.varSig, pair.cCode);
+    const cPath = path.join(targetOutputDir, cFileName);
+
+    if (isCheckMode) {
+      if (fs.existsSync(cPath) && fs.readFileSync(cPath, 'utf8') === cContent) {
+        matchCount++;
+      } else {
+        mismatchCount++;
+      }
+    } else {
+      fs.writeFileSync(cPath, cContent);
+      generatedCount++;
+    }
+  }
+}
+
+if (isCheckMode) {
+  console.log(`Check Mode: ${matchCount} matches, ${mismatchCount} mismatches out of ${matchCount + mismatchCount} checked.`);
+} else if (isPilotMode) {
+  console.log(`Pilot Mode: successfully generated ${generatedCount} pilot files.`);
+} else {
+  console.log(`Batch B: successfully generated ${generatedCount} controlled files (54 V, 54 C). Eight scenario files untouched.`);
+}
+
+module.exports = { controlledPairs, PILOT_FILES, formatFileContent };

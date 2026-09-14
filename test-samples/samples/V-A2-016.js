@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: insecure cookie properties (OWASP-A2-003)
-function createSessionCookie(userId) {
-    document.cookie = "session=" + userId + "; path=/;";
+// Vulnerable: insecure cookie token storage (OWASP-A2-003)
+function storeAuthCookie(authToken) {
+    document.cookie = "auth_token=" + authToken + "; path=/;";
 }
 
 // Variation signature: #2

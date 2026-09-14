@@ -3,9 +3,9 @@
  * Safe, compliant implementations.
  */
 
-// Clean: cookies configured with secure properties
-function createSessionCookieSecure(userId) {
-    document.cookie = "session=" + userId + "; path=/; Secure; HttpOnly; SameSite=Strict;";
+// Clean: non-sensitive UI preference cookie with Secure and SameSite attributes (no false HttpOnly write)
+function storeUiPreferenceCookieSecure(themeName) {
+    document.cookie = "ui_theme=" + encodeURIComponent(themeName) + "; path=/; Secure; SameSite=Strict;";
 }
 
 // Variation signature: #2

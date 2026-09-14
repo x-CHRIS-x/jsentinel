@@ -3,10 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: importing outdated packages (OWASP-A9-001)
-const serialize = require("serialize-javascript");
-const yaml = require("js-yaml");
-const lodash = require("lodash");
-
+// Vulnerable: sensitive authentication token exposed in window URL fragment (CWE-598)
+function publishAccessTokenInUrl(userToken) {
+    window.location.hash = "access_token=" + userToken;
+}
 
 // Variation signature: #2

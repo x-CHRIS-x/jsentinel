@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: eval usage (OWASP-A1-001)
-function executeCode(userInput) {
-    eval("console.log('Result: ' + " + userInput + ");");
+// Vulnerable: dynamic arithmetic expression evaluated via eval (OWASP-A1-001)
+function calculateFormula(userFormula) {
+    return eval("3 * (" + userFormula + ")");
 }
 
 // Variation signature: #2

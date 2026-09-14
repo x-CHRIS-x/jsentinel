@@ -3,10 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: standard text nodes created safely
-function writeOutputSnippetSecure(content) {
-    const node = document.createTextNode(content);
-    document.body.appendChild(node);
+// Clean: safe DOM element insertion with textContent
+function outputUserStatusSecure(statusText) {
+    const div = document.createElement("div");
+    div.textContent = "Status: " + statusText;
+    document.body.appendChild(div);
 }
 
 // Variation signature: #2

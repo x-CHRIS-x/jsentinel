@@ -3,9 +3,9 @@
  * Safe, compliant implementations.
  */
 
-// Clean: logging specific properties
-function debugGatewaySecure(req) {
-    console.log("Request incoming path:", req.path);
+// Clean: logging only specific non-sensitive status code
+function auditLoginContextSecure(statusCode) {
+    console.error("Authentication failure error code:", statusCode);
 }
 
 // Variation signature: #2

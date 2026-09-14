@@ -3,10 +3,10 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: hardcoded credential variables (OWASP-A2-001)
-const adminAuthPassword = "SuperSecretFallbackPassword2026!";
-function loginMaster(pwd) {
-    return pwd === adminAuthPassword;
+// Vulnerable: hardcoded recovery secret password (OWASP-A2-001)
+const recoveryAuthKey = "EmergencyRestoreKey#9876543210";
+function verifyEmergencyAccess(providedKey) {
+    return providedKey === recoveryAuthKey;
 }
 
 // Variation signature: #2

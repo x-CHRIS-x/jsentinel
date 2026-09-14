@@ -3,9 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: passing callback reference directly
-function scheduleTaskSecure(callbackFn, delay) {
-    setTimeout(callbackFn, delay);
+// Clean: passing callback function reference to setTimeout
+function scheduleTaskSecure(taskFn, delay) {
+    if (typeof taskFn === 'function') {
+        setTimeout(taskFn, delay);
+    }
 }
 
 // Variation signature: #1

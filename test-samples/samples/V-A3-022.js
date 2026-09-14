@@ -3,9 +3,8 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: hardcoded cryptographic token signatures (OWASP-A3-001)
-const AWS_ACCESS_SECRET = "AKIAIOSFODNN7EXAMPLE";
-const STATIC_JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ";
-
+// Vulnerable: hardcoded payment gateway secret keys (OWASP-A3-001)
+const STRIPE_SECRET_KEY = "sk_live_51Abc123Def456Ghi789Jkl012Mno345";
+const PRIVATE_JWT_SIGNATURE = "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCJ9.ab12cd34ef56gh78";
 
 // Variation signature: #2

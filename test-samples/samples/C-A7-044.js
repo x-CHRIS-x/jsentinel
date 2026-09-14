@@ -3,9 +3,9 @@
  * Safe, compliant implementations.
  */
 
-// Clean: standard React templating values
-function renderDynamicPostSecure(contentStr) {
-    return <div>{contentStr}</div>;
+// Clean: React element children safely interpolating text
+function renderArticleBannerSecure(bannerText) {
+    return <section className="banner">{bannerText}</section>;
 }
 
 // Variation signature: #2

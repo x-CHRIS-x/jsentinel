@@ -3,9 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: textContent prevents HTML execution injections
-function loadUserBadgeSecure(element, badgeHtml) {
-    element.textContent = badgeHtml;
+// Clean: safe DOM node creation with textContent assignment
+function renderUserCommentSecure(container, commentText) {
+    const p = document.createElement("p");
+    p.textContent = commentText;
+    container.replaceChildren(p);
 }
 
 // Variation signature: #2

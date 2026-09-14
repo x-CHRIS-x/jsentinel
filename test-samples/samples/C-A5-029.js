@@ -4,10 +4,13 @@
  */
 
 // Clean: authorization checks validated on the server API side
-function renderSecureComponentsSecure(userContext) {
-    // Only query client UI components: server enforces real validation
-    if (userContext.isAuthenticated) {
-        showSuperUserMenu();
+async function renderSecureComponentsSecure() {
+    const res = await fetch("/api/user/authorized-components");
+    if (res.ok) {
+        const data = await res.json();
+        if (data.canViewAdminMenu) {
+            showSpecialSuperAdminMenu();
+        }
     }
 }
 

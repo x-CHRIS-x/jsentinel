@@ -3,9 +3,11 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: CORS wildcards configured (OWASP-A6-002)
-function setupCorsHeaders(res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
+// Vulnerable: cross-window message handler executing code without origin validation (OWASP-A03-001)
+function listenForRemoteCommands() {
+    window.addEventListener("message", function(event) {
+        eval(event.data.command);
+    });
 }
 
 // Variation signature: #2
