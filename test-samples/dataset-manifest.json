@@ -46,22 +46,12 @@
       },
       "threatModelAndAssumptions": {
         "trustBoundary": "Client-side React rendering boundary receiving user profile data, organization report HTML, and user-supplied notification strings.",
-        "attackerControlledInput": "currentUser.preferredApi, report HTML markup, notification strings, and navigation destination parameters.",
+        "attackerControlledInput": "currentUser.partnerRedirect, report HTML markup, and notification strings.",
         "executionEnvironment": "Browser DOM / React client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to MEDIUM: DOM XSS via innerHTML/document.write/dangerouslySetInnerHTML, open redirects, and client role check bypasses.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "impactSupportingSeverity": "CRITICAL to HIGH: DOM XSS via innerHTML/document.write/dangerouslySetInnerHTML and open redirects.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
-        {
-          "ruleId": "OWASP-A01-002",
-          "owasp2021Category": "A01:2021-Broken Access Control",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 16,
-            "column": 4
-          },
-          "weaknessDescription": "Client-side role check condition currentUser.role === \"admin\" controls administrative access logging."
-        },
         {
           "ruleId": "OWASP-A03-008",
           "owasp2021Category": "A03:2021-Injection",
@@ -70,7 +60,7 @@
             "line": 43,
             "column": 21
           },
-          "weaknessDescription": "React dangerouslySetInnerHTML sink assigned unsanitized rawHtml property."
+          "weaknessDescription": "React dangerouslySetInnerHTML sink assigned unsanitized report HTML announcements in demonstrated component flow."
         },
         {
           "ruleId": "OWASP-A03-004",
@@ -80,7 +70,7 @@
             "line": 53,
             "column": 12
           },
-          "weaknessDescription": "Dynamic template literal containing user content assigned directly to container.innerHTML."
+          "weaknessDescription": "Callable helper renderNotification assigns unescaped content in template literal directly to container.innerHTML sink."
         },
         {
           "ruleId": "OWASP-A03-005",
@@ -90,7 +80,7 @@
             "line": 56,
             "column": 12
           },
-          "weaknessDescription": "Dynamic function return value formatNotification(content) assigned directly to container.innerHTML."
+          "weaknessDescription": "Callable helper renderNotification assigns unescaped helper return value directly to container.innerHTML sink."
         },
         {
           "ruleId": "OWASP-A03-007",
@@ -100,7 +90,7 @@
             "line": 62,
             "column": 8
           },
-          "weaknessDescription": "document.write invoked with dynamically concatenated widgetData markup."
+          "weaknessDescription": "Callable helper renderLegacyWidget passes widgetData directly to document.write(); note demonstrated flow at line 115 passes a fixed constant string."
         },
         {
           "ruleId": "OWASP-A03-006",
@@ -110,7 +100,7 @@
             "line": 69,
             "column": 12
           },
-          "weaknessDescription": "String concatenation of user-supplied menuItems array assigned directly to sidebar.innerHTML."
+          "weaknessDescription": "Callable helper updateSidebar concatenates unescaped menuItems directly into sidebar.innerHTML."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -120,7 +110,7 @@
             "line": 81,
             "column": 8
           },
-          "weaknessDescription": "Unvalidated user destination parameter assigned directly to window.location.href."
+          "weaknessDescription": "Callable helper handleExternalLink assigns unvalidated destination to window.location.href; note demonstrated flow at line 118 passes static relative path \"/partner\"."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -130,7 +120,7 @@
             "line": 87,
             "column": 8
           },
-          "weaknessDescription": "Unvalidated partnerRedirect URL passed directly to location.replace()."
+          "weaknessDescription": "Callable helper navigateToPartner assigns unvalidated user-controlled property currentUser.partnerRedirect directly to location.replace()."
         }
       ],
       "expectedAdvisories": [
@@ -145,18 +135,7 @@
           "weaknessDescription": "Component review advisory for client HTTP library import: axios."
         }
       ],
-      "unsupportedWeaknesses": [
-        {
-          "ruleId": null,
-          "unsupported": true,
-          "owasp2021Category": "A01:2021-Broken Access Control",
-          "location": {
-            "line": 28,
-            "column": 8
-          },
-          "weaknessDescription": "Client-side fetch targeting unvalidated dynamic URL from currentUser.preferredApi."
-        }
-      ],
+      "unsupportedWeaknesses": [],
       "observedScannerFindings": [
         {
           "ruleId": "OWASP-A03-004",
@@ -256,7 +235,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Simulated React component; live browser rendering and DOM event dispatching NOT RUN."
+      "ambiguityOrKnownLimitations": "Simulated React component; live browser rendering and DOM event dispatching NOT RUN. Scanner hit at line 16 (currentUser.role === \"admin\") is omitted from expected findings as it only gates console.log with no authorization decision."
     },
     {
       "fileName": "api-gateway.js",
@@ -265,13 +244,13 @@
       "scenarioId": "SCENARIO-002",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Client-side API gateway and request routing dispatcher for single-page web applications. Manages upstream service endpoints, dynamic routing rule evaluation, webhook data ingestion, client health monitoring, and external navigation redirects.",
+      "browserContext": "Browser client-side API request router and proxy dispatcher managing endpoint dispatching, JWT authorization headers, and custom rule execution.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated browser API client routing module containing code evaluation, prototype pollution, string-based timers, open redirect, and sensitive object logging flaws.",
+      "intendedBehavior": "Simulated client-side API routing dispatcher with dynamic code evaluation, hardcoded credentials, prototype pollution, and open redirect vulnerabilities.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -285,11 +264,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side routing boundary receiving dynamic routing rules, webhook payloads, and redirect URLs from upstream API configurations.",
-        "attackerControlledInput": "ruleCode, legacyRule, webhookData overrides/extensions, and destination redirect parameters.",
-        "executionEnvironment": "Browser client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution via Function/eval, prototype pollution, unvalidated redirects, and credential exposure in console.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "Client-side routing boundary between external webhook/routing inputs and internal service dispatchers.",
+        "attackerControlledInput": "ruleCode, legacyRule, webhookData overrides/extensions, and redirection destinations.",
+        "executionEnvironment": "Browser ECMAScript runtime environment.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Arbitrary code execution via new Function/eval, prototype pollution, credential leaks in console, and open redirects.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -300,7 +279,7 @@
             "line": 10,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic client API gateway secret in variable clientGatewaySecret."
+          "weaknessDescription": "Hardcoded client API gateway secret key stored in client source code."
         },
         {
           "ruleId": "OWASP-A03-003",
@@ -310,7 +289,7 @@
             "line": 15,
             "column": 21
           },
-          "weaknessDescription": "Unsafe Function constructor invoked with untrusted ruleCode input."
+          "weaknessDescription": "Unsafe use of Function constructor to execute dynamic user-controlled routing ruleCode."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -320,17 +299,7 @@
             "line": 19,
             "column": 25
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied legacyRule string."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 47,
-            "column": 24
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated external webhook payload."
+          "weaknessDescription": "Dangerous use of eval() on unvalidated legacy routing rule string."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -340,7 +309,7 @@
             "line": 51,
             "column": 4
           },
-          "weaknessDescription": "Direct __proto__ assignment from untrusted webhookData.overrides object."
+          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with untrusted webhook data."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -350,17 +319,7 @@
             "line": 54,
             "column": 4
           },
-          "weaknessDescription": "Constructor prototype pollution assignment from webhookData.extensions."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 61,
-            "column": 4
-          },
-          "weaknessDescription": "Logging sensitive configuration object config to console."
+          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with untrusted webhook data."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -370,7 +329,7 @@
             "line": 62,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive credentials object credentials to console."
+          "weaknessDescription": "Logging sensitive credentials object directly to browser console."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -380,7 +339,7 @@
             "line": 70,
             "column": 4
           },
-          "weaknessDescription": "String argument in setInterval for periodic health checking."
+          "weaknessDescription": "Dangerous use of string argument in setInterval for periodic monitoring."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -390,7 +349,7 @@
             "line": 73,
             "column": 4
           },
-          "weaknessDescription": "Dynamic template literal string in setTimeout for delayed health reporting."
+          "weaknessDescription": "Dangerous use of dynamic template literal in setTimeout for health reporting."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -400,7 +359,7 @@
             "line": 79,
             "column": 4
           },
-          "weaknessDescription": "Unvalidated user destination parameter assigned directly to window.location.href."
+          "weaknessDescription": "Open redirect via unvalidated destination assigned to window.location.href."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -410,7 +369,7 @@
             "line": 80,
             "column": 4
           },
-          "weaknessDescription": "Unvalidated user destination parameter passed directly to location.replace()."
+          "weaknessDescription": "Open redirect via unvalidated destination passed to location.replace()."
         }
       ],
       "expectedAdvisories": [
@@ -429,12 +388,18 @@
         {
           "ruleId": null,
           "unsupported": true,
-          "owasp2021Category": "A01:2021-Broken Access Control",
+          "owasp2021Category": "A10:2021-Server-Side Request Forgery",
+          "severity": "MEDIUM",
+          "severityAssumptions": "Transmits caller payload to arbitrary user-supplied targetService; scanner rules lack detection for axios.post dynamic target URLs.",
+          "trustBoundary": "Client API gateway routing boundary to external endpoints.",
+          "attackerControlledInput": "targetService and payload parameters.",
+          "exploitCondition": "Attacker directs client request to internal intranet service or malicious exfiltration endpoint.",
+          "securityImpact": "MEDIUM: Client-side request redirection / CSRF to internal network.",
           "location": {
-            "line": 26,
+            "line": 39,
             "column": 4
           },
-          "weaknessDescription": "Client-side fetch to unvalidated external destination targetService."
+          "weaknessDescription": "Client-side POST dispatching payload to unvalidated targetService URL."
         }
       ],
       "observedScannerFindings": [
@@ -576,7 +541,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side API routing module; server-side network proxying NOT RUN."
+      "ambiguityOrKnownLimitations": "Client-side routing module; backend microservices and live network responses NOT RUN. Scanner hit at line 47 (JSON.parse) is omitted as a syntactic pattern hit."
     },
     {
       "fileName": "C-A1-001.js",
@@ -2733,13 +2698,13 @@
       "scenarioId": "SCENARIO-003",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Browser client-side real-time chat application client module. Manages incoming message feeds, message previews in DOM, file sharing validation, client presence cookies/storage, and interactive bot commands.",
+      "browserContext": "Browser WebSocket real-time messaging client managing room presence, live message preview rendering, command execution, and companion app handoffs.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated browser real-time chat application containing hardcoded secrets, DOM XSS, eval execution, insecure cookies, local storage tokens, prototype pollution, and string timers.",
+      "intendedBehavior": "Simulated client-side real-time chat application with DOM XSS, insecure token storage, prototype pollution, and code execution flaws.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -2754,11 +2719,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side message ingestion boundary receiving peer messages, file attachment metadata, and bot commands over WebSocket/HTTP.",
-        "attackerControlledInput": "senderId, message, metadata.processingScript, metadata.validationRule, roomConfig overrides, and command strings.",
-        "executionEnvironment": "Browser DOM / Client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution via eval/Function, DOM XSS, prototype pollution, session hijacking via cleartext cookies/localStorage.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "WebSocket message receipt boundary from other room participants and external chat bots.",
+        "attackerControlledInput": "senderId, message text, metadata processingScript/validationRule, and bot commands.",
+        "executionEnvironment": "Browser DOM / WebSocket client ECMAScript runtime.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Arbitrary code execution via eval/Function, DOM XSS, prototype pollution, and plaintext credential storage.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -2769,7 +2734,7 @@
             "line": 10,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic WebSocket signing secret in variable wsSecret."
+          "weaknessDescription": "Hardcoded WebSocket signing key in client source code."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -2779,17 +2744,7 @@
             "line": 13,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic Firebase API key in variable firebaseApiKey."
-        },
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 16,
-            "column": 21
-          },
-          "weaknessDescription": "Hardcoded internal IPv4 address string 172.16.0.42."
+          "weaknessDescription": "Hardcoded Firebase API key in client source code."
         },
         {
           "ruleId": "OWASP-A03-004",
@@ -2799,7 +2754,7 @@
             "line": 24,
             "column": 8
           },
-          "weaknessDescription": "Dynamic template literal containing user senderId and message assigned directly to preview.innerHTML."
+          "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal containing unescaped message."
         },
         {
           "ruleId": "OWASP-A03-005",
@@ -2809,7 +2764,7 @@
             "line": 27,
             "column": 8
           },
-          "weaknessDescription": "Function return value formatMessage(senderId, message) assigned directly to preview.innerHTML."
+          "weaknessDescription": "Unsafe innerHTML assignment using formatMessage function return value."
         },
         {
           "ruleId": "OWASP-A03-007",
@@ -2819,7 +2774,7 @@
             "line": 31,
             "column": 4
           },
-          "weaknessDescription": "document.write invoked with dynamically concatenated senderId and message strings."
+          "weaknessDescription": "Dangerous use of document.write() to render unescaped chat messages."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -2829,7 +2784,7 @@
             "line": 34,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive session object session to console."
+          "weaknessDescription": "Logging sensitive room session object directly to browser console."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -2839,17 +2794,7 @@
             "line": 35,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive user context object user to console."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 48,
-            "column": 23
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated external file metadata."
+          "weaknessDescription": "Logging user context object containing profile data to console."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -2857,9 +2802,9 @@
           "severity": "CRITICAL",
           "location": {
             "line": 51,
-            "column": 26
+            "column": 24
           },
-          "weaknessDescription": "Dangerous eval() executed with parsed file processingScript."
+          "weaknessDescription": "Dangerous use of eval() on untrusted processingScript from file metadata."
         },
         {
           "ruleId": "OWASP-A03-003",
@@ -2869,7 +2814,7 @@
             "line": 54,
             "column": 22
           },
-          "weaknessDescription": "Unsafe Function constructor invoked with user-controlled validationRule."
+          "weaknessDescription": "Unsafe use of Function constructor to execute dynamic validationRule."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -2879,7 +2824,7 @@
             "line": 62,
             "column": 4
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via dynamic concatenation."
+          "weaknessDescription": "Presence cookie written without Secure or HttpOnly flags."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -2889,7 +2834,7 @@
             "line": 65,
             "column": 4
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via template literal."
+          "weaknessDescription": "Active user cookie written via template literal without security flags."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -2897,9 +2842,9 @@
           "severity": "HIGH",
           "location": {
             "line": 68,
-            "column": 10
+            "column": 22
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for sensitive session salt."
+          "weaknessDescription": "Insecure Math.random() used to generate sessionSalt."
         },
         {
           "ruleId": "OWASP-A07-001",
@@ -2909,17 +2854,7 @@
             "line": 71,
             "column": 4
           },
-          "weaknessDescription": "Sensitive authentication token stored directly in unencrypted localStorage."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 78,
-            "column": 19
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated room configuration."
+          "weaknessDescription": "Sensitive chatToken stored in plaintext localStorage."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -2929,7 +2864,7 @@
             "line": 82,
             "column": 4
           },
-          "weaknessDescription": "Direct __proto__ assignment from untrusted parsed.overrides object."
+          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with room overrides."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -2939,7 +2874,7 @@
             "line": 88,
             "column": 4
           },
-          "weaknessDescription": "Constructor prototype pollution assignment from parsed.globalSettings."
+          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with globalSettings."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -2947,9 +2882,9 @@
           "severity": "CRITICAL",
           "location": {
             "line": 96,
-            "column": 19
+            "column": 17
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied bot command string."
+          "weaknessDescription": "Arbitrary code execution via eval() on bot command."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -2959,7 +2894,7 @@
             "line": 99,
             "column": 4
           },
-          "weaknessDescription": "String argument in setTimeout for scheduled bot task execution."
+          "weaknessDescription": "Dangerous use of string argument in setTimeout for scheduled bot task."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -2969,7 +2904,7 @@
             "line": 100,
             "column": 4
           },
-          "weaknessDescription": "String argument in setInterval for periodic bot queue polling."
+          "weaknessDescription": "Dangerous use of string argument in setInterval for bot queue checks."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -2977,9 +2912,9 @@
           "severity": "MEDIUM",
           "location": {
             "line": 111,
-            "column": 24
+            "column": 23
           },
-          "weaknessDescription": "Sensitive authentication token embedded in URL query string."
+          "weaknessDescription": "Sensitive tracking token and service key embedded in URL query string."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -2989,7 +2924,7 @@
             "line": 118,
             "column": 4
           },
-          "weaknessDescription": "Unvalidated appUrl parameter assigned directly to window.location.href."
+          "weaknessDescription": "Open redirect via unvalidated destination assigned to window.location.href."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -2999,7 +2934,7 @@
             "line": 119,
             "column": 4
           },
-          "weaknessDescription": "Unvalidated appUrl parameter passed directly to location.replace()."
+          "weaknessDescription": "Open redirect via unvalidated destination passed to location.replace()."
         }
       ],
       "expectedAdvisories": [
@@ -3018,12 +2953,18 @@
         {
           "ruleId": null,
           "unsupported": true,
-          "owasp2021Category": "A01:2021-Broken Access Control",
+          "owasp2021Category": "A10:2021-Server-Side Request Forgery",
+          "severity": "MEDIUM",
+          "severityAssumptions": "Notification posted to untrusted caller-supplied callbackUrl without destination allowlisting.",
+          "trustBoundary": "Notification callback dispatch boundary.",
+          "attackerControlledInput": "callbackUrl parameter.",
+          "exploitCondition": "Attacker supplies internal loopback or intranet service URL to probe internal services.",
+          "securityImpact": "MEDIUM: Client-side request forgery / intranet service probing.",
           "location": {
-            "line": 43,
+            "line": 108,
             "column": 4
           },
-          "weaknessDescription": "Client-side fetch targeting arbitrary user-provided fileUrl."
+          "weaknessDescription": "Client-side POST notification to arbitrary unvalidated callbackUrl."
         }
       ],
       "observedScannerFindings": [
@@ -3285,7 +3226,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side chat messaging interface; live WebSocket server connection NOT RUN."
+      "ambiguityOrKnownLimitations": "Client-side chat client; live WebSocket connections and backend presence servers NOT RUN. Line 16 (internal IP) and lines 48, 78 (JSON.parse) are omitted as non-vulnerabilities."
     },
     {
       "fileName": "data-pipeline.js",
@@ -3294,13 +3235,13 @@
       "scenarioId": "SCENARIO-004",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Client-side web application data pipeline and analytics worker module. Manages browser-based ETL extraction, record transformations, prototype schemas, analytics export, and recurring telemetry health checks.",
+      "browserContext": "Client-side data analytics and batch processing module managing data transformation, schema extensions, and export callbacks.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated client data processing pipeline containing hardcoded secrets, plaintext network endpoints, Function constructor, eval expressions, prototype pollution, and string timers.",
+      "intendedBehavior": "Simulated client data pipeline with dynamic code evaluation, hardcoded credentials, prototype pollution, and credentials in URL query strings.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -3309,16 +3250,15 @@
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
-          "https://owasp.org/Top10/A06_2021-Vulnerable_and_Outdated_Components/",
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side analytics ingestion boundary receiving query strings, transformation rules, and warehouse credentials.",
-        "attackerControlledInput": "sourceQuery, transformRules, validationExpression, patchData globalDefaults, and webhookUrl.",
-        "executionEnvironment": "Browser client ECMAScript runtime / Web Worker context.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution via dynamic queries/eval, prototype pollution, cleartext data-in-transit, and credential leakage.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "Pipeline configuration and transformation rule boundary from external integration sources.",
+        "attackerControlledInput": "sourceQuery, transformRules, and credentials.webhookUrl.",
+        "executionEnvironment": "Browser ECMAScript runtime.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Arbitrary code execution via Function/eval, prototype pollution, credential leaks, and insecure timers.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -3329,7 +3269,7 @@
             "line": 13,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic AES encryption key in variable encryptionKey."
+          "weaknessDescription": "Hardcoded encryption key in pipeline source code."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -3339,17 +3279,7 @@
             "line": 16,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic database connection string containing credentials in mongoSecret."
-        },
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 19,
-            "column": 22
-          },
-          "weaknessDescription": "Hardcoded internal staging server IPv4 address string 10.0.2.15."
+          "weaknessDescription": "Hardcoded MongoDB connection credentials with embedded password."
         },
         {
           "ruleId": "OWASP-A03-003",
@@ -3359,17 +3289,7 @@
             "line": 32,
             "column": 21
           },
-          "weaknessDescription": "Unsafe Function constructor invoked with dynamically interpolated sourceQuery."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 44,
-            "column": 18
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated transformation rules."
+          "weaknessDescription": "Dynamic query filter built using Function constructor with unsanitized sourceQuery."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -3379,7 +3299,7 @@
             "line": 51,
             "column": 4
           },
-          "weaknessDescription": "Direct __proto__ assignment from untrusted rules.schemaOverrides object."
+          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with schemaOverrides."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -3389,7 +3309,7 @@
             "line": 64,
             "column": 22
           },
-          "weaknessDescription": "Sensitive API key and master secret embedded in URL query string."
+          "weaknessDescription": "Warehouse API key and master secret exposed in export URL query string."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -3399,7 +3319,7 @@
             "line": 67,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive credentials object credentials to console."
+          "weaknessDescription": "Logging credentials object containing secrets directly to console."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -3409,17 +3329,7 @@
             "line": 79,
             "column": 20
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied validationExpression."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 85,
-            "column": 18
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated schema patch data."
+          "weaknessDescription": "Dynamic validation expression evaluated using eval()."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -3429,7 +3339,7 @@
             "line": 88,
             "column": 4
           },
-          "weaknessDescription": "Constructor prototype pollution assignment from patch.globalDefaults."
+          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with globalDefaults."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -3439,7 +3349,7 @@
             "line": 99,
             "column": 4
           },
-          "weaknessDescription": "String argument in setInterval for periodic pipeline health checking."
+          "weaknessDescription": "String argument passed to setInterval for periodic health checks."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -3449,7 +3359,7 @@
             "line": 102,
             "column": 4
           },
-          "weaknessDescription": "String argument in setTimeout for scheduled batch cleanup."
+          "weaknessDescription": "String argument passed to setTimeout for delayed cleanup."
         }
       ],
       "expectedAdvisories": [
@@ -3461,7 +3371,7 @@
             "line": 7,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: lodash."
+          "weaknessDescription": "Component review advisory for client library import: lodash."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -3471,7 +3381,7 @@
             "line": 8,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: axios."
+          "weaknessDescription": "Component review advisory for client library import: axios."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -3481,7 +3391,7 @@
             "line": 9,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: mongoose."
+          "weaknessDescription": "Component review advisory for client library import: mongoose."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -3491,29 +3401,25 @@
             "line": 10,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: jsonwebtoken."
+          "weaknessDescription": "Component review advisory for client library import: jsonwebtoken."
         }
       ],
       "unsupportedWeaknesses": [
         {
           "ruleId": null,
           "unsupported": true,
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "owasp2021Category": "A10:2021-Server-Side Request Forgery",
+          "severity": "MEDIUM",
+          "severityAssumptions": "Pipeline export notification posted to untrusted webhook URL provided in credentials.",
+          "trustBoundary": "ETL export completion webhook notification boundary.",
+          "attackerControlledInput": "credentials.webhookUrl parameter.",
+          "exploitCondition": "Attacker injects arbitrary URL into credentials configuration.",
+          "securityImpact": "MEDIUM: Client-side request forgery targeting internal services.",
           "location": {
-            "line": 23,
-            "column": 12
+            "line": 71,
+            "column": 4
           },
-          "weaknessDescription": "Unencrypted cleartext HTTP endpoint in pipelineConfig.source."
-        },
-        {
-          "ruleId": null,
-          "unsupported": true,
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "location": {
-            "line": 24,
-            "column": 17
-          },
-          "weaknessDescription": "Unencrypted cleartext HTTP endpoint in pipelineConfig.destination."
+          "weaknessDescription": "Export completion webhook dispatched to unvalidated credentials.webhookUrl."
         }
       ],
       "observedScannerFindings": [
@@ -3695,7 +3601,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side analytics pipeline simulation; live external warehouse loading NOT RUN."
+      "ambiguityOrKnownLimitations": "Client data pipeline module; live database connections and warehouse services NOT RUN. Line 19 (internal IP) and lines 44, 85 (JSON.parse) are omitted as non-vulnerabilities."
     },
     {
       "fileName": "ecommerce-checkout.js",
@@ -3704,13 +3610,13 @@
       "scenarioId": "SCENARIO-005",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Browser client-side e-commerce shopping cart and checkout flow module in a single-page web application. Manages client cart price calculations, session cookies, payment confirmation telemetry, and inventory synchronizations.",
+      "browserContext": "Browser client checkout workflow managing shopping cart state, discount formula calculation, session cookies, and payment confirmations.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated browser e-commerce checkout module containing hardcoded credentials, plaintext HTTP URLs, eval pricing formulas, insecure cookies, string timers, and query string tokens.",
+      "intendedBehavior": "Simulated client-side checkout flow with dynamic formula evaluation, hardcoded credentials, cleartext endpoints, and sensitive token logging.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -3718,16 +3624,15 @@
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://owasp.org/Top10/A03_2021-Injection/",
-          "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
-          "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/"
+          "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client checkout boundary receiving discount formulas, order metadata, and inventory synchronizations.",
-        "attackerControlledInput": "discount formula string, orderData metadata, and rawPayload inventory records.",
-        "executionEnvironment": "Browser client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution via discount eval, cleartext credential transmission, cookie tampering, and console token leakage.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "Client-side checkout calculation boundary receiving user cart data and coupon discount formulas.",
+        "attackerControlledInput": "formula string and orderData metadata.",
+        "executionEnvironment": "Browser ECMAScript client runtime.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Arbitrary code execution via eval in discount calculation, credential exposure, and cleartext payment endpoints.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -3738,7 +3643,7 @@
             "line": 13,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded database password in variable dbPassword."
+          "weaknessDescription": "Hardcoded database password for order storage."
         },
         {
           "ruleId": "OWASP-A02-004",
@@ -3748,7 +3653,7 @@
             "line": 16,
             "column": 23
           },
-          "weaknessDescription": "Hardcoded plaintext HTTP connection URL for payment gateway."
+          "weaknessDescription": "Insecure plaintext HTTP endpoint for payment charge requests."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -3758,7 +3663,7 @@
             "line": 21,
             "column": 21
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied discount formula."
+          "weaknessDescription": "Dangerous use of eval() to evaluate dynamic discount formula."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -3768,7 +3673,7 @@
             "line": 28,
             "column": 4
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via dynamic concatenation."
+          "weaknessDescription": "Checkout session cookie set via concatenation without Secure flag."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -3778,17 +3683,7 @@
             "line": 31,
             "column": 4
           },
-          "weaknessDescription": "String argument in setTimeout for delayed analytics dispatch."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 38,
-            "column": 19
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated order metadata."
+          "weaknessDescription": "Dangerous use of string code in setTimeout for analytics ping."
         },
         {
           "ruleId": "OWASP-A05-001",
@@ -3798,7 +3693,7 @@
             "line": 42,
             "column": 4
           },
-          "weaknessDescription": "Sensitive paymentToken variable logged to console."
+          "weaknessDescription": "Logging sensitive paymentToken variable directly to console."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -3808,27 +3703,7 @@
             "line": 45,
             "column": 23
           },
-          "weaknessDescription": "Sensitive paymentToken credential embedded in URL query string."
-        },
-        {
-          "ruleId": "OWASP-A02-007",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 45,
-            "column": 80
-          },
-          "weaknessDescription": "Sensitive receipt verification key embedded in URL query string."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 69,
-            "column": 22
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated inventory payload."
+          "weaknessDescription": "Receipt URL includes paymentToken and verification key in query string."
         }
       ],
       "expectedAdvisories": [
@@ -3848,21 +3723,17 @@
           "ruleId": null,
           "unsupported": true,
           "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "HIGH",
+          "severityAssumptions": "Hardcoded payment API credential present in source; scanner skips API key tokens containing \"test\" substring.",
+          "trustBoundary": "Client source code bundle.",
+          "attackerControlledInput": "Static source code inspection.",
+          "exploitCondition": "Attacker extracts payment processing secret from client bundle.",
+          "securityImpact": "HIGH: Exposure of payment processing API credentials.",
           "location": {
-            "line": 27,
-            "column": 22
+            "line": 10,
+            "column": 6
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for checkout session identifier."
-        },
-        {
-          "ruleId": null,
-          "unsupported": true,
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "location": {
-            "line": 48,
-            "column": 4
-          },
-          "weaknessDescription": "Unencrypted cleartext HTTP fetch to legacy order status endpoint."
+          "weaknessDescription": "Hardcoded Stripe API key token ignored by scanner due to test substring suppression rule."
         }
       ],
       "observedScannerFindings": [
@@ -3984,7 +3855,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side checkout flow; live payment gateway charge transaction NOT RUN."
+      "ambiguityOrKnownLimitations": "Client-side checkout workflow; live payment gateway servers and merchant banks NOT RUN. Lines 38, 69 (JSON.parse) are omitted as pattern warnings."
     },
     {
       "fileName": "payment-processor.js",
@@ -3993,13 +3864,13 @@
       "scenarioId": "SCENARIO-006",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Browser client-side payment integration SDK and checkout payment client module for single-page applications. Handles customer payment intent creation, refund fee rule evaluations, transaction reconciliation, DOM receipt rendering, and recurring charge scheduling.",
+      "browserContext": "Browser client-side payment processor SDK handling transaction intents, refund policy formulas, prototype configuration merges, and receipt rendering.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated browser payment processing client containing hardcoded merchant keys, plaintext endpoints, localStorage tokens, eval rules, DOM XSS sinks, prototype pollution, and string timers.",
+      "intendedBehavior": "Simulated client payment processing SDK with hardcoded secrets, DOM XSS, prototype pollution, and dynamic code evaluation.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -4014,11 +3885,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side payment integration boundary receiving customer intent parameters, refund policies, and transaction reconciliation feeds.",
-        "attackerControlledInput": "refundPolicy, feeFormula, rawData transaction overrides, and portalUrl.",
-        "executionEnvironment": "Browser DOM / Client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution, DOM XSS in receipt rendering, prototype pollution, and cleartext credential leakage.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "Payment processor SDK boundary receiving customer payment parameters, refund rules, and transaction data.",
+        "attackerControlledInput": "refundPolicy, feeFormula, rawData overrides/config, and portalUrl.",
+        "executionEnvironment": "Browser DOM / payment client ECMAScript runtime.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Arbitrary code execution via eval/Function, DOM XSS via innerHTML/document.write, prototype pollution, and credential leaks.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -4029,7 +3900,7 @@
             "line": 10,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic merchant API key in variable merchantApiKey."
+          "weaknessDescription": "Hardcoded merchant live API key."
         },
         {
           "ruleId": "OWASP-A02-001",
@@ -4039,7 +3910,7 @@
             "line": 11,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded payment processor password in variable processorPassword."
+          "weaknessDescription": "Hardcoded payment processor production password."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -4049,17 +3920,7 @@
             "line": 12,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic webhook signing secret in variable webhookSecret."
-        },
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 15,
-            "column": 20
-          },
-          "weaknessDescription": "Hardcoded internal payment processor IPv4 address string 10.128.0.55."
+          "weaknessDescription": "Hardcoded webhook secret for payment callback verification."
         },
         {
           "ruleId": "OWASP-A02-004",
@@ -4069,7 +3930,7 @@
             "line": 18,
             "column": 23
           },
-          "weaknessDescription": "Hardcoded plaintext HTTP callback connection URL."
+          "weaknessDescription": "Insecure plaintext HTTP payment callback endpoint."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -4079,7 +3940,7 @@
             "line": 23,
             "column": 10
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for sensitive transactionKey."
+          "weaknessDescription": "Insecure Math.random() used to generate transactionKey."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -4089,7 +3950,7 @@
             "line": 26,
             "column": 4
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via dynamic concatenation."
+          "weaknessDescription": "Payment session cookie set without Secure flag."
         },
         {
           "ruleId": "OWASP-A07-001",
@@ -4099,7 +3960,7 @@
             "line": 29,
             "column": 4
           },
-          "weaknessDescription": "Sensitive payment authentication token stored directly in unencrypted localStorage."
+          "weaknessDescription": "Sensitive paymentAuthToken stored in plaintext localStorage."
         },
         {
           "ruleId": "OWASP-A05-001",
@@ -4109,7 +3970,7 @@
             "line": 33,
             "column": 4
           },
-          "weaknessDescription": "Sensitive apiKey variable logged to console."
+          "weaknessDescription": "Logging merchant apiKey variable directly to console."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -4119,7 +3980,7 @@
             "line": 45,
             "column": 25
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied refundPolicy."
+          "weaknessDescription": "Dangerous use of eval() on refund policy formula."
         },
         {
           "ruleId": "OWASP-A03-003",
@@ -4129,7 +3990,7 @@
             "line": 48,
             "column": 26
           },
-          "weaknessDescription": "Unsafe Function constructor invoked with feeFormula string concatenation."
+          "weaknessDescription": "Unsafe use of Function constructor to evaluate feeFormula."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -4139,17 +4000,7 @@
             "line": 52,
             "column": 28
           },
-          "weaknessDescription": "Sensitive refund secret key and merchant verify token embedded in URL query string."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 64,
-            "column": 25
-          },
-          "weaknessDescription": "JSON.parse() deserialization of unvalidated transaction reconciliation data."
+          "weaknessDescription": "Refund webhook secret and verification token exposed in notification URL."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -4159,7 +4010,7 @@
             "line": 68,
             "column": 4
           },
-          "weaknessDescription": "Direct __proto__ assignment from untrusted transactions.overrides object."
+          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with transaction overrides."
         },
         {
           "ruleId": "OWASP-A08-002",
@@ -4169,7 +4020,7 @@
             "line": 74,
             "column": 4
           },
-          "weaknessDescription": "Constructor prototype pollution assignment from transactions.config."
+          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with transaction config."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -4179,7 +4030,7 @@
             "line": 77,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive credentials object credentials to console."
+          "weaknessDescription": "Logging sensitive reconciliation credentials object to console."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -4189,7 +4040,7 @@
             "line": 78,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive session object session to console."
+          "weaknessDescription": "Logging sensitive session details to console."
         },
         {
           "ruleId": "OWASP-A03-004",
@@ -4199,7 +4050,7 @@
             "line": 89,
             "column": 8
           },
-          "weaknessDescription": "Dynamic template literal containing receipt data assigned directly to container.innerHTML."
+          "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal containing receipt data."
         },
         {
           "ruleId": "OWASP-A03-005",
@@ -4209,7 +4060,7 @@
             "line": 96,
             "column": 8
           },
-          "weaknessDescription": "Function return value renderReceiptTemplate(receiptData) assigned directly to container.innerHTML."
+          "weaknessDescription": "Unsafe innerHTML assignment using renderReceiptTemplate return value."
         },
         {
           "ruleId": "OWASP-A03-007",
@@ -4219,7 +4070,7 @@
             "line": 100,
             "column": 4
           },
-          "weaknessDescription": "document.write invoked with dynamically concatenated receiptData.html."
+          "weaknessDescription": "Dangerous use of document.write() to render unescaped receipt HTML."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -4229,7 +4080,7 @@
             "line": 106,
             "column": 4
           },
-          "weaknessDescription": "String argument in setInterval for periodic recurring charge execution."
+          "weaknessDescription": "Dangerous use of string argument in setInterval for recurring charges."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -4239,7 +4090,7 @@
             "line": 107,
             "column": 4
           },
-          "weaknessDescription": "String argument in setTimeout for scheduled payment reminder dispatch."
+          "weaknessDescription": "Dangerous use of string argument in setTimeout for payment reminder."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -4249,7 +4100,7 @@
             "line": 112,
             "column": 4
           },
-          "weaknessDescription": "Unvalidated portalUrl parameter assigned directly to window.location.href."
+          "weaknessDescription": "Open redirect via unvalidated portalUrl assigned to window.location.href."
         }
       ],
       "expectedAdvisories": [
@@ -4268,12 +4119,18 @@
         {
           "ruleId": null,
           "unsupported": true,
-          "owasp2021Category": "A01:2021-Broken Access Control",
+          "owasp2021Category": "A10:2021-Server-Side Request Forgery",
+          "severity": "MEDIUM",
+          "severityAssumptions": "Refund notification posted to unvalidated webhookUrl.",
+          "trustBoundary": "Payment processor refund notification boundary.",
+          "attackerControlledInput": "webhookUrl parameter.",
+          "exploitCondition": "Attacker supplies internal URL triggering unauthorized intranet state changes.",
+          "securityImpact": "MEDIUM: Client-side request forgery against internal endpoints.",
           "location": {
-            "line": 55,
+            "line": 56,
             "column": 4
           },
-          "weaknessDescription": "Client-side fetch targeting dynamic merchant webhook URL."
+          "weaknessDescription": "Client-side refund notification dispatched to unvalidated webhookUrl."
         }
       ],
       "observedScannerFindings": [
@@ -4525,7 +4382,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side payment client integration; PCI compliance checks and live payment processing NOT RUN."
+      "ambiguityOrKnownLimitations": "Client payment processor SDK; live banking APIs and card networks NOT RUN. Line 15 (internal IP), line 64 (JSON.parse), and line 79 (requestContext log) are omitted as non-vulnerabilities."
     },
     {
       "fileName": "student-portal.jsx",
@@ -4534,13 +4391,13 @@
       "scenarioId": "SCENARIO-007",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "React student academic portal single-page application component (StudentPortal). Manages student grade viewing, course catalog presentation, student inbox messaging, and course enrollment.",
+      "browserContext": "React single-page student academic portal managing course enrollment, grade viewing, inbox message previews, and external redirects.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated React student academic portal containing hardcoded credentials, client role check, open redirect, innerHTML rendering, dangerouslySetInnerHTML, insecure cookies, localStorage tokens, eval GPA calculation, and Function constructors.",
+      "intendedBehavior": "Simulated React student academic portal with hardcoded credentials, dangerouslySetInnerHTML sinks, eval formula execution, and insecure session cookies.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -4554,11 +4411,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side React component receiving student profile data, dynamic grade endpoints, course catalog HTML, and message bodies.",
-        "attackerControlledInput": "student.isAdmin, student.loginRedirectUrl, student.apiEndpoint, course catalog HTML, message rawContent, and GPA formula.",
+        "trustBoundary": "React component boundary receiving student profile, API endpoints, message previews, and formula weights.",
+        "attackerControlledInput": "student.loginRedirectUrl, message body, formula strings, and course HTML.",
         "executionEnvironment": "Browser DOM / React client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Arbitrary code execution via eval/Function, DOM XSS via innerHTML/dangerouslySetInnerHTML, open redirects, and credential exposure.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "impactSupportingSeverity": "CRITICAL to HIGH: Hardcoded credentials, DOM XSS in message/catalog views, arbitrary code execution in GPA formulas, and open redirects.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -4569,7 +4426,7 @@
             "line": 16,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic portal API key in variable portalApiKey."
+          "weaknessDescription": "Hardcoded student portal API key."
         },
         {
           "ruleId": "OWASP-A02-001",
@@ -4579,7 +4436,7 @@
             "line": 19,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded database password in variable gradeDbPassword."
+          "weaknessDescription": "Hardcoded database administrator password for grades."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -4589,17 +4446,7 @@
             "line": 22,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded synthetic enrollment system token in variable enrollmentToken."
-        },
-        {
-          "ruleId": "OWASP-A01-002",
-          "owasp2021Category": "A01:2021-Broken Access Control",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 30,
-            "column": 4
-          },
-          "weaknessDescription": "Client-side role check condition student.isAdmin controls admin mode logging."
+          "weaknessDescription": "Hardcoded enrollment system token."
         },
         {
           "ruleId": "OWASP-A03-004",
@@ -4609,7 +4456,7 @@
             "line": 58,
             "column": 12
           },
-          "weaknessDescription": "Dynamic template literal containing courseName and grade assigned directly to card.innerHTML."
+          "weaknessDescription": "Callable helper renderGradeCard assigns template literal with unescaped grade to innerHTML."
         },
         {
           "ruleId": "OWASP-A03-005",
@@ -4619,7 +4466,7 @@
             "line": 69,
             "column": 12
           },
-          "weaknessDescription": "Function return value fetchCourseDescription(courseId) assigned directly to descriptionEl.innerHTML."
+          "weaknessDescription": "Callable helper renderCourseDescription assigns helper return value to innerHTML."
         },
         {
           "ruleId": "OWASP-A03-007",
@@ -4629,7 +4476,7 @@
             "line": 75,
             "column": 8
           },
-          "weaknessDescription": "document.write invoked with dynamically passed htmlContent."
+          "weaknessDescription": "Callable helper loadAnnouncement passes unescaped htmlContent directly to document.write()."
         },
         {
           "ruleId": "OWASP-A03-008",
@@ -4639,7 +4486,7 @@
             "line": 83,
             "column": 21
           },
-          "weaknessDescription": "React dangerouslySetInnerHTML sink assigned unsanitized rawContent message body."
+          "weaknessDescription": "React dangerouslySetInnerHTML in MessagePreview renders unescaped message body in demonstrated flow."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -4649,7 +4496,7 @@
             "line": 90,
             "column": 8
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via dynamic concatenation."
+          "weaknessDescription": "Enrollment session cookie set without Secure flag."
         },
         {
           "ruleId": "OWASP-A07-001",
@@ -4659,7 +4506,7 @@
             "line": 93,
             "column": 8
           },
-          "weaknessDescription": "Sensitive enrollmentToken stored directly in unencrypted localStorage."
+          "weaknessDescription": "Sensitive enrollmentToken stored in plaintext localStorage."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -4669,7 +4516,7 @@
             "line": 96,
             "column": 8
           },
-          "weaknessDescription": "String argument in setTimeout for delayed enrollment confirmation."
+          "weaknessDescription": "Dangerous use of string argument in setTimeout for enrollment confirmation."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -4679,7 +4526,7 @@
             "line": 101,
             "column": 20
           },
-          "weaknessDescription": "Dangerous eval() executed with user-supplied formula to calculate GPA."
+          "weaknessDescription": "Dangerous use of eval() to evaluate grade calculation formula."
         },
         {
           "ruleId": "OWASP-A03-003",
@@ -4689,7 +4536,7 @@
             "line": 107,
             "column": 27
           },
-          "weaknessDescription": "Unsafe Function constructor invoked with custom grade weighting string."
+          "weaknessDescription": "Unsafe use of Function constructor to evaluate grade weighting."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -4699,7 +4546,7 @@
             "line": 113,
             "column": 14
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for sensitive enrollment OTP."
+          "weaknessDescription": "Insecure Math.random() used to generate two-factor enrollment OTP."
         },
         {
           "ruleId": "OWASP-A03-008",
@@ -4709,7 +4556,7 @@
             "line": 136,
             "column": 21
           },
-          "weaknessDescription": "React dangerouslySetInnerHTML sink assigned unsanitized courseHtml catalog markup."
+          "weaknessDescription": "React dangerouslySetInnerHTML renders unescaped course catalog HTML from API in demonstrated flow."
         }
       ],
       "expectedAdvisories": [
@@ -4721,7 +4568,7 @@
             "line": 9,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: serialize-javascript."
+          "weaknessDescription": "Component review advisory for client library import: serialize-javascript."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -4731,7 +4578,7 @@
             "line": 10,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: markdown-it."
+          "weaknessDescription": "Component review advisory for client library import: markdown-it."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -4741,7 +4588,7 @@
             "line": 11,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: js-yaml."
+          "weaknessDescription": "Component review advisory for client library import: js-yaml."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -4751,7 +4598,7 @@
             "line": 12,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: node-fetch."
+          "weaknessDescription": "Component review advisory for client library import: node-fetch."
         },
         {
           "ruleId": "OWASP-A06-001",
@@ -4761,7 +4608,7 @@
             "line": 13,
             "column": 0
           },
-          "weaknessDescription": "Component review advisory for library import: vm2."
+          "weaknessDescription": "Component review advisory for client library import: vm2."
         }
       ],
       "unsupportedWeaknesses": [
@@ -4769,11 +4616,17 @@
           "ruleId": null,
           "unsupported": true,
           "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "HIGH",
+          "severityAssumptions": "Direct navigation to unvalidated user-controlled redirect URL on unauthenticated state.",
+          "trustBoundary": "Authentication gate redirect boundary.",
+          "attackerControlledInput": "student.loginRedirectUrl object property.",
+          "exploitCondition": "Attacker controls student profile data or query param to specify an external phishing origin.",
+          "securityImpact": "HIGH: Open redirect / credential phishing targeting unauthenticated students.",
           "location": {
             "line": 37,
             "column": 8
           },
-          "weaknessDescription": "Unvalidated redirect via window.location.href to student.loginRedirectUrl."
+          "weaknessDescription": "Unauthenticated gate assigns unvalidated student.loginRedirectUrl to window.location.href."
         }
       ],
       "observedScannerFindings": [
@@ -4985,7 +4838,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Simulated student portal React component; live browser rendering NOT RUN."
+      "ambiguityOrKnownLimitations": "Simulated React component; live student information servers and enrollment databases NOT RUN. Scanner hit at line 30 (student.isAdmin) is omitted as it only gates console.log."
     },
     {
       "fileName": "user-auth-service.js",
@@ -4994,13 +4847,13 @@
       "scenarioId": "SCENARIO-008",
       "primaryModule": "scenario",
       "workloadType": "simulated-browser-workload",
-      "browserContext": "Browser client-side user authentication and session management module for single-page applications. Manages client-side login validation, token storage in localStorage, insecure session cookies, password reset callbacks, and client role verification.",
+      "browserContext": "Browser client user authentication service handling login forms, session validation, password reset token generation, and account deletion logging.",
       "label": "scenario",
       "legacyClassification": {
         "legacyLabel": "scenario",
         "source": "filename"
       },
-      "intendedBehavior": "Simulated client user authentication module containing hardcoded admin master passwords, JWT secrets, AWS access keys, internal IP strings, query string reset tokens, plaintext verification endpoints, insecure random tokens, unencrypted localStorage tokens, and insecure session cookies.",
+      "intendedBehavior": "Simulated client authentication service with hardcoded master credentials, JWT secret leaks, insecure random tokens, and client-side authorization checks.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "Multiple (simulated browser multi-flaw application workload)",
@@ -5009,16 +4862,15 @@
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
-          "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
-          "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/"
+          "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side authentication state boundary receiving user credentials, session headers, and password reset responses.",
-        "attackerControlledInput": "username, password, email, and sessionData payload.",
-        "executionEnvironment": "Browser client ECMAScript runtime.",
-        "impactSupportingSeverity": "CRITICAL to LOW: Credential exposure, privilege escalation via client role bypass, cleartext transmission of sensitive data, and token theft from localStorage.",
-        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled single-flaw V/C pairs."
+        "trustBoundary": "Client-side authentication service boundary receiving username, password, reset tokens, and session state.",
+        "attackerControlledInput": "password input and sessionData role property.",
+        "executionEnvironment": "Browser client ECMAScript runtime environment.",
+        "impactSupportingSeverity": "CRITICAL to MEDIUM: Master credential leaks, client-side authorization gating, and insecure password reset tokens.",
+        "safePartnerAssumptions": "N/A: Multi-flaw simulated scenario workload; evaluated separately from controlled V/C dataset."
       },
       "expectedScannerFindings": [
         {
@@ -5029,7 +4881,7 @@
             "line": 8,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded admin master password in variable masterPassword."
+          "weaknessDescription": "Hardcoded admin master password in source code."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -5039,7 +4891,7 @@
             "line": 11,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable jwtSecret."
+          "weaknessDescription": "Hardcoded JWT signing secret in source code."
         },
         {
           "ruleId": "OWASP-A02-005",
@@ -5049,27 +4901,7 @@
             "line": 11,
             "column": 18
           },
-          "weaknessDescription": "Hardcoded JWT Token detected in string."
-        },
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "CRITICAL",
-          "location": {
-            "line": 14,
-            "column": 21
-          },
-          "weaknessDescription": "Hardcoded AWS Access Key detected in string."
-        },
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 17,
-            "column": 15
-          },
-          "weaknessDescription": "Hardcoded internal database server IPv4 address string 192.168.1.105."
+          "weaknessDescription": "Hardcoded JWT token string detected in source code."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -5079,7 +4911,7 @@
             "line": 21,
             "column": 10
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for sensitive token."
+          "weaknessDescription": "Insecure Math.random() used to generate password reset token."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -5089,7 +4921,7 @@
             "line": 22,
             "column": 10
           },
-          "weaknessDescription": "Insecure pseudo-random number generator Math.random() used for sensitive otpCode."
+          "weaknessDescription": "Insecure Math.random() used to generate password reset OTP code."
         },
         {
           "ruleId": "OWASP-A07-001",
@@ -5099,7 +4931,7 @@
             "line": 25,
             "column": 4
           },
-          "weaknessDescription": "Sensitive authentication token stored directly in unencrypted localStorage."
+          "weaknessDescription": "Sensitive authToken stored in plaintext localStorage."
         },
         {
           "ruleId": "OWASP-A07-001",
@@ -5109,7 +4941,7 @@
             "line": 26,
             "column": 4
           },
-          "weaknessDescription": "Sensitive JWT session secret stored directly in unencrypted localStorage."
+          "weaknessDescription": "Sensitive jwt_session stored in plaintext localStorage."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -5119,7 +4951,7 @@
             "line": 36,
             "column": 8
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via dynamic concatenation."
+          "weaknessDescription": "Session cookie set via concatenation without HttpOnly or Secure flags."
         },
         {
           "ruleId": "OWASP-A02-002",
@@ -5129,7 +4961,7 @@
             "line": 39,
             "column": 8
           },
-          "weaknessDescription": "document.cookie written without Secure or HttpOnly protection via template literal."
+          "weaknessDescription": "Admin authorization cookie set via template literal without security flags."
         },
         {
           "ruleId": "OWASP-A05-001",
@@ -5139,7 +4971,7 @@
             "line": 42,
             "column": 8
           },
-          "weaknessDescription": "Sensitive password variable logged to console."
+          "weaknessDescription": "Plaintext password logged directly to console upon successful login."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -5149,7 +4981,7 @@
             "line": 53,
             "column": 22
           },
-          "weaknessDescription": "Sensitive password reset token and temporary password embedded in URL query string."
+          "weaknessDescription": "Password reset link exposes reset token and temporary password in query parameters."
         },
         {
           "ruleId": "OWASP-A02-004",
@@ -5159,17 +4991,7 @@
             "line": 56,
             "column": 27
           },
-          "weaknessDescription": "Hardcoded plaintext HTTP verification callback URL."
-        },
-        {
-          "ruleId": "OWASP-A08-001",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "LOW",
-          "location": {
-            "line": 70,
-            "column": 20
-          },
-          "weaknessDescription": "JSON.parse() deserialization of untrusted sessionData string."
+          "weaknessDescription": "Insecure cleartext HTTP endpoint used for authentication verification callback."
         },
         {
           "ruleId": "OWASP-A01-002",
@@ -5179,7 +5001,7 @@
             "line": 74,
             "column": 4
           },
-          "weaknessDescription": "Client-side role check condition session.role === \"admin\" assigns admin status."
+          "weaknessDescription": "Client-side authorization check: validateClientSession assigns isAdmin = true based on untrusted client role."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -5189,7 +5011,7 @@
             "line": 84,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive user object user to console."
+          "weaknessDescription": "Sensitive user object logged directly to console during account deletion."
         },
         {
           "ruleId": "OWASP-A05-003",
@@ -5199,22 +5021,11 @@
             "line": 85,
             "column": 4
           },
-          "weaknessDescription": "Logging sensitive session object session to console."
+          "weaknessDescription": "Active session state object logged directly to console during account deletion."
         }
       ],
       "expectedAdvisories": [],
-      "unsupportedWeaknesses": [
-        {
-          "ruleId": null,
-          "unsupported": true,
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "location": {
-            "line": 33,
-            "column": 4
-          },
-          "weaknessDescription": "Direct plain-text password comparison against staging credential constant."
-        }
-      ],
+      "unsupportedWeaknesses": [],
       "observedScannerFindings": [
         {
           "ruleId": "OWASP-A02-001",
@@ -5404,7 +5215,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side authentication service simulation; backend user database and live authentication server NOT RUN."
+      "ambiguityOrKnownLimitations": "Client-side authentication service; live backend authentication servers and identity providers NOT RUN. Line 14 (AWS Key ID without secret), line 17 (internal IP), line 70 (JSON.parse), and line 86 (requestContext log) are omitted as non-vulnerabilities."
     },
     {
       "fileName": "V-A1-001.js",

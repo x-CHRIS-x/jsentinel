@@ -585,6 +585,8 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
       assert.equal(unsup.ruleId, null, `${file.fileName} unsupported weakness must have null ruleId`);
       assert.equal(unsup.unsupported, true, `${file.fileName} unsupported weakness must declare unsupported: true`);
       assert.ok(unsup.owasp2021Category, `${file.fileName} unsupported weakness must have category`);
+      assert.ok(unsup.severity, `${file.fileName} unsupported weakness must define severity`);
+      assert.ok(unsup.severityAssumptions, `${file.fileName} unsupported weakness must define severityAssumptions`);
       assert.ok(unsup.location && typeof unsup.location.line === 'number' && unsup.location.line > 0);
       assert.ok(typeof unsup.location.column === 'number' && unsup.location.column >= 0);
       assert.ok(unsup.weaknessDescription && unsup.weaknessDescription.length > 0);

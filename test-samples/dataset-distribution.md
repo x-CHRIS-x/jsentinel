@@ -4,7 +4,7 @@ Date: September 14, 2026.
 Phase: Phase 04 Batch C.
 Manifest: `test-samples/dataset-manifest.json` (version 1.0.0).
 
-This document presents the distribution of benchmark sample files across rule modules in JSentinel. The dataset contains 116 files in total. The controlled evaluation set consists of 54 matched pairs (108 files: 54 vulnerable, 54 clean). Eight composite simulated browser application workloads complete the dataset and are evaluated separately from the single-flaw confusion matrix.
+This document presents the distribution of benchmark sample files across rule modules in JSentinel. The dataset contains 116 files in total. The controlled evaluation set consists of 54 matched pairs (108 files: 54 vulnerable, 54 clean). Eight composite simulated browser application workloads complete the dataset and are evaluated separately from the controlled V/C dataset.
 
 ## 1. Distribution Inventory Table
 
@@ -27,20 +27,25 @@ This document presents the distribution of benchmark sample files across rule mo
 ### Active Advisory Module (`knownVulns.js`)
 The scanner engine retains an active rule module, `knownVulns.js`, implementing rule `OWASP-A06-001`. In agreement with Phase 01 architectural decisions, component-review signals for imported packages are classified as informational advisories rather than confirmed security vulnerabilities. Advisories emit informational diagnostics without deducting score points or counting as true positive vulnerability detections.
 
-Because the controlled benchmark evaluates binary vulnerability detection (vulnerable versus clean), `knownVulns.js` contains 0 controlled vulnerability pairs in the confusion matrix. The advisory behavior of `knownVulns.js` is verified through automated test suites in `validation/browser-scope.test.mjs` and `validation/html-overlapping.test.mjs`. In addition, all 8 simulated scenario files import third-party client libraries and define curated `expectedAdvisories` for component review.
+Because the controlled benchmark evaluates binary vulnerability detection (vulnerable versus clean), `knownVulns.js` contains 0 controlled vulnerability pairs in the confusion matrix. The advisory behavior of `knownVulns.js` is verified through automated test suites in `validation/browser-scope.test.mjs` and `validation/html-overlapping.test.mjs`.
+
+In the simulated scenarios, component review advisories are grounded directly in actual package imports present in each file. Seven of the eight scenarios import third-party client libraries triggering `OWASP-A06-001` advisories (14 advisories in total: 1 in `admin-dashboard.jsx`, 1 in `api-gateway.js`, 1 in `chat-application.js`, 4 in `data-pipeline.js`, 1 in `ecommerce-checkout.js`, 1 in `payment-processor.js`, and 5 in `student-portal.jsx`). In contrast, `user-auth-service.js` contains zero package imports and defines 0 advisories.
+
+### Controlled Dataset Multi-Expectation Distinction
+While every controlled benchmark sample has a binary file-level classification (vulnerable versus clean), certain vulnerable samples embody multiple expected finding locations. For example, `V-A8-045.js` defines two distinct expected findings (`OWASP-A08-001` and `OWASP-A01-002`). The benchmark dataset maintains the distinction between file-level ground truth and finding-level expectations without prejudging Phase 05 scoring rules.
 
 ### Primary Module Assignment
 Every controlled file is assigned to exactly one primary module based on its evaluated vulnerability mechanism. For example, `auth.js` evaluates client session management, credential transport, and token storage across both A07 and A02 categories. Files that remediate server-side headers by moving to browser DOM checks are classified under the module governing their client weakness.
 
 ### Simulated Scenarios (Multi-Flaw Workloads)
 The 8 simulated scenario files model multi-component browser web applications:
-1. `admin-dashboard.jsx`: React dashboard with DOM XSS sinks, client role checks, and open redirects.
+1. `admin-dashboard.jsx`: React dashboard with DOM XSS sinks, callable helper sinks, and open redirects.
 2. `api-gateway.js`: Client API routing module with client origin validation and token handling.
 3. `chat-application.js`: Browser WebSocket chat client with event markup handling and storage.
-4. `data-pipeline.js`: Client batch analytics processor with JSON parsing and web workers.
-5. `ecommerce-checkout.js`: Multi-step checkout workflow with synthetic client tokens and DOM insertion.
-6. `payment-processor.js`: Browser payment form SDK with token serialization and dynamic script injection.
+4. `data-pipeline.js`: Client batch analytics processor with dynamic function execution and prototype pollution.
+5. `ecommerce-checkout.js`: Multi-step checkout workflow with synthetic client tokens and discount evaluation.
+6. `payment-processor.js`: Browser payment form SDK with token serialization and dynamic script execution.
 7. `student-portal.jsx`: React portal with grade rendering, unvalidated links, and role checks.
-8. `user-auth-service.js`: Browser authentication client managing password reset flows and tokens.
+8. `user-auth-service.js`: Browser authentication client managing password reset flows and client-side authorization checks.
 
-These 8 files contain multiple flaws per file. They evaluate scanner behavior on realistic composite codebases and are intentionally excluded from the single-flaw controlled confusion matrix.
+These 8 files contain multiple flaws per file. They evaluate scanner behavior on realistic composite codebases and are intentionally evaluated separately from the controlled V/C dataset.
