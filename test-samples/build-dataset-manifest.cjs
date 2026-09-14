@@ -11,6 +11,7 @@ const path = require('path');
 const { scanCode } = require('../vscode-extension/src/scanner/scannerEngine.js');
 const { allRules } = require('../vscode-extension/src/scanner/rules.js');
 const { controlledPairs, PILOT_FILES } = require('./generate-samples.cjs');
+const { scenarioDefinitions } = require('./scenario-definitions.cjs');
 
 const samplesDir = path.join(__dirname, 'samples');
 const manifestPath = path.join(__dirname, 'dataset-manifest.json');
@@ -2071,47 +2072,56 @@ function buildManifest({ scanner = scanCode } = {}) {
     });
   }
 
-  // 8 Scenario Files (Preserved with pending-batch-c status)
-  const scenarioFiles = [
-    'admin-dashboard.jsx',
-    'api-gateway.js',
-    'chat-application.js',
-    'data-pipeline.js',
-    'ecommerce-checkout.js',
-    'payment-processor.js',
-    'student-portal.jsx',
-    'user-auth-service.js'
-  ];
+  // 8 Scenario Files (Phase 04 Batch C: Reviewed & Browser-Adapted)
+  for (const sc of scenarioDefinitions) {
+    const scPath = path.join(samplesDir, sc.fileName);
+    const scCode = fs.readFileSync(scPath, 'utf8');
+    const scScan = scanner(scCode, sc.fileName, allRules);
 
-  for (const scName of scenarioFiles) {
+    const observedFindings = scScan.issues.map(iss => ({
+      ruleId: iss.id,
+      owasp2021Category: getCanonicalRuleCategory(iss.id) || iss.category,
+      severity: iss.severity,
+      location: {
+        line: iss.line,
+        column: iss.column
+      },
+      message: iss.message
+    }));
+
     manifestFiles.push({
-      fileName: scName,
-      filePath: `test-samples/samples/${scName}`,
-      sampleId: scName,
-      pairId: null,
+      fileName: sc.fileName,
+      filePath: `test-samples/samples/${sc.fileName}`,
+      sampleId: sc.id,
+      scenarioId: sc.id,
       primaryModule: 'scenario',
-      label: 'unreviewed',
+      workloadType: 'simulated-browser-workload',
+      browserContext: sc.browserContext,
+      label: 'scenario',
       legacyClassification: {
         legacyLabel: 'scenario',
         source: 'filename'
       },
-      intendedBehavior: 'Simulated browser application workload (pending Phase 04 Batch C review).',
+      intendedBehavior: sc.intendedBehavior,
       securityGroundTruth: {
-        isVulnerable: null,
-        flawType: null,
-        rationale: 'Pending formal scenario migration and multi-flaw audit in Batch C; excluded from controlled benchmark confusion matrix.',
-        sourceReferences: []
+        isVulnerable: true,
+        flawType: 'Multiple (simulated browser multi-flaw application workload)',
+        rationale: 'Composite simulated application workload containing multiple authentic browser security vulnerabilities across OWASP categories, maintained separately from the controlled single-flaw confusion matrix.',
+        sourceReferences: sc.refs
       },
-      threatModelAndAssumptions: null,
-      expectedScannerFindings: null,
+      threatModelAndAssumptions: sc.threatModelAndAssumptions,
+      expectedScannerFindings: sc.expectedFindings,
+      expectedAdvisories: sc.expectedAdvisories,
+      unsupportedWeaknesses: sc.unsupportedWeaknesses,
+      observedScannerFindings: observedFindings,
       developmentUse: true,
-      developmentUseRationale: 'Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.',
+      developmentUseRationale: 'Simulated multi-flaw browser application workload adapted in Phase 04 Batch C from baseline regression suite; evaluated separately from controlled single-flaw V/C benchmark.',
       reviewStatus: {
-        coverage: 'pending-batch-c',
-        aiReviewer: null,
+        coverage: 'scenario-reviewed',
+        aiReviewer: 'Agy (Gemini 3.8 Flash High)',
         humanReview: 'PENDING'
       },
-      ambiguityOrKnownLimitations: 'Unreviewed baseline scenario file. Preserved byte-for-byte pending Phase 04 Batch C.'
+      ambiguityOrKnownLimitations: sc.limitations
     });
   }
 
@@ -2119,8 +2129,8 @@ function buildManifest({ scanner = scanCode } = {}) {
   manifestFiles.sort((a, b) => a.fileName.localeCompare(b.fileName));
 
   return {
-    manifestVersion: '1.0.0-draft',
-    phase: 'Phase 04 Batch B',
+    manifestVersion: '1.0.0',
+    phase: 'Phase 04 Batch C',
     baseCommit: 'ca154776e3896fe4cc6db883b46d9caaf0d23089',
     datasetSummary: {
       totalFiles: 116,
@@ -2129,13 +2139,14 @@ function buildManifest({ scanner = scanCode } = {}) {
       scenarioFilesCount: 8,
       reviewedPilotFilesCount: 12,
       reviewedControlledFilesCount: 108,
-      pendingReviewFilesCount: 8
+      reviewedScenarioFilesCount: 8,
+      pendingReviewFilesCount: 0
     },
     coverageStatus: {
-      partialCoverageExplicit: true,
+      partialCoverageExplicit: false,
       controlledReviewedCount: 108,
-      pendingBatchCCount: 8,
-      statement: 'All 54 controlled V/C pairs (108 files) have undergone comprehensive ground-truth review, threat modeling, and scanner expectation documentation in Batch B. The eight simulated browser application scenarios remain preserved byte-identical to baseline hashes and are pending Phase 04 Batch C review; overall partial coverage remains true while scenarios are pending.'
+      scenarioReviewedCount: 8,
+      statement: 'All 54 controlled V/C pairs (108 files) and all 8 simulated browser application scenarios have completed comprehensive Phase 04 ground-truth review, threat modeling, and decoupled expectation documentation. AI review is complete across all 116 files; human groupmate review remains PENDING.'
     },
     files: manifestFiles
   };
@@ -2144,7 +2155,8 @@ function buildManifest({ scanner = scanCode } = {}) {
 if (require.main === module) {
   const manifest = buildManifest();
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
-  console.log(`Generated dataset manifest with ${manifest.files.length} files (${manifest.datasetSummary.reviewedControlledFilesCount} controlled reviewed, ${manifest.datasetSummary.pendingReviewFilesCount} scenarios pending Batch C).`);
+  console.log(`Generated dataset manifest with ${manifest.files.length} files (${manifest.datasetSummary.reviewedControlledFilesCount} controlled reviewed, ${manifest.datasetSummary.reviewedScenarioFilesCount} scenarios reviewed).`);
 }
 
-module.exports = { buildManifest, CANONICAL_CATEGORIES, getCanonicalRuleCategory, pairMetadata };
+module.exports = { buildManifest, CANONICAL_CATEGORIES, getCanonicalRuleCategory, pairMetadata, scenarioDefinitions };
+

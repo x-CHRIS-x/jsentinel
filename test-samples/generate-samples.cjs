@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { scenarioDefinitions } = require('./scenario-definitions.cjs');
 
 // CLI options
 const args = process.argv.slice(2);
@@ -1026,12 +1027,32 @@ for (const pair of controlledPairs) {
   }
 }
 
+// 8 Simulated Browser Application Scenarios (Phase 04 Batch C)
+if (!isPilotMode) {
+  for (const sc of scenarioDefinitions) {
+    const scPath = path.join(targetOutputDir, sc.fileName);
+    const scContent = sc.code.replace(/\r\n/g, '\n').replace(/\n/g, EOL);
+
+    if (isCheckMode) {
+      if (fs.existsSync(scPath) && fs.readFileSync(scPath, 'utf8') === scContent) {
+        matchCount++;
+      } else {
+        mismatchCount++;
+      }
+    } else {
+      fs.writeFileSync(scPath, scContent);
+      generatedCount++;
+    }
+  }
+}
+
 if (isCheckMode) {
   console.log(`Check Mode: ${matchCount} matches, ${mismatchCount} mismatches out of ${matchCount + mismatchCount} checked.`);
 } else if (isPilotMode) {
   console.log(`Pilot Mode: successfully generated ${generatedCount} pilot files.`);
 } else {
-  console.log(`Batch B: successfully generated ${generatedCount} controlled files (54 V, 54 C). Eight scenario files untouched.`);
+  console.log(`Batch C: successfully generated ${generatedCount} dataset files (108 controlled, 8 scenarios).`);
 }
 
-module.exports = { controlledPairs, PILOT_FILES, formatFileContent };
+module.exports = { controlledPairs, PILOT_FILES, formatFileContent, scenarioDefinitions };
+

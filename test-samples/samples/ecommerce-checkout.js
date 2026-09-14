@@ -1,16 +1,15 @@
 // ==========================================================
-// E-Commerce Checkout Module
-// Simulates a real-world payment and cart checkout flow
-// with multiple embedded security vulnerabilities.
+// E-Commerce Cart & Checkout Client Module
+// Simulates a browser client-side checkout flow with
+// pricing evaluation, session cookies, and inventory sync.
 // ==========================================================
 
-const express = require('express');
-const app = express();
+import axios from 'axios';
 
-// Hardcoded Stripe API key used for payment processing
-const stripeApiKey = "sk_test_dummy_key_stripe_12345";
+// Hardcoded synthetic Stripe API key for client checkout
+const stripeApiKey = "sk_test_synthetic_key_stripe_12345";
 
-// Hardcoded database password for order storage
+// Hardcoded synthetic order database password
 const dbPassword = "SuperSecretOrderDB!2026";
 
 // Plaintext HTTP endpoint for payment gateway
@@ -35,8 +34,7 @@ function createCheckoutSession(userId, cartId) {
 }
 
 // Order confirmation handler
-function confirmOrder(req, res) {
-    const orderData = req.body;
+function confirmOrder(orderData) {
     const parsed = JSON.parse(orderData.metadata);
 
     // Logging sensitive payment token to console for debugging
@@ -45,11 +43,11 @@ function confirmOrder(req, res) {
 
     // Building a receipt URL with embedded credentials
     const receiptUrl = "https://api.store.com/receipts?token=" + paymentToken + "&key=receipt_verify_key";
-    
+
     // Fetching order status from plaintext endpoint
     fetch("http://orders.legacy-system.local/status/" + parsed.orderId);
 
-    res.send({ success: true, receipt: receiptUrl });
+    return { success: true, receipt: receiptUrl };
 }
 
 // Tax calculation engine
@@ -59,7 +57,7 @@ function calculateTax(items, region) {
         EU: 0.21,
         PH: 0.12
     };
-    
+
     const rate = taxRates[region] || 0;
     return items.reduce((total, item) => {
         return total + (item.price * rate);
@@ -70,7 +68,7 @@ function calculateTax(items, region) {
 function syncInventory(rawPayload) {
     const inventory = JSON.parse(rawPayload);
     const merged = Object.assign({}, inventory);
-    
+
     inventory.forEach(item => {
         if (item.stock <= 0) {
             console.log("Out of stock alert for:", item.name);
@@ -90,9 +88,12 @@ function getShippingRate(weight, destination) {
     if (destination === "PH") {
         return baseRates.domestic;
     }
-    
+
     return baseRates.international + (weight * 0.5);
 }
 
-app.post('/checkout/process', confirmOrder);
-app.listen(4000);
+function sendAnalytics(event) {
+    return event;
+}
+
+export { applyDiscount, createCheckoutSession, confirmOrder, calculateTax, syncInventory, getShippingRate };

@@ -62,18 +62,32 @@ test('1. Total 116 dataset files: 108 controlled and 8 scenarios with baseline h
   assert.equal(cFiles.length, 54, 'Exactly 54 clean samples');
   assert.equal(sFiles.length, 8, 'Exactly 8 scenario samples');
 
-  // Verify baseline hash file
-  const hashFile = path.join(rootDir, 'documents', 'research-phases', 'checks', '04-baseline-hashes.json');
-  assert.ok(fs.existsSync(hashFile), '04-baseline-hashes.json must exist');
-  const baseline = JSON.parse(fs.readFileSync(hashFile, 'utf8'));
+  // Verify baseline hash file exists for historical provenance
+  const baselineHashFile = path.join(rootDir, 'documents', 'research-phases', 'checks', '04-baseline-hashes.json');
+  assert.ok(fs.existsSync(baselineHashFile), '04-baseline-hashes.json must exist');
 
-  // All 8 scenario files must match their baseline SHA-256 hashes byte-for-byte
-  for (const entry of baseline.files) {
-    if (!entry.fileName.startsWith('V-') && !entry.fileName.startsWith('C-')) {
-      const currentContent = fs.readFileSync(path.join(samplesDir, entry.fileName));
-      const currentHash = crypto.createHash('sha256').update(currentContent).digest('hex');
-      assert.equal(currentHash, entry.sha256, `Scenario file ${entry.fileName} must match baseline hash`);
-    }
+  // Verify controlled 108 hash file (preserved from starting commit c650be9)
+  const controlledHashFile = path.join(rootDir, 'documents', 'research-phases', 'checks', '04-batch-c-controlled-108-hashes.json');
+  assert.ok(fs.existsSync(controlledHashFile), '04-batch-c-controlled-108-hashes.json must exist');
+  const controlledData = JSON.parse(fs.readFileSync(controlledHashFile, 'utf8'));
+  assert.equal(Object.keys(controlledData.hashes).length, 108, 'Must verify 108 controlled files');
+
+  for (const [fileName, expectedHash] of Object.entries(controlledData.hashes)) {
+    const currentContent = fs.readFileSync(path.join(samplesDir, fileName));
+    const currentHash = crypto.createHash('sha256').update(currentContent).digest('hex');
+    assert.equal(currentHash, expectedHash, `Controlled file ${fileName} must match starting commit hash`);
+  }
+
+  // Verify scenario 8 hash file
+  const scenarioHashFile = path.join(rootDir, 'documents', 'research-phases', 'checks', '04-batch-c-scenario-hashes.json');
+  assert.ok(fs.existsSync(scenarioHashFile), '04-batch-c-scenario-hashes.json must exist');
+  const scenarioData = JSON.parse(fs.readFileSync(scenarioHashFile, 'utf8'));
+  assert.equal(Object.keys(scenarioData.scenarioHashes).length, 8, 'Must verify 8 scenario files');
+
+  for (const [fileName, expectedHash] of Object.entries(scenarioData.scenarioHashes)) {
+    const currentContent = fs.readFileSync(path.join(samplesDir, fileName));
+    const currentHash = crypto.createHash('sha256').update(currentContent).digest('hex');
+    assert.equal(currentHash, expectedHash, `Scenario file ${fileName} must match Batch C scenario hash`);
   }
 
   // All 12 pilot files must match their committed pilot hashes byte-for-byte
@@ -84,25 +98,26 @@ test('1. Total 116 dataset files: 108 controlled and 8 scenarios with baseline h
   }
 });
 
-test('2. Manifest ground truth schema, threat models, and Batch B controlled review status', () => {
+test('2. Manifest ground truth schema, threat models, and Batch C complete review status', () => {
   const manifestPath = path.join(rootDir, 'test-samples', 'dataset-manifest.json');
   assert.ok(fs.existsSync(manifestPath), 'dataset-manifest.json must exist');
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.phase, 'Phase 04 Batch B');
+  assert.equal(manifest.phase, 'Phase 04 Batch C');
   assert.equal(manifest.datasetSummary.totalFiles, 116);
   assert.equal(manifest.datasetSummary.controlledFilesCount, 108);
   assert.equal(manifest.datasetSummary.scenarioFilesCount, 8);
   assert.equal(manifest.datasetSummary.reviewedControlledFilesCount, 108);
-  assert.equal(manifest.datasetSummary.pendingReviewFilesCount, 8);
+  assert.equal(manifest.datasetSummary.reviewedScenarioFilesCount, 8);
+  assert.equal(manifest.datasetSummary.pendingReviewFilesCount, 0);
 
   assert.equal(manifest.files.length, 116, 'Manifest must contain all 116 entries');
 
-  const controlledFiles = manifest.files.filter(f => f.reviewStatus.coverage !== 'pending-batch-c');
+  const controlledFiles = manifest.files.filter(f => f.primaryModule !== 'scenario');
   assert.equal(controlledFiles.length, 108, 'Exactly 108 files are controlled reviewed');
 
-  const scenarioFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'pending-batch-c');
-  assert.equal(scenarioFiles.length, 8, 'Exactly 8 files are pending Batch C review');
+  const scenarioFiles = manifest.files.filter(f => f.primaryModule === 'scenario');
+  assert.equal(scenarioFiles.length, 8, 'Exactly 8 files are scenario workloads');
 
   // Verify controlled ground truth and threat modeling schema
   for (const cf of controlledFiles) {
@@ -133,12 +148,23 @@ test('2. Manifest ground truth schema, threat models, and Batch B controlled rev
     assert.equal(cf.reviewStatus.humanReview, 'PENDING');
   }
 
-  // Verify scenario files: isVulnerable is null, expectedScannerFindings is null
+  // Verify scenario files in Batch C: isVulnerable is true, expectedScannerFindings non-empty array
   for (const sc of scenarioFiles) {
-    assert.equal(sc.securityGroundTruth.isVulnerable, null, `${sc.fileName} isVulnerable must be null until Batch C`);
-    assert.equal(sc.expectedScannerFindings, null, `${sc.fileName} expectedScannerFindings must be null`);
-    assert.equal(sc.reviewStatus.coverage, 'pending-batch-c');
+    assert.equal(sc.securityGroundTruth.isVulnerable, true, `${sc.fileName} isVulnerable must be true`);
+    assert.ok(Array.isArray(sc.expectedScannerFindings), `${sc.fileName} expectedScannerFindings must be an array`);
+    assert.ok(sc.expectedScannerFindings.length > 0, `${sc.fileName} expectedScannerFindings must be non-empty`);
+    assert.ok(Array.isArray(sc.expectedAdvisories), `${sc.fileName} expectedAdvisories must be an array`);
+    assert.ok(Array.isArray(sc.unsupportedWeaknesses), `${sc.fileName} unsupportedWeaknesses must be an array`);
+    assert.equal(sc.reviewStatus.coverage, 'scenario-reviewed');
     assert.equal(sc.developmentUse, true);
+    assert.ok(sc.browserContext, `${sc.fileName} must define browserContext`);
+    assert.ok(sc.threatModelAndAssumptions.trustBoundary, `${sc.fileName} must define trustBoundary`);
+    assert.ok(sc.threatModelAndAssumptions.attackerControlledInput, `${sc.fileName} must define attackerControlledInput`);
+    assert.ok(sc.threatModelAndAssumptions.executionEnvironment, `${sc.fileName} must define executionEnvironment`);
+    assert.ok(sc.threatModelAndAssumptions.impactSupportingSeverity, `${sc.fileName} must define impactSupportingSeverity`);
+    assert.ok(sc.threatModelAndAssumptions.safePartnerAssumptions, `${sc.fileName} must define safePartnerAssumptions`);
+    assert.equal(sc.reviewStatus.aiReviewer, 'Agy (Gemini 3.8 Flash High)');
+    assert.equal(sc.reviewStatus.humanReview, 'PENDING');
   }
 });
 
@@ -324,10 +350,11 @@ test('6. Batch B bounded corrections: isolated VM execution of updated clean hel
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
   // 1. Partial coverage explicit flag and scenario status
-  assert.equal(manifest.coverageStatus.partialCoverageExplicit, true, 'partialCoverageExplicit must be true while scenarios are pending');
+  assert.equal(manifest.coverageStatus.partialCoverageExplicit, false, 'partialCoverageExplicit must be false when all 116 files are reviewed');
   assert.equal(manifest.datasetSummary.scenarioFilesCount, 8);
   assert.equal(manifest.datasetSummary.reviewedPilotFilesCount, 12);
   assert.equal(manifest.datasetSummary.reviewedControlledFilesCount, 108);
+  assert.equal(manifest.datasetSummary.reviewedScenarioFilesCount, 8);
 
   // 2. Verified 12 pilot metadata preservation
   const pilotManifestFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'pilot-reviewed');
@@ -467,7 +494,7 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
     'A10': 'A10:2021-Server-Side Request Forgery'
   };
 
-  const controlledFiles = manifest.files.filter(f => f.reviewStatus.coverage !== 'pending-batch-c');
+  const controlledFiles = manifest.files.filter(f => f.primaryModule !== 'scenario');
 
   for (const file of controlledFiles) {
     if (file.label === 'clean') {
@@ -509,7 +536,62 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
     }
   }
 
-  // 5. Specific manager regression checks
+  // 5. Scenario files structural integrity
+  const scenarioFiles = manifest.files.filter(f => f.primaryModule === 'scenario');
+  assert.equal(scenarioFiles.length, 8, 'Exactly 8 scenario files in manifest');
+
+  for (const file of scenarioFiles) {
+    assert.ok(Array.isArray(file.expectedScannerFindings), `${file.fileName} must contain expectedScannerFindings array`);
+    assert.ok(file.expectedScannerFindings.length > 0, `${file.fileName} scenario must have expected findings`);
+
+    for (const finding of file.expectedScannerFindings) {
+      assert.ok(finding.location && typeof finding.location.line === 'number' && finding.location.line > 0,
+        `${file.fileName} scenario finding must have positive line number`);
+      assert.ok(typeof finding.location.column === 'number' && finding.location.column >= 0,
+        `${file.fileName} scenario finding must have non-negative column`);
+      assert.ok(!(finding.location.line === 1 && finding.location.column === 0),
+        `${file.fileName} scenario finding must not use placeholder coordinates`);
+      assert.ok(finding.weaknessDescription && finding.weaknessDescription.length > 0,
+        `${file.fileName} scenario finding must include weaknessDescription`);
+
+      if (finding.ruleId) {
+        const parts = finding.ruleId.split('-');
+        assert.ok(parts.length >= 2, `${finding.ruleId} must follow OWASP-Axx-xxx format`);
+        const catCode = parts[1];
+        const expectedCat = CANONICAL_CATEGORIES[catCode];
+        assert.ok(expectedCat, `Category code ${catCode} must exist in canonical categories`);
+        assert.equal(finding.owasp2021Category, expectedCat,
+          `${file.fileName} scenario rule ${finding.ruleId} category must match canonical category`);
+      } else {
+        assert.equal(finding.ruleId, null, `${file.fileName} unsupported scenario mechanism must have ruleId: null`);
+        assert.equal(finding.unsupported, true, `${file.fileName} unsupported scenario mechanism must declare unsupported: true`);
+        assert.ok(finding.owasp2021Category, `${file.fileName} unsupported scenario mechanism must declare category`);
+      }
+    }
+
+    // Check expectedAdvisories
+    assert.ok(Array.isArray(file.expectedAdvisories), `${file.fileName} must contain expectedAdvisories array`);
+    for (const adv of file.expectedAdvisories) {
+      assert.ok(adv.location && typeof adv.location.line === 'number' && adv.location.line > 0);
+      assert.ok(typeof adv.location.column === 'number' && adv.location.column >= 0);
+      assert.ok(adv.weaknessDescription && adv.weaknessDescription.length > 0);
+      assert.ok(adv.ruleId, `${file.fileName} advisory must have ruleId`);
+      assert.ok(adv.owasp2021Category, `${file.fileName} advisory must have category`);
+    }
+
+    // Check unsupportedWeaknesses
+    assert.ok(Array.isArray(file.unsupportedWeaknesses), `${file.fileName} must contain unsupportedWeaknesses array`);
+    for (const unsup of file.unsupportedWeaknesses) {
+      assert.equal(unsup.ruleId, null, `${file.fileName} unsupported weakness must have null ruleId`);
+      assert.equal(unsup.unsupported, true, `${file.fileName} unsupported weakness must declare unsupported: true`);
+      assert.ok(unsup.owasp2021Category, `${file.fileName} unsupported weakness must have category`);
+      assert.ok(unsup.location && typeof unsup.location.line === 'number' && unsup.location.line > 0);
+      assert.ok(typeof unsup.location.column === 'number' && unsup.location.column >= 0);
+      assert.ok(unsup.weaknessDescription && unsup.weaknessDescription.length > 0);
+    }
+  }
+
+  // 6. Specific manager regression checks
   const v045 = manifest.files.find(f => f.fileName === 'V-A8-045.js');
   assert.equal(v045.expectedScannerFindings.length, 2, 'V-A8-045 must have exactly two expected findings');
   const a08Finding = v045.expectedScannerFindings.find(f => f.ruleId === 'OWASP-A08-001');
@@ -567,6 +649,18 @@ test('8. Manifest observation invariance: replacing observation provider with em
     assert.deepEqual(altered.expectedScannerFindings, normal.expectedScannerFindings,
       `${normal.fileName} expected findings must be invariant when scanner is altered`);
 
+    // Expected advisories must be 100% identical
+    assert.deepEqual(empty.expectedAdvisories, normal.expectedAdvisories,
+      `${normal.fileName} expected advisories must be invariant`);
+    assert.deepEqual(altered.expectedAdvisories, normal.expectedAdvisories,
+      `${normal.fileName} expected advisories must be invariant`);
+
+    // Unsupported weaknesses must be 100% identical
+    assert.deepEqual(empty.unsupportedWeaknesses, normal.unsupportedWeaknesses,
+      `${normal.fileName} unsupported weaknesses must be invariant`);
+    assert.deepEqual(altered.unsupportedWeaknesses, normal.unsupportedWeaknesses,
+      `${normal.fileName} unsupported weaknesses must be invariant`);
+
     // Security ground truth must be 100% identical
     assert.deepEqual(empty.securityGroundTruth, normal.securityGroundTruth,
       `${normal.fileName} securityGroundTruth must be invariant when scanner is empty`);
@@ -577,14 +671,12 @@ test('8. Manifest observation invariance: replacing observation provider with em
     assert.equal(empty.label, normal.label, `${normal.fileName} label must be invariant`);
     assert.equal(altered.label, normal.label, `${normal.fileName} label must be invariant`);
 
-    // Controlled files must reflect scanner observation provider ONLY in observedScannerFindings
-    if (normal.reviewStatus.coverage !== 'pending-batch-c') {
-      assert.deepEqual(empty.observedScannerFindings, [],
-        `${normal.fileName} empty mock scanner must populate empty observed findings`);
-      assert.equal(altered.observedScannerFindings.length, 1,
-        `${normal.fileName} altered mock scanner must populate altered observed findings`);
-      assert.equal(altered.observedScannerFindings[0].ruleId, 'MOCK-INJECTED-RULE-999');
-    }
+    // All 116 files must reflect scanner observation provider ONLY in observedScannerFindings
+    assert.deepEqual(empty.observedScannerFindings, [],
+      `${normal.fileName} empty mock scanner must populate empty observed findings`);
+    assert.equal(altered.observedScannerFindings.length, 1,
+      `${normal.fileName} altered mock scanner must populate altered observed findings`);
+    assert.equal(altered.observedScannerFindings[0].ruleId, 'MOCK-INJECTED-RULE-999');
   }
 });
 

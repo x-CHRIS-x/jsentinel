@@ -1,38 +1,28 @@
 // ==========================================================
-// Real-Time Chat Application
-// Simulates a WebSocket-based messaging system with
-// message rendering, file sharing, and user presence.
+// Browser Real-Time Chat Application Client
+// Simulates a client-side real-time messaging client with
+// DOM previews, presence tracking, and command execution.
 // ==========================================================
 
-const express = require('express');
-const app = express();
-app.use(express.json());
+import axios from 'axios';
 
-// Hardcoded WebSocket server secret for message signing
-const wsSecret = "ws_signing_key_P4r7n3rCh4t_Pr0d";
+// Hardcoded synthetic WebSocket server secret for message signing
+const wsSecret = "ws_signing_key_PartnerChat_Synthetic_2026";
 
-// Hardcoded Firebase API key for push notifications
+// Hardcoded synthetic Firebase API key for push notifications
 const firebaseApiKey = "AIzaSyDOCAbC123dEf456GhI789jKl012-MnO";
 
-// Chat server internal IP
+// Chat server internal IP address
 const chatServerIp = "172.16.0.42";
 
-// CORS configuration for chat endpoints
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    next();
-});
-
-// Message handler with XSS vulnerabilities
-app.post('/chat/send', (req, res) => {
-    const { message, senderId, roomId } = req.body;
-
+// Message handler with DOM XSS vulnerabilities
+function handleIncomingMessage(senderId, message, session, user) {
     // Rendering message preview using innerHTML
     const preview = document.getElementById('preview');
     if (preview) {
         // innerHTML with template literal containing user message
         preview.innerHTML = `<div class="msg"><strong>${senderId}</strong>: ${message}</div>`;
-        
+
         // innerHTML from function return
         preview.innerHTML = formatMessage(senderId, message);
     }
@@ -41,18 +31,15 @@ app.post('/chat/send', (req, res) => {
     document.write("<p>" + senderId + ": " + message + "</p>");
 
     // Logging session and user data
-    const session = req.session;
     console.log("Message sent in room:", session);
     console.log("User context:", user);
 
-    res.json({ delivered: true });
-});
+    return { delivered: true };
+}
 
-// File sharing handler with SSRF and eval risks
-app.post('/chat/share-file', (req, res) => {
-    const { fileUrl, metadata } = req.body;
-
-    // SSRF: fetching from user-provided URL
+// File sharing handler with dynamic execution risks
+function handleSharedFile(fileUrl, metadata) {
+    // Dynamic client fetch from user-provided URL
     fetch(fileUrl).then(response => {
         return response.blob();
     });
@@ -66,17 +53,15 @@ app.post('/chat/share-file', (req, res) => {
     // Using Function constructor for custom file validators
     const validator = new Function("file", parsedMeta.validationRule);
 
-    res.json({ shared: true });
-});
+    return { shared: true, processResult, validator };
+}
 
-// User presence tracker with insecure session management
-app.get('/chat/presence', (req, res) => {
-    const userId = req.query.userId;
-
+// User presence tracker with insecure cookie & storage
+function trackUserPresence(userId) {
     // Insecure cookie for tracking presence
     document.cookie = "presence=" + userId + "; path=/chat";
 
-    // Template literal cookie
+    // Template literal cookie assignment
     document.cookie = `last_active=${Date.now()}; user=${userId}`;
 
     // Generating insecure session salt
@@ -85,15 +70,14 @@ app.get('/chat/presence', (req, res) => {
     // Storing session in localStorage
     localStorage.setItem('chatToken', userId);
 
-    res.json({ online: true, userId });
-});
+    return { online: true, userId, sessionSalt };
+}
 
 // Room configuration with prototype pollution
-app.post('/chat/rooms/configure', (req, res) => {
-    const roomConfig = req.body.config;
+function configureChatRoom(roomConfig) {
     const parsed = JSON.parse(roomConfig);
 
-    // Prototype pollution
+    // Prototype pollution through __proto__
     const defaults = {};
     defaults.__proto__ = parsed.overrides;
 
@@ -103,13 +87,11 @@ app.post('/chat/rooms/configure', (req, res) => {
     // Constructor prototype pollution
     defaults.constructor.prototype = parsed.globalSettings;
 
-    res.json({ configured: true });
-});
+    return { configured: true, finalConfig };
+}
 
 // Chat bot with dynamic command execution
-app.post('/chat/bot/execute', (req, res) => {
-    const command = req.body.command;
-
+function executeBotCommand(command) {
     // Executing bot commands via eval
     const output = eval(command);
 
@@ -117,38 +99,45 @@ app.post('/chat/bot/execute', (req, res) => {
     setTimeout("executeBotTask()", 5000);
     setInterval("checkBotQueue()", 10000);
 
-    res.json({ output });
-});
+    return { output };
+}
 
-// Notification dispatcher
-app.post('/chat/notify', (req, res) => {
-    const { recipientId, content } = req.body;
-    const notifyUrl = req.body.callbackUrl;
+// Notification dispatcher with tracking token
+function dispatchNotification(recipientId, content, callbackUrl) {
+    // Client POST to callback URL
+    axios.post(callbackUrl, { recipient: recipientId, message: content });
 
-    // SSRF: posting to user-controlled callback
-    axios.post(notifyUrl, { recipient: recipientId, message: content });
-
-    // Notification with token in query string
+    // Notification URL with token in query string
     const trackingUrl = "https://notify.chat.com/track?token=notify_track_tk_123&key=push_service_key";
 
-    res.json({ notified: true, tracking: trackingUrl });
-});
+    return { notified: true, tracking: trackingUrl };
+}
 
-// Redirect to mobile app
-app.get('/chat/open-app', (req, res) => {
-    const appUrl = req.query.redirect;
+// Redirect to companion mobile app
+function redirectToMobileApp(appUrl) {
     window.location.href = appUrl;
     location.replace(appUrl);
-});
+}
 
 // Message formatting helper
 function formatMessage(sender, text) {
     return "<div class='formatted-msg'><b>" + sender + "</b>: " + text + "</div>";
 }
 
-// Connection health check
-function healthCheck() {
-    return { status: "connected", uptime: process.uptime() };
+function executeBotTask() {
+    return true;
 }
 
-app.listen(3002);
+function checkBotQueue() {
+    return true;
+}
+
+export {
+    handleIncomingMessage,
+    handleSharedFile,
+    trackUserPresence,
+    configureChatRoom,
+    executeBotCommand,
+    dispatchNotification,
+    redirectToMobileApp
+};
