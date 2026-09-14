@@ -4,7 +4,8 @@
  */
 
 // Clean: JSON parsing followed by explicit schema verification and endpoint allowlisting.
-// Prevents data transmission to untrusted origins by restricting destinations to approved application paths.
+// Preserves the intended benign telemetry transmission to approved application endpoints
+// while blocking transmission to untrusted external destinations.
 function verifyAppConfig(config) {
     const fallback = { endpointUrl: '/api/v1/feed' };
     if (!config || typeof config !== 'object') return fallback;
@@ -18,7 +19,11 @@ function verifyAppConfig(config) {
 function loadAppConfigSecure(rawConfig) {
     const config = JSON.parse(rawConfig);
     const verified = verifyAppConfig(config);
-    const telemetryPayload = { sessionStatus: "active" };
+    const telemetryPayload = {
+        sessionToken: "token_synthetic_telemetry_user_session_441",
+        activeUser: "researcher@example.internal",
+        metrics: { activeViews: 4 }
+    };
     return fetch(verified.endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

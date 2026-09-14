@@ -488,10 +488,10 @@ function navigateToPartnerSiteSecure(partnerUrl) {
   {
     cat: 'A5', id: '029', varSig: 1,
     vCode: `// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A01-002).
-// System context: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks
-// server-side RBAC enforcement, blindly executing the action for any incoming request.
-// Client code acts as the sole, easily bypassed authorization barrier. Note that client snippets
-// alone do not prove backend configuration; this sample explicitly assumes missing server enforcement.
+// System context: The backend endpoint /api/v1/users/:id/grant-superuser has assumed missing
+// server-side RBAC enforcement, where client code acts as the sole authorization gate.
+// Note: Client snippets alone do not prove backend configuration. Live backend enforcement was NOT RUN;
+// this sample models an assumed vulnerable backend configuration.
 function executeAdministrativeAction(userContext, targetUserId) {
     if (userContext.role === "admin" || userContext.isAdmin === true) {
         return fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
@@ -500,11 +500,11 @@ function executeAdministrativeAction(userContext, targetUserId) {
     }
     return Promise.reject(new Error("Unauthorized"));
 }`,
-    cCode: `// Clean: administrative action authorization enforced by backend API rather than client checks.
-// Architectural assumption: The backend endpoint /api/v1/users/:id/grant-superuser enforces
-// server-side Role-Based Access Control (RBAC) on session credentials, rejecting unauthorized users.
-// Client code dispenses with cosmetic client-side role gates. Note that client snippets alone do
-// not prove backend configuration; security here relies on the verified server authorization contract.
+    cCode: `// Clean: administrative action authorization delegated to backend API rather than client checks.
+// Architectural assumption: The backend endpoint /api/v1/users/:id/grant-superuser is assumed
+// to enforce server-side Role-Based Access Control (RBAC) on session credentials.
+// Client code dispenses with cosmetic client-side role gates. Note: Client snippets alone do not
+// prove backend configuration; backend enforcement is assumed/simulated with verification NOT RUN.
 async function executeAdministrativeActionSecure(targetUserId) {
     const res = await fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
         method: "POST",
@@ -743,10 +743,10 @@ function renderArticleBannerSecure(bannerText) {
     window.__adminMode = true;
 }
 
-// Concrete protected operation affected by window.__adminMode
+// Concrete protected operation: models simulated protected-resource contract; client literals cannot assure production secrecy.
 function accessAdministrativeDiagnostics() {
     if (window.__adminMode) {
-        return "DIAGNOSTIC_DATA: System internals and sensitive user session audit logs.";
+        return "SIMULATED_DIAGNOSTIC_DATA: System internals and session audit logs.";
     }
     return "ACCESS_DENIED: Administrator privileges required.";
 }
@@ -785,12 +785,16 @@ function loadSessionStateSecure(untrustedState) {
     cat: 'A8', id: '046', varSig: 2,
     vCode: `// Vulnerable: parsing untrusted configuration JSON where unvalidated properties control
 // destination endpoint URL for sensitive client telemetry transmission (OWASP-A08-001).
-// Security context: Transmits client session telemetry to an unvalidated endpoint URL.
-// Under browser fetch semantics, if target host permits cross-origin POST or under simple-request rules,
-// sensitive client telemetry payload is transmitted to an attacker-controlled origin.
+// Security context: Transmits sensitive synthetic client session credentials to an unvalidated endpoint URL.
+// Under browser fetch semantics, application/json POST triggers a CORS preflight (OPTIONS); if the attacker
+// server responds with permissive CORS headers, the sensitive client telemetry payload is transmitted.
 function loadAppConfig(rawConfig) {
     const config = JSON.parse(rawConfig);
-    const telemetryPayload = { sessionStatus: "active" };
+    const telemetryPayload = {
+        sessionToken: "token_synthetic_telemetry_user_session_441",
+        activeUser: "researcher@example.internal",
+        metrics: { activeViews: 4 }
+    };
     // Unsafe context: dispatching sensitive telemetry to arbitrary unvalidated endpoint URL from parsed JSON
     return fetch(config.endpointUrl, {
         method: "POST",
@@ -799,7 +803,8 @@ function loadAppConfig(rawConfig) {
     });
 }`,
     cCode: `// Clean: JSON parsing followed by explicit schema verification and endpoint allowlisting.
-// Prevents data transmission to untrusted origins by restricting destinations to approved application paths.
+// Preserves the intended benign telemetry transmission to approved application endpoints
+// while blocking transmission to untrusted external destinations.
 function verifyAppConfig(config) {
     const fallback = { endpointUrl: '/api/v1/feed' };
     if (!config || typeof config !== 'object') return fallback;
@@ -813,7 +818,11 @@ function verifyAppConfig(config) {
 function loadAppConfigSecure(rawConfig) {
     const config = JSON.parse(rawConfig);
     const verified = verifyAppConfig(config);
-    const telemetryPayload = { sessionStatus: "active" };
+    const telemetryPayload = {
+        sessionToken: "token_synthetic_telemetry_user_session_441",
+        activeUser: "researcher@example.internal",
+        metrics: { activeViews: 4 }
+    };
     return fetch(verified.endpointUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

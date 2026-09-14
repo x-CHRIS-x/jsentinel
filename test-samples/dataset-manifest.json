@@ -91,7 +91,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Safely parses JSON without code execution.",
+        "rationale": "Parses input with JSON.parse() and validates structure without executing code.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -142,7 +142,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Calculates numeric values via tokenized arithmetic evaluation.",
+        "rationale": "Coerces arguments to safe numbers and performs standard arithmetic operations.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html"
@@ -164,7 +164,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-003.js",
@@ -181,7 +181,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Passes a direct function reference to setTimeout.",
+        "rationale": "Validates that task argument is a function reference and invokes it directly.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -204,7 +204,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-004.js",
@@ -221,7 +221,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Passes an arrow function closure to setInterval.",
+        "rationale": "Passes an anonymous arrow function invoking the callback function safely.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -244,7 +244,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-005.js",
@@ -261,7 +261,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses a predefined operator lookup table instead of compiling code.",
+        "rationale": "Resolves operation name from an object dictionary of approved mathematical functions.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -284,7 +284,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-006.js",
@@ -301,7 +301,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses parameterized array filtering with callback function.",
+        "rationale": "Uses standard parameterized comparison logic without compiling code.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html"
@@ -323,7 +323,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-007.js",
@@ -361,7 +361,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Renders strictly plain text. If HTML formatting is needed, safe DOM construction or DOMPurify is required."
+      "ambiguityOrKnownLimitations": "Renders strictly plain text. If HTML formatting is needed, safe DOM construction or DOMPurify is required.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A1-008.js",
@@ -378,7 +379,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Creates DOM element and assigns bio text to textContent.",
+        "rationale": "Creates span element and assigns bio text to textContent, avoiding HTML parser.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -402,7 +403,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A1-009.js",
@@ -440,7 +441,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Assumes plain text data."
+      "ambiguityOrKnownLimitations": "Assumes plain text data.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A1-010.js",
@@ -457,7 +459,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Assigns return value of notification text helper to textContent.",
+        "rationale": "Extracts message property and assigns to textContent for safe text display.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -481,7 +483,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A10-053.js",
@@ -498,7 +500,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Destination domain verified against allowlist of authorized origins before sending credentialed request.",
+        "rationale": "Restricts credentialed requests exclusively to verified, approved application API origins.",
         "sourceReferences": [
           "https://fetch.spec.whatwg.org/#cors-protocol-and-credentials",
           "https://datatracker.ietf.org/doc/html/rfc6265#section-5.3",
@@ -523,7 +525,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A10-054.js",
@@ -540,7 +542,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Loads script only from approved CDN with Subresource Integrity (SRI) hash verification.",
+        "rationale": "Loads pre-approved script URL with cryptographic SRI integrity hash verification.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/829.html",
@@ -563,7 +565,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-011.js",
@@ -580,7 +582,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Authenticates password via server-side verification endpoint.",
+        "rationale": "Submits credentials to server API route; password verified server-side.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -602,7 +604,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-012.js",
@@ -619,7 +621,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Delegates emergency access verification to secure server challenge.",
+        "rationale": "Challenges are submitted to server; secret keys are never distributed to client.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -641,7 +643,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-013.js",
@@ -658,7 +660,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Stores transient session token in module-scoped memory closure.",
+        "rationale": "Retains token in transient memory closure; token is not written to disk or web storage.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html",
@@ -681,7 +683,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-014.js",
@@ -698,7 +700,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Session managed via server-issued session cookie without client storage.",
+        "rationale": "Delegates session authentication to HTTP API; avoids client-side token storage.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html"
@@ -720,7 +722,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-015.js",
@@ -737,7 +739,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Delegates session cookie creation to backend server Set-Cookie response header.",
+        "rationale": "Server issues HttpOnly, Secure session cookie via HTTP response headers per RFC 6265.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -761,7 +763,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-016.js",
@@ -778,7 +780,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Delegates auth token storage to server Set-Cookie response header via secure token exchange endpoint.",
+        "rationale": "Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -818,7 +820,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Generates cryptographically secure 6-digit numeric OTP and 256-bit secret key via Web Crypto API.",
+        "rationale": "Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
@@ -842,7 +844,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-018.js",
@@ -859,7 +861,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses crypto.randomUUID() to generate standard cryptographic UUIDv4 nonces.",
+        "rationale": "Generates UUIDv4 using standard Web Crypto API crypto.randomUUID().",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
@@ -882,7 +884,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-019.js",
@@ -899,7 +901,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Communicates with authentication API over encrypted HTTPS protocol.",
+        "rationale": "Enforces HTTPS protocol for all endpoint communications.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -921,7 +923,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A2-020.js",
@@ -938,7 +940,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Sends telemetry event payloads over encrypted HTTPS connection.",
+        "rationale": "Configures telemetry endpoint with HTTPS scheme.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -960,7 +962,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A3-021.js",
@@ -977,7 +979,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Upload operations dispatched through authenticated backend endpoint without client keys.",
+        "rationale": "Uploads to backend API endpoint; AWS credentials remain secured on server.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -999,7 +1001,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A3-022.js",
@@ -1016,7 +1018,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Payment intent created on server; client receives only transient intent token.",
+        "rationale": "Creates payment intents on server; client code never handles secret keys.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -1038,7 +1040,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A3-023.js",
@@ -1076,7 +1078,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Replaces earlier legacy template that used process.env."
+      "ambiguityOrKnownLimitations": "Replaces earlier legacy template that used process.env.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A3-024.js",
@@ -1093,7 +1096,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Database operations proxied through secure backend API route.",
+        "rationale": "Client dispatches queries to backend API route; server handles database credentials.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -1115,7 +1118,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A3-025.js",
@@ -1132,7 +1135,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Submits login credentials in encrypted HTTPS POST request body.",
+        "rationale": "Transmits credentials in JSON body of POST request over HTTPS.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -1154,7 +1157,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A3-026.js",
@@ -1171,7 +1174,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Submits password reset token in secure POST request body.",
+        "rationale": "Sends reset token in POST body payload to authentication endpoint.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -1193,7 +1196,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A5-027.js",
@@ -1231,7 +1234,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Allowlist check performs exact array string lookup."
+      "ambiguityOrKnownLimitations": "Allowlist check performs exact array string lookup.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A5-028.js",
@@ -1248,7 +1252,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Verifies partner URL against domain allowlist before calling location.replace.",
+        "rationale": "Validates destination domain against trustedPartnerDomains allowlist.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/601.html"
@@ -1270,7 +1274,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A5-029.js",
@@ -1287,7 +1291,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Dispatches administrative request to backend API that enforces server-side RBAC on caller session.",
+        "rationale": "Relies on an assumed server-side Role-Based Access Control (RBAC) authorization contract on session credentials. Note that client snippets alone do not prove backend configuration; server-side enforcement is assumed/simulated with verification NOT RUN in this client-only unit scope.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -1298,7 +1302,7 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Client-side authorization check and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Relies on the explicit architectural assumption that the backend endpoint enforces server-side Role-Based Access Control (RBAC) on session credentials. Note that client snippets alone do not prove backend configuration; security depends on the verified server authorization contract."
+        "safePartnerAssumptions": "Relies on an assumed server-side Role-Based Access Control (RBAC) authorization contract on session credentials. Note that client snippets alone do not prove backend configuration; server-side enforcement is assumed/simulated with verification NOT RUN in this client-only unit scope."
       },
       "expectedScannerFindings": [],
       "observedScannerFindings": [],
@@ -1309,7 +1313,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Assumes backend enforces server-side RBAC; client snippets alone do not prove backend configuration."
+      "ambiguityOrKnownLimitations": "Assumes backend enforces server-side RBAC; backend verification is NOT RUN in this client-only benchmark scope."
     },
     {
       "fileName": "C-A5-030.js",
@@ -1326,7 +1330,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Executes purge operation via server API endpoint validating session permissions.",
+        "rationale": "Dispatches request to server endpoint; server verifies session authorization.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -1348,7 +1352,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-031.js",
@@ -1365,7 +1369,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Logs benign user identifier without sensitive password credential.",
+        "rationale": "Logs user identity only, never logging passwords or credentials.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html",
@@ -1388,7 +1392,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-032.js",
@@ -1405,7 +1409,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Logs non-sensitive session confirmation message.",
+        "rationale": "Logs session status without printing secret key values.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -1427,7 +1431,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-033.js",
@@ -1444,7 +1448,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Transmits authentication token with strict target origin restriction.",
+        "rationale": "Specifies exact trusted target origin domain in postMessage call.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/345.html",
@@ -1467,7 +1471,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-034.js",
@@ -1484,7 +1488,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Validates event.origin against allowlist and executes structured actions without eval().",
+        "rationale": "Validates event.origin against trustedOrigins and handles only structured safe actions.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -1508,7 +1512,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-035.js",
@@ -1525,7 +1529,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Logs only specific non-sensitive request path string.",
+        "rationale": "Logs only explicit non-sensitive property (req.path).",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -1547,7 +1551,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-036.js",
@@ -1564,7 +1568,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Logs only non-sensitive error status code.",
+        "rationale": "Logs only non-sensitive numeric status code.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -1586,7 +1590,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-037.js",
@@ -1603,7 +1607,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Connects to WebSocket telemetry service over encrypted wss:// protocol.",
+        "rationale": "Enforces encrypted wss:// WebSocket protocol.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html",
@@ -1626,7 +1630,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A6-038.js",
@@ -1643,7 +1647,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Injects external script using encrypted https:// URL source.",
+        "rationale": "Loads external script assets exclusively over HTTPS.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -1665,7 +1669,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A7-039.js",
@@ -1703,7 +1707,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Plain text rendering of badge."
+      "ambiguityOrKnownLimitations": "Plain text rendering of badge.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A7-040.js",
@@ -1720,7 +1725,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Creates safe paragraph element and assigns comment text to textContent.",
+        "rationale": "Creates DOM node with createElement and sets textContent, avoiding HTML parser.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -1744,7 +1749,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A7-041.js",
@@ -1761,7 +1766,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Creates safe text node via document.createTextNode() and appends to document body.",
+        "rationale": "Creates text node using createTextNode, ensuring character data rendering.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -1784,7 +1789,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A7-042.js",
@@ -1801,7 +1806,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Creates safe div element and assigns status text to textContent.",
+        "rationale": "Creates DOM element and assigns to textContent.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html"
@@ -1823,7 +1828,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A7-043.js",
@@ -1840,7 +1845,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Renders post content via standard React JSX text interpolation.",
+        "rationale": "Uses standard React JSX children interpolation {contentStr}, which automatically escapes HTML entities.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -1863,7 +1868,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A7-044.js",
@@ -1880,7 +1885,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Renders article banner using standard React JSX text children.",
+        "rationale": "Renders banner as text child within React section component.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html"
@@ -1902,7 +1907,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A8-045.js",
@@ -1919,7 +1924,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Validates session schema structurally and enforces standard unprivileged role regardless of client-supplied payload.",
+        "rationale": "Enforces schema validation to confirm object structure and assigns standard unprivileged role. Demonstrates that schema validation verifies data structure and types, not authorization, which must be derived from verified server authority.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -1958,7 +1963,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Verifies configuration schema with null-safe allowlisting fallback before dispatching client telemetry.",
+        "rationale": "Preserves the intended benign telemetry transmission function by allowing approved application endpoints (/api/v1/feed, /api/v1/profile) while safely rejecting untrusted external destinations with a safe fallback.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -1969,7 +1974,7 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Client configuration loader and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "verifyAppConfig provides a null-safe fallback restricting telemetry requests strictly to approved application paths (/api/v1/feed, /api/v1/profile)."
+        "safePartnerAssumptions": "Preserves the intended benign telemetry transmission function by allowing approved application endpoints (/api/v1/feed, /api/v1/profile) while safely rejecting untrusted external destinations with a safe fallback."
       },
       "expectedScannerFindings": [],
       "observedScannerFindings": [],
@@ -1997,7 +2002,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses Object.create(null) to create a dictionary with no prototype chain.",
+        "rationale": "Creates target object using Object.create(null), eliminating __proto__ accessor.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
@@ -2020,7 +2025,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A8-048.js",
@@ -2037,7 +2042,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses Map data structure to store key-value mappings safely.",
+        "rationale": "Uses JavaScript Map data structure, which isolates keys from prototype chain.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
@@ -2060,7 +2065,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A8-049.js",
@@ -2098,7 +2103,8 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Shallow property filtering."
+      "ambiguityOrKnownLimitations": "Shallow property filtering.",
+      "observedScannerFindings": []
     },
     {
       "fileName": "C-A8-050.js",
@@ -2115,7 +2121,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses explicit property picking allowlist before merging configuration.",
+        "rationale": "Picks only explicitly allowed keys (theme, accentColor, layoutMode) into fresh object.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html"
@@ -2137,7 +2143,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A9-051.js",
@@ -2154,7 +2160,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Stores transient bearer token in memory closure variable.",
+        "rationale": "Keeps token in private memory variable without writing to browser web storage.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html",
@@ -2177,7 +2183,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "C-A9-052.js",
@@ -2194,7 +2200,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Transmits access token via in-memory Authorization request header.",
+        "rationale": "Passes access token in HTTP Authorization header in memory.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -2216,7 +2222,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
     },
     {
       "fileName": "chat-application.js",
@@ -2407,7 +2413,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
-        "rationale": "Executes dynamic string concatenation directly via eval().",
+        "rationale": "CRITICAL: Arbitrary code execution in client session (XSS / DOM execution).",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -2418,7 +2424,7 @@
         "trustBoundary": "Untrusted user input string passed directly into execution context.",
         "attackerControlledInput": "String containing arbitrary JavaScript statements concatenated into eval() argument.",
         "executionEnvironment": "Browser JavaScript execution context.",
-        "impactSupportingSeverity": "CRITICAL: Arbitrary code execution in client session (XSS / DOM execution).",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Arbitrary code execution in client session (XSS / DOM execution).",
         "safePartnerAssumptions": "Parses input with JSON.parse() and validates structure without executing code."
       },
       "expectedScannerFindings": [
@@ -2430,7 +2436,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Dangerous use of eval()"
+          "weaknessDescription": "Executes dynamic string concatenation directly via eval()."
         }
       ],
       "observedScannerFindings": [
@@ -2469,7 +2475,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
-        "rationale": "Dynamically calculates user formula string via eval().",
+        "rationale": "CRITICAL: Arbitrary JavaScript execution via arithmetic expression breakout.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html"
@@ -2479,7 +2485,7 @@
         "trustBoundary": "User-provided mathematical formula string.",
         "attackerControlledInput": "Formula string containing breakout payload (e.g. 1; alert(1)).",
         "executionEnvironment": "Browser JavaScript arithmetic calculation routine.",
-        "impactSupportingSeverity": "CRITICAL: Arbitrary JavaScript execution via arithmetic expression breakout.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Arbitrary JavaScript execution via arithmetic expression breakout.",
         "safePartnerAssumptions": "Coerces arguments to safe numbers and performs standard arithmetic operations."
       },
       "expectedScannerFindings": [
@@ -2491,7 +2497,7 @@
             "line": 8,
             "column": 11
           },
-          "weaknessDescription": "Dangerous use of eval()"
+          "weaknessDescription": "Dynamically calculates user formula string via eval()."
         }
       ],
       "observedScannerFindings": [
@@ -2530,7 +2536,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Eval Injection (Dynamic Timer Evaluation)",
-        "rationale": "Passes dynamic string to setTimeout, triggering implicit code evaluation.",
+        "rationale": "HIGH: Implicit code evaluation executes attacker payload after delay.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -2541,7 +2547,7 @@
         "trustBoundary": "Dynamic callback string identifier.",
         "attackerControlledInput": "Callback string containing executable code (e.g. alert(1)).",
         "executionEnvironment": "Browser timer loop.",
-        "impactSupportingSeverity": "HIGH: Implicit code evaluation executes attacker payload after delay.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Implicit code evaluation executes attacker payload after delay.",
         "safePartnerAssumptions": "Validates that task argument is a function reference and invokes it directly."
       },
       "expectedScannerFindings": [
@@ -2553,7 +2559,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Dangerous use of string in setTimeout"
+          "weaknessDescription": "Passes dynamic string to setTimeout, triggering implicit code evaluation."
         }
       ],
       "observedScannerFindings": [
@@ -2592,7 +2598,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Eval Injection (Dynamic Timer Evaluation)",
-        "rationale": "Passes dynamic string concatenation to setInterval.",
+        "rationale": "HIGH: Recurring implicit code evaluation executing attacker payload.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -2603,7 +2609,7 @@
         "trustBoundary": "Dynamic polling action string argument.",
         "attackerControlledInput": "Action code string containing script injection payload.",
         "executionEnvironment": "Browser recurring interval timer.",
-        "impactSupportingSeverity": "HIGH: Recurring implicit code evaluation executing attacker payload.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Recurring implicit code evaluation executing attacker payload.",
         "safePartnerAssumptions": "Passes an anonymous arrow function invoking the callback function safely."
       },
       "expectedScannerFindings": [
@@ -2615,7 +2621,7 @@
             "line": 8,
             "column": 11
           },
-          "weaknessDescription": "Dangerous use of string in setInterval"
+          "weaknessDescription": "Passes dynamic string concatenation to setInterval."
         }
       ],
       "observedScannerFindings": [
@@ -2654,7 +2660,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code",
-        "rationale": "Compiles dynamic formula string into executable code using new Function().",
+        "rationale": "CRITICAL: Dynamic function construction allows arbitrary code execution in global context.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -2665,7 +2671,7 @@
         "trustBoundary": "Dynamic formula string parameter.",
         "attackerControlledInput": "Arbitrary function body payload executing in global scope.",
         "executionEnvironment": "Browser Function constructor compilation.",
-        "impactSupportingSeverity": "CRITICAL: Dynamic function construction allows arbitrary code execution in global context.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Dynamic function construction allows arbitrary code execution in global context.",
         "safePartnerAssumptions": "Resolves operation name from an object dictionary of approved mathematical functions."
       },
       "expectedScannerFindings": [
@@ -2677,7 +2683,7 @@
             "line": 8,
             "column": 15
           },
-          "weaknessDescription": "Unsafe use of Function constructor"
+          "weaknessDescription": "Compiles dynamic formula string into executable code using new Function()."
         }
       ],
       "observedScannerFindings": [
@@ -2716,7 +2722,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code",
-        "rationale": "Compiles dynamic array filter predicate via new Function().",
+        "rationale": "CRITICAL: Arbitrary code execution during array element evaluation.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html"
@@ -2726,7 +2732,7 @@
         "trustBoundary": "Dynamic filter predicate string.",
         "attackerControlledInput": "Filter predicate string containing malicious statements.",
         "executionEnvironment": "Browser array filtering loop.",
-        "impactSupportingSeverity": "CRITICAL: Arbitrary code execution during array element evaluation.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Arbitrary code execution during array element evaluation.",
         "safePartnerAssumptions": "Uses standard parameterized comparison logic without compiling code."
       },
       "expectedScannerFindings": [
@@ -2738,7 +2744,7 @@
             "line": 8,
             "column": 21
           },
-          "weaknessDescription": "Unsafe use of Function constructor"
+          "weaknessDescription": "Compiles dynamic array filter predicate via new Function()."
         }
       ],
       "observedScannerFindings": [
@@ -2810,7 +2816,19 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Phase 03 deduplication ensures only A03-004 is emitted and A03-006 is suppressed."
+      "ambiguityOrKnownLimitations": "Phase 03 deduplication ensures only A03-004 is emitted and A03-006 is suppressed.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-004",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Unsafe innerHTML assignment using dynamic template literal"
+        }
+      ]
     },
     {
       "fileName": "V-A1-008.js",
@@ -2827,7 +2845,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns template literal containing user bio text directly to innerHTML.",
+        "rationale": "HIGH: Stored or reflected XSS via unneutralized markup interpolation in innerHTML.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -2839,7 +2857,7 @@
         "trustBoundary": "User bio string parameter.",
         "attackerControlledInput": "Bio text containing malicious HTML tags and scripts.",
         "executionEnvironment": "Browser profile rendering area.",
-        "impactSupportingSeverity": "HIGH: Stored or reflected XSS via unneutralized markup interpolation in innerHTML.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Stored or reflected XSS via unneutralized markup interpolation in innerHTML.",
         "safePartnerAssumptions": "Creates span element and assigns bio text to textContent, avoiding HTML parser."
       },
       "expectedScannerFindings": [
@@ -2851,7 +2869,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal"
+          "weaknessDescription": "Assigns unescaped user profile template directly to innerHTML."
         }
       ],
       "observedScannerFindings": [
@@ -2923,7 +2941,19 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Executable helper getRawHtmlFromEndpoint defined to provide a synchronous attacker-controlled return contract."
+      "ambiguityOrKnownLimitations": "Executable helper getRawHtmlFromEndpoint defined to provide a synchronous attacker-controlled return contract.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-005",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 13,
+            "column": 4
+          },
+          "message": "Unsafe innerHTML assignment using function return value"
+        }
+      ]
     },
     {
       "fileName": "V-A1-010.js",
@@ -2940,7 +2970,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns return value of notification markup helper to innerHTML.",
+        "rationale": "HIGH: DOM XSS via unneutralized notification feed markup assigned to innerHTML.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -2952,7 +2982,7 @@
         "trustBoundary": "Notification feed data source.",
         "attackerControlledInput": "Notification feed body containing event-handler markup (<b onmouseover=alert(1)>).",
         "executionEnvironment": "Browser notification banner DOM element.",
-        "impactSupportingSeverity": "HIGH: DOM XSS via unneutralized notification feed markup assigned to innerHTML.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: DOM XSS via unneutralized notification feed markup assigned to innerHTML.",
         "safePartnerAssumptions": "Extracts message property and assigns to textContent for safe text display."
       },
       "expectedScannerFindings": [
@@ -2964,7 +2994,7 @@
             "line": 13,
             "column": 4
           },
-          "weaknessDescription": "Unsafe innerHTML assignment using function return value"
+          "weaknessDescription": "Assigns helper notification return value directly to innerHTML."
         }
       ],
       "observedScannerFindings": [
@@ -3003,7 +3033,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-20: Improper Input Validation (Client Request Forgery with Ambient Credentials)",
-        "rationale": "Client fetch to arbitrary user-supplied URL with ambient credentials enabled.",
+        "rationale": "HIGH: Client-side request forgery (CSRF / confused deputy). Per WHATWG Fetch and RFC 6265, browser attaches ambient credentials scoped to the destination host, not the caller origin. If target host has permissive CORS or processes requests with side effects, attacker triggers unauthorized authenticated actions.",
         "sourceReferences": [
           "https://fetch.spec.whatwg.org/#cors-protocol-and-credentials",
           "https://datatracker.ietf.org/doc/html/rfc6265#section-5.3",
@@ -3016,7 +3046,7 @@
         "trustBoundary": "User-supplied target URL passed to credentialed fetch.",
         "attackerControlledInput": "Arbitrary URL targeting intranet services (e.g. localhost, 192.168.x.x) or third-party APIs.",
         "executionEnvironment": "Browser Fetch API with credentials: include.",
-        "impactSupportingSeverity": "HIGH: Client-side request forgery (CSRF / confused deputy). Per WHATWG Fetch and RFC 6265, browser attaches ambient credentials scoped to the destination host, not the caller origin. If target host has permissive CORS or processes requests with side effects, attacker triggers unauthorized authenticated actions.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Client-side request forgery (CSRF / confused deputy). Per WHATWG Fetch and RFC 6265, browser attaches ambient credentials scoped to the destination host, not the caller origin. If target host has permissive CORS or processes requests with side effects, attacker triggers unauthorized authenticated actions.",
         "safePartnerAssumptions": "Restricts credentialed requests exclusively to verified, approved application API origins."
       },
       "expectedScannerFindings": [
@@ -3057,7 +3087,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-829: Inclusion of Functionality from Untrusted Control Sphere",
-        "rationale": "Dynamically injects external script element pointing to unvalidated user-controlled URL.",
+        "rationale": "CRITICAL: Full execution of arbitrary untrusted third-party script in victim session.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/829.html",
@@ -3068,7 +3098,7 @@
         "trustBoundary": "External script inclusion boundary.",
         "attackerControlledInput": "Untrusted script source URL hosting malicious JavaScript payload.",
         "executionEnvironment": "Browser DOM script element execution.",
-        "impactSupportingSeverity": "CRITICAL: Full execution of arbitrary untrusted third-party script in victim session.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Full execution of arbitrary untrusted third-party script in victim session.",
         "safePartnerAssumptions": "Loads pre-approved script URL with cryptographic SRI integrity hash verification."
       },
       "expectedScannerFindings": [
@@ -3109,7 +3139,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded admin fallback password string in client source code.",
+        "rationale": "CRITICAL: Static credential extraction granting unauthorized administrative access.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -3119,7 +3149,7 @@
         "trustBoundary": "Client application bundle inspection boundary.",
         "attackerControlledInput": "Reverse engineering or source inspection of client bundle.",
         "executionEnvironment": "Client-side script verification.",
-        "impactSupportingSeverity": "CRITICAL: Static credential extraction granting unauthorized administrative access.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Static credential extraction granting unauthorized administrative access.",
         "safePartnerAssumptions": "Submits credentials to server API route; password verified server-side."
       },
       "expectedScannerFindings": [
@@ -3131,7 +3161,7 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded password found in variable 'adminAuthPassword'"
+          "weaknessDescription": "Hardcoded plaintext administrator password assigned to client variable."
         }
       ],
       "observedScannerFindings": [
@@ -3170,7 +3200,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded emergency recovery auth key in client script.",
+        "rationale": "CRITICAL: Bypasses authentication challenge using embedded recovery key.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -3180,7 +3210,7 @@
         "trustBoundary": "Client-side bundle inspection.",
         "attackerControlledInput": "Inspection of client script containing static recovery key.",
         "executionEnvironment": "Client recovery access routine.",
-        "impactSupportingSeverity": "CRITICAL: Bypasses authentication challenge using embedded recovery key.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Bypasses authentication challenge using embedded recovery key.",
         "safePartnerAssumptions": "Challenges are submitted to server; secret keys are never distributed to client."
       },
       "expectedScannerFindings": [
@@ -3192,7 +3222,7 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'recoveryAuthKey'"
+          "weaknessDescription": "Hardcoded recovery authentication key assigned in client code."
         }
       ],
       "observedScannerFindings": [
@@ -3231,7 +3261,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-922: Insecure Storage of Sensitive Information",
-        "rationale": "Stores sensitive JWT session token in unencrypted localStorage.",
+        "rationale": "HIGH: Any script executing on origin can read and exfiltrate persistent session token.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html",
@@ -3242,7 +3272,7 @@
         "trustBoundary": "Client Web Storage accessible to any script executing on same origin.",
         "attackerControlledInput": "Any cross-site script injection or third-party script on origin.",
         "executionEnvironment": "Browser localStorage storage area.",
-        "impactSupportingSeverity": "HIGH: Any script executing on origin can read and exfiltrate persistent session token.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Any script executing on origin can read and exfiltrate persistent session token.",
         "safePartnerAssumptions": "Retains token in transient memory closure; token is not written to disk or web storage."
       },
       "expectedScannerFindings": [
@@ -3254,7 +3284,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Sensitive token stored in localStorage (key: 'session_token')"
+          "weaknessDescription": "Stores sensitive JWT bearer session token in localStorage."
         }
       ],
       "observedScannerFindings": [
@@ -3293,7 +3323,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-922: Insecure Storage of Sensitive Information",
-        "rationale": "Stores authentication credential token in localStorage.",
+        "rationale": "HIGH: Credential exposure to unauthorized scripts on same origin.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html"
@@ -3303,7 +3333,7 @@
         "trustBoundary": "Client Web Storage persistent data boundary.",
         "attackerControlledInput": "Malicious third-party library or XSS on origin reading localStorage.",
         "executionEnvironment": "Browser localStorage API.",
-        "impactSupportingSeverity": "HIGH: Credential exposure to unauthorized scripts on same origin.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Credential exposure to unauthorized scripts on same origin.",
         "safePartnerAssumptions": "Delegates session authentication to HTTP API; avoids client-side token storage."
       },
       "expectedScannerFindings": [
@@ -3315,7 +3345,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Sensitive token stored in localStorage (key: 'user_auth_credential')"
+          "weaknessDescription": "Stores long-lived user authentication credential in localStorage."
         }
       ],
       "observedScannerFindings": [
@@ -3354,7 +3384,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
-        "rationale": "Writes session cookie via document.cookie without Secure or HttpOnly protection.",
+        "rationale": "MEDIUM: Unencrypted transmission and client-side cookie theft.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -3366,7 +3396,7 @@
         "trustBoundary": "Network transport and client script cookie boundary.",
         "attackerControlledInput": "Man-in-the-middle network interception or client script reading document.cookie.",
         "executionEnvironment": "Browser document.cookie DOM API.",
-        "impactSupportingSeverity": "MEDIUM: Unencrypted transmission and client-side cookie theft.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Unencrypted transmission and client-side cookie theft.",
         "safePartnerAssumptions": "Server issues HttpOnly, Secure session cookie via HTTP response headers per RFC 6265."
       },
       "expectedScannerFindings": [
@@ -3378,7 +3408,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
+          "weaknessDescription": "Writes session identifier directly to document.cookie without Secure flag."
         }
       ],
       "observedScannerFindings": [
@@ -3417,7 +3447,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
-        "rationale": "Stores authentication credentials directly in document.cookie without HttpOnly protection.",
+        "rationale": "MEDIUM: Client-side cookie storage exposes sensitive authentication tokens to XSS read operations.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -3428,7 +3458,7 @@
         "trustBoundary": "Authentication token exchanged with backend endpoint over TLS.",
         "attackerControlledInput": "Stolen or intercepted auth token.",
         "executionEnvironment": "Browser fetch and cookie storage model.",
-        "impactSupportingSeverity": "MEDIUM: Client-side cookie storage exposes sensitive authentication tokens to XSS read operations.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Client-side cookie storage exposes sensitive authentication tokens to XSS read operations.",
         "safePartnerAssumptions": "Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie."
       },
       "expectedScannerFindings": [
@@ -3440,7 +3470,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
+          "weaknessDescription": "Writes authentication token directly to document.cookie without Secure flag."
         }
       ],
       "observedScannerFindings": [
@@ -3479,7 +3509,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)",
-        "rationale": "Uses Math.random() to generate one-time password (OTP) secrets and keys.",
+        "rationale": "HIGH: Predictable OTPs and secret keys allow attackers to bypass authentication if PRNG state is observed.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
@@ -3491,7 +3521,7 @@
         "trustBoundary": "One-time password generation and shared secret provisioning.",
         "attackerControlledInput": "Predicting sequence of Math.random values by reconstructing internal PRNG state (e.g. V8 Xoroshiro128+).",
         "executionEnvironment": "Browser Web Crypto API execution.",
-        "impactSupportingSeverity": "HIGH: Predictable OTPs and secret keys allow attackers to bypass authentication if PRNG state is observed.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Predictable OTPs and secret keys allow attackers to bypass authentication if PRNG state is observed.",
         "safePartnerAssumptions": "Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards."
       },
       "expectedScannerFindings": [
@@ -3503,7 +3533,7 @@
             "line": 8,
             "column": 10
           },
-          "weaknessDescription": "Insecure pseudo-random number generator used for sensitive variable 'otp'"
+          "weaknessDescription": "Generates one-time password (OTP) using non-cryptographic Math.random()."
         },
         {
           "ruleId": "OWASP-A02-003",
@@ -3513,7 +3543,7 @@
             "line": 9,
             "column": 10
           },
-          "weaknessDescription": "Insecure pseudo-random number generator used for sensitive variable 'otp_key'"
+          "weaknessDescription": "Generates cryptographic OTP secret key using non-cryptographic Math.random()."
         }
       ],
       "observedScannerFindings": [
@@ -3562,7 +3592,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)",
-        "rationale": "Uses Math.random() to generate CSRF nonce and session tokens.",
+        "rationale": "HIGH: CSRF token forgery leading to unauthorized state-changing operations.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
@@ -3573,7 +3603,7 @@
         "trustBoundary": "CSRF token uniqueness and unpredictability.",
         "attackerControlledInput": "Predicting sequence of Math.random nonces to forge CSRF requests.",
         "executionEnvironment": "Browser security token generation routine.",
-        "impactSupportingSeverity": "HIGH: CSRF token forgery leading to unauthorized state-changing operations.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: CSRF token forgery leading to unauthorized state-changing operations.",
         "safePartnerAssumptions": "Generates UUIDv4 using standard Web Crypto API crypto.randomUUID()."
       },
       "expectedScannerFindings": [
@@ -3585,7 +3615,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Uses Math.random() to generate CSRF nonce and session tokens."
+          "weaknessDescription": "Generates security nonce using non-cryptographic Math.random()."
         }
       ],
       "observedScannerFindings": [],
@@ -3613,7 +3643,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-319: Cleartext Transmission of Sensitive Information",
-        "rationale": "Communicates with authentication API over unencrypted HTTP URL.",
+        "rationale": "MEDIUM: Cleartext interception of credentials, session cookies, and payloads.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -3623,7 +3653,7 @@
         "trustBoundary": "Network wire boundary between browser and backend API.",
         "attackerControlledInput": "Eavesdropping on local network, Wi-Fi, or upstream network routes.",
         "executionEnvironment": "Browser Fetch API network transport.",
-        "impactSupportingSeverity": "MEDIUM: Cleartext interception of credentials, session cookies, and payloads.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Cleartext interception of credentials, session cookies, and payloads.",
         "safePartnerAssumptions": "Enforces HTTPS protocol for all endpoint communications."
       },
       "expectedScannerFindings": [
@@ -3635,7 +3665,7 @@
             "line": 7,
             "column": 22
           },
-          "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://unencrypted.internal-services.com/v1/auth'"
+          "weaknessDescription": "Transmits authentication data over unencrypted HTTP protocol."
         }
       ],
       "observedScannerFindings": [
@@ -3674,7 +3704,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-319: Cleartext Transmission of Sensitive Information",
-        "rationale": "Sends telemetry event payloads over unencrypted HTTP connection.",
+        "rationale": "MEDIUM: Exposure of user activity events and internal telemetry.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -3684,7 +3714,7 @@
         "trustBoundary": "Network transit path.",
         "attackerControlledInput": "Network traffic inspection and packet sniffing.",
         "executionEnvironment": "Browser Fetch API.",
-        "impactSupportingSeverity": "MEDIUM: Exposure of user activity events and internal telemetry.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Exposure of user activity events and internal telemetry.",
         "safePartnerAssumptions": "Configures telemetry endpoint with HTTPS scheme."
       },
       "expectedScannerFindings": [
@@ -3696,7 +3726,7 @@
             "line": 7,
             "column": 26
           },
-          "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://telemetry.logging-service.net/events'"
+          "weaknessDescription": "Transmits telemetry events over unencrypted HTTP protocol."
         }
       ],
       "observedScannerFindings": [
@@ -3735,7 +3765,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded AWS access secret and static JWT token signatures embedded in client code.",
+        "rationale": "CRITICAL: Unauthorized access to cloud storage infrastructure and JWT forgery.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -3745,7 +3775,7 @@
         "trustBoundary": "Client code bundle distribution boundary.",
         "attackerControlledInput": "Inspection of downloaded client bundle.",
         "executionEnvironment": "Browser static script asset.",
-        "impactSupportingSeverity": "CRITICAL: Unauthorized access to cloud storage infrastructure and JWT forgery.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Unauthorized access to cloud storage infrastructure and JWT forgery.",
         "safePartnerAssumptions": "Uploads to backend API endpoint; AWS credentials remain secured on server."
       },
       "expectedScannerFindings": [
@@ -3757,7 +3787,7 @@
             "line": 7,
             "column": 26
           },
-          "weaknessDescription": "Hardcoded AWS Access Key detected in string."
+          "weaknessDescription": "Hardcoded AWS Access Key ID assigned in client configuration."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -3767,7 +3797,7 @@
             "line": 8,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'STATIC_JWT_TOKEN'"
+          "weaknessDescription": "Hardcoded static JWT secret token embedded in client script."
         }
       ],
       "observedScannerFindings": [
@@ -3816,7 +3846,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded Stripe secret key and private JWT signature token in client script.",
+        "rationale": "CRITICAL: Full compromise of payment gateway account and ability to perform unauthorized charges/refunds.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -3826,20 +3856,10 @@
         "trustBoundary": "Client asset distribution.",
         "attackerControlledInput": "Source inspection of client bundle.",
         "executionEnvironment": "Browser payment processing script.",
-        "impactSupportingSeverity": "CRITICAL: Full compromise of payment gateway account and ability to perform unauthorized charges/refunds.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Full compromise of payment gateway account and ability to perform unauthorized charges/refunds.",
         "safePartnerAssumptions": "Creates payment intents on server; client code never handles secret keys."
       },
       "expectedScannerFindings": [
-        {
-          "ruleId": "OWASP-A02-005",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "CRITICAL",
-          "location": {
-            "line": 8,
-            "column": 30
-          },
-          "weaknessDescription": "Hardcoded JWT Token detected in string."
-        },
         {
           "ruleId": "OWASP-A02-006",
           "owasp2021Category": "A02:2021-Cryptographic Failures",
@@ -3848,7 +3868,17 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'STRIPE_SECRET_KEY'"
+          "weaknessDescription": "Hardcoded Stripe API secret key assigned in client code."
+        },
+        {
+          "ruleId": "OWASP-A02-005",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 30
+          },
+          "weaknessDescription": "Hardcoded JWT authorization token embedded in client configuration."
         }
       ],
       "observedScannerFindings": [
@@ -3940,7 +3970,29 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Synthetic secret strings represent privileged nonpublic credentials. Scanner matches sensitive identifier names with string literal initialization."
+      "ambiguityOrKnownLimitations": "Synthetic secret strings represent privileged nonpublic credentials. Scanner matches sensitive identifier names with string literal initialization.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'application_secret_key'"
+        },
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'gatewayToken'"
+        }
+      ]
     },
     {
       "fileName": "V-A3-024.js",
@@ -3957,7 +4009,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded database API key and webhook secret in client script.",
+        "rationale": "CRITICAL: Direct database access or webhook forging using leaked keys.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/798.html"
@@ -3967,7 +4019,7 @@
         "trustBoundary": "Client bundle inspection.",
         "attackerControlledInput": "Extracting API keys from client-side script files.",
         "executionEnvironment": "Browser database client.",
-        "impactSupportingSeverity": "CRITICAL: Direct database access or webhook forging using leaked keys.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Direct database access or webhook forging using leaked keys.",
         "safePartnerAssumptions": "Client dispatches queries to backend API route; server handles database credentials."
       },
       "expectedScannerFindings": [
@@ -3979,7 +4031,7 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'databaseServiceApiKey'"
+          "weaknessDescription": "Hardcoded database service API key assigned in client code."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -3989,7 +4041,7 @@
             "line": 8,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'clientSecretToken'"
+          "weaknessDescription": "Hardcoded client secret webhook token embedded in client script."
         }
       ],
       "observedScannerFindings": [
@@ -4038,7 +4090,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-598: Use of GET Request Method With Sensitive Query Strings",
-        "rationale": "Transmits username and password credentials in GET query URL string.",
+        "rationale": "MEDIUM: Credentials leaked to access logs, browser history, and third-party referrers.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -4048,7 +4100,7 @@
         "trustBoundary": "URL visibility boundary (browser history, server access logs, Referer headers).",
         "attackerControlledInput": "Accessing browser history, proxy logs, or Referer header downstream.",
         "executionEnvironment": "Browser URL navigation and network stack.",
-        "impactSupportingSeverity": "MEDIUM: Credentials leaked to access logs, browser history, and third-party referrers.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Credentials leaked to access logs, browser history, and third-party referrers.",
         "safePartnerAssumptions": "Transmits credentials in JSON body of POST request over HTTPS."
       },
       "expectedScannerFindings": [
@@ -4060,7 +4112,7 @@
             "line": 8,
             "column": 47
           },
-          "weaknessDescription": "Sensitive credentials embedded in URL query string"
+          "weaknessDescription": "Appends plaintext password directly to URL query string."
         }
       ],
       "observedScannerFindings": [
@@ -4099,7 +4151,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-598: Use of GET Request Method With Sensitive Query Strings",
-        "rationale": "Transmits password reset token in GET query URL parameters.",
+        "rationale": "MEDIUM: Account takeover via reset token leakage in URL query parameters.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -4109,7 +4161,7 @@
         "trustBoundary": "URL string exposure boundary.",
         "attackerControlledInput": "Inspecting browser history or server access log files.",
         "executionEnvironment": "Browser URL construction.",
-        "impactSupportingSeverity": "MEDIUM: Account takeover via reset token leakage in URL query parameters.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Account takeover via reset token leakage in URL query parameters.",
         "safePartnerAssumptions": "Sends reset token in POST body payload to authentication endpoint."
       },
       "expectedScannerFindings": [
@@ -4121,7 +4173,7 @@
             "line": 8,
             "column": 49
           },
-          "weaknessDescription": "Sensitive credentials embedded in URL query string"
+          "weaknessDescription": "Appends password reset token directly to URL query string."
         }
       ],
       "observedScannerFindings": [
@@ -4193,7 +4245,19 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Scanner uses AST scope allowlist check traversal (isValidated); does not perform whole-program taint tracking."
+      "ambiguityOrKnownLimitations": "Scanner uses AST scope allowlist check traversal (isValidated); does not perform whole-program taint tracking.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-001",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Unsafe location redirection using dynamic value"
+        }
+      ]
     },
     {
       "fileName": "V-A5-028.js",
@@ -4210,7 +4274,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')",
-        "rationale": "Navigates to unvalidated partner URL using window.location.replace.",
+        "rationale": "HIGH: Open redirection without history trace to malicious site.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/601.html"
@@ -4220,7 +4284,7 @@
         "trustBoundary": "External redirect path parameter.",
         "attackerControlledInput": "Malicious domain URL passed to navigation function.",
         "executionEnvironment": "Browser window navigation history replace.",
-        "impactSupportingSeverity": "HIGH: Open redirection without history trace to malicious site.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Open redirection without history trace to malicious site.",
         "safePartnerAssumptions": "Validates destination domain against trustedPartnerDomains allowlist."
       },
       "expectedScannerFindings": [
@@ -4232,7 +4296,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Unsafe location.replace() using dynamic value"
+          "weaknessDescription": "Directly navigates window to dynamic partnerUrl without validation."
         }
       ],
       "observedScannerFindings": [
@@ -4271,7 +4335,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-602: Client-Side Enforcement of Server-Side Security",
-        "rationale": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) with client-side role check when backend lacks authorization enforcement.",
+        "rationale": "HIGH: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks authorization enforcement; trusting client-side role checks allows attackers to bypass controls and grant superuser privileges. Note that client snippets alone do not prove backend configuration; this sample explicitly assumes missing server-side enforcement.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -4281,8 +4345,8 @@
         "trustBoundary": "Client-to-server administrative endpoint request boundary.",
         "attackerControlledInput": "Tampering with client-side userContext object in memory or issuing direct HTTP requests to the backend endpoint.",
         "executionEnvironment": "Client-side authorization check and fetch execution.",
-        "impactSupportingSeverity": "HIGH: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks authorization enforcement; trusting client-side role checks allows attackers to bypass controls and grant superuser privileges. Note that client snippets alone do not prove backend configuration; this sample explicitly assumes missing server-side enforcement.",
-        "safePartnerAssumptions": "Relies on the explicit architectural assumption that the backend endpoint enforces server-side Role-Based Access Control (RBAC) on session credentials. Note that client snippets alone do not prove backend configuration; security depends on the verified server authorization contract."
+        "impactSupportingSeverity": "MEDIUM severity: HIGH: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks authorization enforcement; trusting client-side role checks allows attackers to bypass controls and grant superuser privileges. Note that client snippets alone do not prove backend configuration; this sample explicitly assumes missing server-side enforcement.",
+        "safePartnerAssumptions": "Relies on an assumed server-side Role-Based Access Control (RBAC) authorization contract on session credentials. Note that client snippets alone do not prove backend configuration; server-side enforcement is assumed/simulated with verification NOT RUN in this client-only unit scope."
       },
       "expectedScannerFindings": [
         {
@@ -4293,7 +4357,7 @@
             "line": 12,
             "column": 4
           },
-          "weaknessDescription": "Client-side role or authorization check in condition statement"
+          "weaknessDescription": "Guards privileged administrative endpoint with client-side role check."
         }
       ],
       "observedScannerFindings": [
@@ -4315,7 +4379,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Assumes backend lacks authorization enforcement; client snippets alone do not prove backend configuration."
+      "ambiguityOrKnownLimitations": "Assumes backend lacks authorization enforcement; backend verification is NOT RUN in this client-only benchmark scope."
     },
     {
       "fileName": "V-A5-030.js",
@@ -4332,7 +4396,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-602: Client-Side Enforcement of Server-Side Security",
-        "rationale": "Guards destructive system purge operation using client-side permission flag.",
+        "rationale": "MEDIUM: Unauthorized triggering of destructive system operations.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -4342,7 +4406,7 @@
         "trustBoundary": "Client-side permission check.",
         "attackerControlledInput": "Overriding client-side permission property (userState.hasPurgePermission = true).",
         "executionEnvironment": "Browser admin action trigger.",
-        "impactSupportingSeverity": "MEDIUM: Unauthorized triggering of destructive system operations.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Unauthorized triggering of destructive system operations.",
         "safePartnerAssumptions": "Dispatches request to server endpoint; server verifies session authorization."
       },
       "expectedScannerFindings": [
@@ -4354,7 +4418,7 @@
             "line": 12,
             "column": 4
           },
-          "weaknessDescription": "Client-side role or authorization check in condition statement"
+          "weaknessDescription": "Guards destructive system purge operation using client-side permission flag."
         }
       ],
       "observedScannerFindings": [
@@ -4393,7 +4457,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-532: Insertion of Sensitive Information into Log File",
-        "rationale": "Prints user password string directly to browser console log.",
+        "rationale": "MEDIUM: Plaintext password exposure in console logs and error monitoring services.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html",
@@ -4404,7 +4468,7 @@
         "trustBoundary": "Browser developer console and diagnostic log export boundary.",
         "attackerControlledInput": "Inspecting browser console output or harvesting log exports.",
         "executionEnvironment": "Browser console logging facility.",
-        "impactSupportingSeverity": "MEDIUM: Plaintext password exposure in console logs and error monitoring services.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Plaintext password exposure in console logs and error monitoring services.",
         "safePartnerAssumptions": "Logs user identity only, never logging passwords or credentials."
       },
       "expectedScannerFindings": [
@@ -4416,7 +4480,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Sensitive variable 'password' logged to console"
+          "weaknessDescription": "Prints user password string directly to browser console log."
         }
       ],
       "observedScannerFindings": [
@@ -4455,7 +4519,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-532: Insertion of Sensitive Information into Log File",
-        "rationale": "Prints authentication secret key string to browser console warning.",
+        "rationale": "MEDIUM: Credential leakage in diagnostic logs.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -4465,7 +4529,7 @@
         "trustBoundary": "Browser diagnostic logging.",
         "attackerControlledInput": "Inspecting console log streams in shared or monitored environments.",
         "executionEnvironment": "Browser console warning output.",
-        "impactSupportingSeverity": "MEDIUM: Credential leakage in diagnostic logs.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Credential leakage in diagnostic logs.",
         "safePartnerAssumptions": "Logs session status without printing secret key values."
       },
       "expectedScannerFindings": [
@@ -4477,7 +4541,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Sensitive variable 'secretKey' logged to console"
+          "weaknessDescription": "Prints plaintext session secret key to console.warn."
         }
       ],
       "observedScannerFindings": [
@@ -4516,7 +4580,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-345: Insufficient Verification of Data Authenticity (Wildcard Target Origin)",
-        "rationale": "Transmits sensitive authentication token via window.postMessage with wildcard * target origin.",
+        "rationale": "HIGH: Sensitive session token leaked to arbitrary third-party embedding frames.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/345.html",
@@ -4527,7 +4591,7 @@
         "trustBoundary": "Cross-origin window messaging boundary.",
         "attackerControlledInput": "Malicious framing window intercepting wildcard postMessage.",
         "executionEnvironment": "Browser cross-window communication.",
-        "impactSupportingSeverity": "HIGH: Sensitive session token leaked to arbitrary third-party embedding frames.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Sensitive session token leaked to arbitrary third-party embedding frames.",
         "safePartnerAssumptions": "Specifies exact trusted target origin domain in postMessage call."
       },
       "expectedScannerFindings": [
@@ -4540,7 +4604,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Transmits sensitive authentication token via window.postMessage with wildcard * target origin."
+          "weaknessDescription": "Dispatches sensitive authentication token via postMessage with wildcard target origin."
         }
       ],
       "observedScannerFindings": [],
@@ -4568,7 +4632,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
-        "rationale": "Listens for cross-window messages and executes event data command using eval() without origin validation.",
+        "rationale": "CRITICAL: Arbitrary script execution triggered by external cross-origin web pages.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -4580,7 +4644,7 @@
         "trustBoundary": "Cross-origin inbound message event boundary.",
         "attackerControlledInput": "Any external web page sending postMessage to current window.",
         "executionEnvironment": "Browser message event listener.",
-        "impactSupportingSeverity": "CRITICAL: Arbitrary script execution triggered by external cross-origin web pages.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Arbitrary script execution triggered by external cross-origin web pages.",
         "safePartnerAssumptions": "Validates event.origin against trustedOrigins and handles only structured safe actions."
       },
       "expectedScannerFindings": [
@@ -4592,7 +4656,7 @@
             "line": 9,
             "column": 8
           },
-          "weaknessDescription": "Dangerous use of eval()"
+          "weaknessDescription": "Executes untrusted cross-window message command using eval() without origin validation."
         }
       ],
       "observedScannerFindings": [
@@ -4631,7 +4695,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-532: Insertion of Sensitive Information into Log File",
-        "rationale": "Prints full request object containing sensitive headers and parameters to console log.",
+        "rationale": "MEDIUM: Unintentional exposure of session cookies, auth headers, and body tokens.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -4641,7 +4705,7 @@
         "trustBoundary": "Console diagnostic output.",
         "attackerControlledInput": "Inspecting console log outputs.",
         "executionEnvironment": "Browser console logging.",
-        "impactSupportingSeverity": "MEDIUM: Unintentional exposure of session cookies, auth headers, and body tokens.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Unintentional exposure of session cookies, auth headers, and body tokens.",
         "safePartnerAssumptions": "Logs only explicit non-sensitive property (req.path)."
       },
       "expectedScannerFindings": [
@@ -4653,7 +4717,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Sensitive object variable 'req' logged to console"
+          "weaknessDescription": "Outputs full HTTP request object containing sensitive headers to console.log."
         }
       ],
       "observedScannerFindings": [
@@ -4692,7 +4756,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-532: Insertion of Sensitive Information into Log File",
-        "rationale": "Prints full user authentication context object to console error output.",
+        "rationale": "MEDIUM: Full credential and user context leakage in error log outputs.",
         "sourceReferences": [
           "https://owasp.org/Top10/A05_2021-Security_Misconfiguration/",
           "https://cwe.mitre.org/data/definitions/532.html"
@@ -4702,7 +4766,7 @@
         "trustBoundary": "Browser diagnostic error logging.",
         "attackerControlledInput": "Error telemetry and console inspection.",
         "executionEnvironment": "Browser console.error().",
-        "impactSupportingSeverity": "MEDIUM: Full credential and user context leakage in error log outputs.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Full credential and user context leakage in error log outputs.",
         "safePartnerAssumptions": "Logs only non-sensitive numeric status code."
       },
       "expectedScannerFindings": [
@@ -4714,7 +4778,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Prints full user authentication context object to console error output."
+          "weaknessDescription": "Outputs complete authentication context object to console.error."
         }
       ],
       "observedScannerFindings": [],
@@ -4742,7 +4806,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-319: Cleartext Transmission of Sensitive Information",
-        "rationale": "Connects to WebSocket telemetry service over unencrypted ws:// protocol.",
+        "rationale": "MEDIUM: Cleartext WebSocket traffic interception and token hijacking.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html",
@@ -4753,7 +4817,7 @@
         "trustBoundary": "WebSocket network transport layer.",
         "attackerControlledInput": "Network traffic interception on local or transit network.",
         "executionEnvironment": "Browser WebSocket API.",
-        "impactSupportingSeverity": "MEDIUM: Cleartext WebSocket traffic interception and token hijacking.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Cleartext WebSocket traffic interception and token hijacking.",
         "safePartnerAssumptions": "Enforces encrypted wss:// WebSocket protocol."
       },
       "expectedScannerFindings": [
@@ -4765,7 +4829,7 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Connects to WebSocket telemetry service over unencrypted ws:// protocol."
+          "weaknessDescription": "Establishes cleartext WebSocket connection ws:// to transmit telemetry data."
         }
       ],
       "observedScannerFindings": [],
@@ -4793,7 +4857,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-319: Cleartext Transmission of Sensitive Information",
-        "rationale": "Injects external script using unencrypted http:// URL source.",
+        "rationale": "MEDIUM: Arbitrary script injection via cleartext network script tampering.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/319.html"
@@ -4803,7 +4867,7 @@
         "trustBoundary": "Script resource loading boundary (Mixed Content / MitM).",
         "attackerControlledInput": "Network man-in-the-middle tampering with script response over HTTP.",
         "executionEnvironment": "Browser DOM script element execution.",
-        "impactSupportingSeverity": "MEDIUM: Arbitrary script injection via cleartext network script tampering.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Arbitrary script injection via cleartext network script tampering.",
         "safePartnerAssumptions": "Loads external script assets exclusively over HTTPS."
       },
       "expectedScannerFindings": [
@@ -4815,7 +4879,7 @@
             "line": 7,
             "column": 24
           },
-          "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://cdn.unencrypted.internal-services.com/library.js'"
+          "weaknessDescription": "Loads external script library over cleartext HTTP http:// protocol."
         }
       ],
       "observedScannerFindings": [
@@ -4887,7 +4951,19 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Legacy filename uses OWASP 2017 A7 prefix; scanner and manifest map to OWASP 2021 A03."
+      "ambiguityOrKnownLimitations": "Legacy filename uses OWASP 2017 A7 prefix; scanner and manifest map to OWASP 2021 A03.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-006",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Dangerous use of innerHTML"
+        }
+      ]
     },
     {
       "fileName": "V-A7-040.js",
@@ -4904,7 +4980,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns user comment markup string directly to container.innerHTML.",
+        "rationale": "HIGH: Stored or reflected XSS via innerHTML assignment.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -4916,7 +4992,7 @@
         "trustBoundary": "User comment text parameter.",
         "attackerControlledInput": "Comment text containing HTML injection payloads.",
         "executionEnvironment": "Browser comment rendering DOM container.",
-        "impactSupportingSeverity": "HIGH: Stored or reflected XSS via innerHTML assignment.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Stored or reflected XSS via innerHTML assignment.",
         "safePartnerAssumptions": "Creates DOM node with createElement and sets textContent, avoiding HTML parser."
       },
       "expectedScannerFindings": [
@@ -4928,7 +5004,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Dangerous use of innerHTML"
+          "weaknessDescription": "Assigns unsanitized comment markup directly to element.outerHTML."
         }
       ],
       "observedScannerFindings": [
@@ -4967,7 +5043,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Cross-site Scripting via DOM Write",
-        "rationale": "Writes untrusted content string directly to document via document.write().",
+        "rationale": "CRITICAL: Direct DOM injection during document loading or execution.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -4978,7 +5054,7 @@
         "trustBoundary": "Dynamic content string parameter.",
         "attackerControlledInput": "Content string containing HTML markup and scripts.",
         "executionEnvironment": "Browser document stream write.",
-        "impactSupportingSeverity": "CRITICAL: Direct DOM injection during document loading or execution.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Direct DOM injection during document loading or execution.",
         "safePartnerAssumptions": "Creates text node using createTextNode, ensuring character data rendering."
       },
       "expectedScannerFindings": [
@@ -4990,7 +5066,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Dangerous use of document.write()"
+          "weaknessDescription": "Writes dynamic content directly into document via document.write()."
         }
       ],
       "observedScannerFindings": [
@@ -5029,7 +5105,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Cross-site Scripting via DOM Write",
-        "rationale": "Writes user status markup to document via document.writeln().",
+        "rationale": "CRITICAL: Direct script injection into document DOM stream.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html"
@@ -5039,7 +5115,7 @@
         "trustBoundary": "User status text parameter.",
         "attackerControlledInput": "Status text containing script injection payload.",
         "executionEnvironment": "Browser document stream write.",
-        "impactSupportingSeverity": "CRITICAL: Direct script injection into document DOM stream.",
+        "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Direct script injection into document DOM stream.",
         "safePartnerAssumptions": "Creates DOM element and assigns to textContent."
       },
       "expectedScannerFindings": [
@@ -5051,7 +5127,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Writes user status markup to document via document.writeln()."
+          "weaknessDescription": "Writes dynamic HTML string directly into document via document.writeln()."
         }
       ],
       "observedScannerFindings": [],
@@ -5079,7 +5155,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Cross-site Scripting in React Framework",
-        "rationale": "Renders dynamic post content via React dangerouslySetInnerHTML property.",
+        "rationale": "HIGH: React XSS bypass via raw HTML injection.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
@@ -5090,7 +5166,7 @@
         "trustBoundary": "Dynamic post content string.",
         "attackerControlledInput": "Post content containing malicious HTML markup and script tags.",
         "executionEnvironment": "React virtual DOM reconciliation and DOM mount.",
-        "impactSupportingSeverity": "HIGH: React XSS bypass via raw HTML injection.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: React XSS bypass via raw HTML injection.",
         "safePartnerAssumptions": "Uses standard React JSX children interpolation {contentStr}, which automatically escapes HTML entities."
       },
       "expectedScannerFindings": [
@@ -5102,7 +5178,7 @@
             "line": 8,
             "column": 16
           },
-          "weaknessDescription": "Dangerous use of dangerouslySetInnerHTML"
+          "weaknessDescription": "Passes unsanitized post content to React dangerouslySetInnerHTML."
         }
       ],
       "observedScannerFindings": [
@@ -5141,7 +5217,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Cross-site Scripting in React Framework",
-        "rationale": "Renders article banner using React dangerouslySetInnerHTML.",
+        "rationale": "HIGH: DOM XSS via raw HTML injection in React section.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html"
@@ -5151,7 +5227,7 @@
         "trustBoundary": "Article banner markup string.",
         "attackerControlledInput": "Banner markup containing embedded script injection payloads.",
         "executionEnvironment": "React component render phase.",
-        "impactSupportingSeverity": "HIGH: DOM XSS via raw HTML injection in React section.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: DOM XSS via raw HTML injection in React section.",
         "safePartnerAssumptions": "Renders banner as text child within React section component."
       },
       "expectedScannerFindings": [
@@ -5163,7 +5239,7 @@
             "line": 8,
             "column": 20
           },
-          "weaknessDescription": "Dangerous use of dangerouslySetInnerHTML"
+          "weaknessDescription": "Passes unvalidated banner markup to React dangerouslySetInnerHTML."
         }
       ],
       "observedScannerFindings": [
@@ -5202,7 +5278,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses untrusted serialized session state and trusts unvalidated properties to grant elevated privileges and access protected diagnostics.",
+        "rationale": "HIGH: Unvalidated deserialized properties control administrative elevation, unlocking simulated diagnostic data and session audit logs. Note: in client-side code, this models a simulated protected-resource contract; client literals cannot assure production secrecy.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -5212,7 +5288,7 @@
         "trustBoundary": "Deserialization of untrusted serialized session payload.",
         "attackerControlledInput": "Manipulated JSON string containing arbitrary properties (e.g. isAdmin: true).",
         "executionEnvironment": "Client-side session deserialization and authorization logic.",
-        "impactSupportingSeverity": "HIGH: Unvalidated deserialized properties grant unauthorized access to confidential diagnostic data and audit logs when client-asserted privileges are trusted.",
+        "impactSupportingSeverity": "MEDIUM severity: HIGH: Unvalidated deserialized properties control administrative elevation, unlocking simulated diagnostic data and session audit logs. Note: in client-side code, this models a simulated protected-resource contract; client literals cannot assure production secrecy.",
         "safePartnerAssumptions": "Enforces schema validation to confirm object structure and assigns standard unprivileged role. Demonstrates that schema validation verifies data structure and types, not authorization, which must be derived from verified server authority."
       },
       "expectedScannerFindings": [
@@ -5224,7 +5300,7 @@
             "line": 21,
             "column": 20
           },
-          "weaknessDescription": "JSON.parse() usage detected"
+          "weaknessDescription": "Parses untrusted serialized session state using JSON.parse()."
         },
         {
           "ruleId": "OWASP-A01-002",
@@ -5234,7 +5310,7 @@
             "line": 22,
             "column": 4
           },
-          "weaknessDescription": "Client-side role or authorization check in condition statement"
+          "weaknessDescription": "Client-side role check granting elevated privileges from untrusted session state."
         }
       ],
       "observedScannerFindings": [
@@ -5266,7 +5342,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Vulnerable sample triggers two applicable rules: OWASP-A08-001 for deserialization and OWASP-A01-002 for client-side role check guarding protected diagnostics."
+      "ambiguityOrKnownLimitations": "Models simulated protected-resource contract; client source code is public and cannot assure production secrecy without server enforcement. Triggers OWASP-A08-001 and OWASP-A01-002."
     },
     {
       "fileName": "V-A8-046.js",
@@ -5283,7 +5359,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs transmitting client telemetry.",
+        "rationale": "MEDIUM: Transmits sensitive synthetic client session credentials to an unvalidated endpoint URL. Under browser fetch semantics, application/json POST triggers a CORS preflight (OPTIONS); if the attacker server responds with permissive CORS headers, the sensitive client telemetry payload is transmitted to the attacker origin.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -5293,8 +5369,8 @@
         "trustBoundary": "Deserialization of untrusted application configuration JSON.",
         "attackerControlledInput": "JSON payload specifying external or malicious endpoint URL target for telemetry exfiltration.",
         "executionEnvironment": "Client configuration loader and fetch execution.",
-        "impactSupportingSeverity": "MEDIUM: Transmits client session telemetry to an unvalidated endpoint URL. Under browser fetch semantics, if target host permits cross-origin POST or under simple-request rules, sensitive client telemetry payload is transmitted to an attacker-controlled origin.",
-        "safePartnerAssumptions": "verifyAppConfig provides a null-safe fallback restricting telemetry requests strictly to approved application paths (/api/v1/feed, /api/v1/profile)."
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Transmits sensitive synthetic client session credentials to an unvalidated endpoint URL. Under browser fetch semantics, application/json POST triggers a CORS preflight (OPTIONS); if the attacker server responds with permissive CORS headers, the sensitive client telemetry payload is transmitted to the attacker origin.",
+        "safePartnerAssumptions": "Preserves the intended benign telemetry transmission function by allowing approved application endpoints (/api/v1/feed, /api/v1/profile) while safely rejecting untrusted external destinations with a safe fallback."
       },
       "expectedScannerFindings": [
         {
@@ -5305,7 +5381,7 @@
             "line": 12,
             "column": 19
           },
-          "weaknessDescription": "JSON.parse() usage detected"
+          "weaknessDescription": "Parses untrusted configuration JSON controlling destination endpoint URL."
         }
       ],
       "observedScannerFindings": [
@@ -5344,7 +5420,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
-        "rationale": "Directly modifies target.__proto__ using unvalidated customKey and value.",
+        "rationale": "HIGH: Prototype pollution altering inherited object behavior across the runtime.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
@@ -5355,7 +5431,7 @@
         "trustBoundary": "Dynamic property key parameter.",
         "attackerControlledInput": "Property key string modifying shared Object.prototype properties.",
         "executionEnvironment": "Browser JavaScript object prototype chain.",
-        "impactSupportingSeverity": "HIGH: Prototype pollution altering inherited object behavior across the runtime.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Prototype pollution altering inherited object behavior across the runtime.",
         "safePartnerAssumptions": "Creates target object using Object.create(null), eliminating __proto__ accessor."
       },
       "expectedScannerFindings": [
@@ -5367,7 +5443,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Potential prototype pollution assignment detected"
+          "weaknessDescription": "Direct assignment to target.__proto__ enables prototype pollution."
         }
       ],
       "observedScannerFindings": [
@@ -5406,7 +5482,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
-        "rationale": "Modifies targetObj.constructor.prototype using dynamic property name.",
+        "rationale": "HIGH: Prototype pollution corrupting all instances sharing the constructor prototype.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
@@ -5417,7 +5493,7 @@
         "trustBoundary": "Dynamic object attribute name parameter.",
         "attackerControlledInput": "PropName targeting constructor prototype properties.",
         "executionEnvironment": "Browser object constructor prototype.",
-        "impactSupportingSeverity": "HIGH: Prototype pollution corrupting all instances sharing the constructor prototype.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Prototype pollution corrupting all instances sharing the constructor prototype.",
         "safePartnerAssumptions": "Uses JavaScript Map data structure, which isolates keys from prototype chain."
       },
       "expectedScannerFindings": [
@@ -5429,7 +5505,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Potential prototype pollution assignment detected"
+          "weaknessDescription": "Assignment to constructor.prototype enables prototype pollution."
         }
       ],
       "observedScannerFindings": [
@@ -5501,7 +5577,19 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier. It does not perform deep taint analysis."
+      "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier. It does not perform deep taint analysis.",
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-003",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 11
+          },
+          "message": "Unsafe use of Object.assign() mutating target object"
+        }
+      ]
     },
     {
       "fileName": "V-A8-050.js",
@@ -5518,7 +5606,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
-        "rationale": "Merges untrusted user options directly into baseSettings via Object.assign.",
+        "rationale": "MEDIUM: Target object corruption and potential prototype pollution.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html"
@@ -5528,7 +5616,7 @@
         "trustBoundary": "Untrusted options object parameter.",
         "attackerControlledInput": "Options object containing hostile prototype keys.",
         "executionEnvironment": "Browser settings manager.",
-        "impactSupportingSeverity": "MEDIUM: Target object corruption and potential prototype pollution.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Target object corruption and potential prototype pollution.",
         "safePartnerAssumptions": "Picks only explicitly allowed keys (theme, accentColor, layoutMode) into fresh object."
       },
       "expectedScannerFindings": [
@@ -5540,7 +5628,7 @@
             "line": 8,
             "column": 11
           },
-          "weaknessDescription": "Unsafe use of Object.assign() mutating target object"
+          "weaknessDescription": "Merges untrusted user options into base settings via Object.assign."
         }
       ],
       "observedScannerFindings": [
@@ -5579,7 +5667,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-922: Insecure Storage of Sensitive Information",
-        "rationale": "Stores sensitive bearer token in unencrypted sessionStorage.",
+        "rationale": "HIGH: Bearer token theft by injected or malicious third-party scripts.",
         "sourceReferences": [
           "https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/",
           "https://cwe.mitre.org/data/definitions/922.html",
@@ -5590,7 +5678,7 @@
         "trustBoundary": "Browser Web Storage boundary.",
         "attackerControlledInput": "Any script executing on origin reading sessionStorage.",
         "executionEnvironment": "Browser sessionStorage interface.",
-        "impactSupportingSeverity": "HIGH: Bearer token theft by injected or malicious third-party scripts.",
+        "impactSupportingSeverity": "HIGH severity: HIGH: Bearer token theft by injected or malicious third-party scripts.",
         "safePartnerAssumptions": "Keeps token in private memory variable without writing to browser web storage."
       },
       "expectedScannerFindings": [
@@ -5602,7 +5690,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Stores sensitive bearer token in unencrypted sessionStorage."
+          "weaknessDescription": "Stores sensitive bearer authentication token in sessionStorage."
         }
       ],
       "observedScannerFindings": [],
@@ -5630,7 +5718,7 @@
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-598: Sensitive Token Exposure in URL Fragment",
-        "rationale": "Publishes access token in window.location.hash URL fragment.",
+        "rationale": "MEDIUM: Authentication token leaked via browser history and external navigation.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/598.html"
@@ -5640,7 +5728,7 @@
         "trustBoundary": "URL fragment visibility in browser history and Referer headers.",
         "attackerControlledInput": "Inspecting browser URL bar, history, or Referer headers.",
         "executionEnvironment": "Browser window navigation state.",
-        "impactSupportingSeverity": "MEDIUM: Authentication token leaked via browser history and external navigation.",
+        "impactSupportingSeverity": "MEDIUM severity: MEDIUM: Authentication token leaked via browser history and external navigation.",
         "safePartnerAssumptions": "Passes access token in HTTP Authorization header in memory."
       },
       "expectedScannerFindings": [
@@ -5652,7 +5740,7 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Publishes access token in window.location.hash URL fragment."
+          "weaknessDescription": "Exposes sensitive authentication token in window.location.hash URL fragment."
         }
       ],
       "observedScannerFindings": [],

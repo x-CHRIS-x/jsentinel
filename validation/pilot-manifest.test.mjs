@@ -535,3 +535,57 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
   assert.equal(v033.expectedScannerFindings[0].location.line, 8, 'V-A6-033 must point to real postMessage line');
 });
 
+test('8. Manifest observation invariance: replacing observation provider with empty/extra/altered findings changes only observed fields, never expected/security/labels', () => {
+  const { buildManifest } = require('../test-samples/build-dataset-manifest.cjs');
+
+  const manifestNormal = buildManifest();
+  const manifestEmpty = buildManifest({ scanner: () => ({ issues: [] }) });
+  const manifestAltered = buildManifest({
+    scanner: () => ({
+      issues: [{
+        id: 'MOCK-INJECTED-RULE-999',
+        line: 99,
+        column: 42,
+        severity: 'LOW',
+        message: 'Injected scanner noise'
+      }]
+    })
+  });
+
+  assert.equal(manifestNormal.files.length, 116);
+  assert.equal(manifestEmpty.files.length, 116);
+  assert.equal(manifestAltered.files.length, 116);
+
+  for (let i = 0; i < manifestNormal.files.length; i++) {
+    const normal = manifestNormal.files[i];
+    const empty = manifestEmpty.files[i];
+    const altered = manifestAltered.files[i];
+
+    // Expected findings must be 100% identical regardless of scanner observation provider
+    assert.deepEqual(empty.expectedScannerFindings, normal.expectedScannerFindings,
+      `${normal.fileName} expected findings must be invariant when scanner is empty`);
+    assert.deepEqual(altered.expectedScannerFindings, normal.expectedScannerFindings,
+      `${normal.fileName} expected findings must be invariant when scanner is altered`);
+
+    // Security ground truth must be 100% identical
+    assert.deepEqual(empty.securityGroundTruth, normal.securityGroundTruth,
+      `${normal.fileName} securityGroundTruth must be invariant when scanner is empty`);
+    assert.deepEqual(altered.securityGroundTruth, normal.securityGroundTruth,
+      `${normal.fileName} securityGroundTruth must be invariant when scanner is altered`);
+
+    // Labels must be 100% identical
+    assert.equal(empty.label, normal.label, `${normal.fileName} label must be invariant`);
+    assert.equal(altered.label, normal.label, `${normal.fileName} label must be invariant`);
+
+    // Controlled files must reflect scanner observation provider ONLY in observedScannerFindings
+    if (normal.reviewStatus.coverage !== 'pending-batch-c') {
+      assert.deepEqual(empty.observedScannerFindings, [],
+        `${normal.fileName} empty mock scanner must populate empty observed findings`);
+      assert.equal(altered.observedScannerFindings.length, 1,
+        `${normal.fileName} altered mock scanner must populate altered observed findings`);
+      assert.equal(altered.observedScannerFindings[0].ruleId, 'MOCK-INJECTED-RULE-999');
+    }
+  }
+});
+
+

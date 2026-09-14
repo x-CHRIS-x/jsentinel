@@ -7,10 +7,10 @@ function enableAdminPrivileges() {
     window.__adminMode = true;
 }
 
-// Concrete protected operation affected by window.__adminMode
+// Concrete protected operation: models simulated protected-resource contract; client literals cannot assure production secrecy.
 function accessAdministrativeDiagnostics() {
     if (window.__adminMode) {
-        return "DIAGNOSTIC_DATA: System internals and sensitive user session audit logs.";
+        return "SIMULATED_DIAGNOSTIC_DATA: System internals and session audit logs.";
     }
     return "ACCESS_DENIED: Administrator privileges required.";
 }
