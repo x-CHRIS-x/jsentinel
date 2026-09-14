@@ -4,6 +4,16 @@
  */
 
 // Clean: cross-window message handler validating event origin before processing
+const allowedActions = {
+    refresh: () => { window.location.reload(); },
+    ping: () => { window.parent.postMessage({ status: "pong" }, "https://trusted.portal.example.com"); }
+};
+function handleSafeAction(action) {
+    if (Object.prototype.hasOwnProperty.call(allowedActions, action)) {
+        allowedActions[action]();
+    }
+}
+
 const trustedOrigins = ["https://trusted.portal.example.com"];
 function listenForRemoteCommandsSecure() {
     window.addEventListener("message", function(event) {

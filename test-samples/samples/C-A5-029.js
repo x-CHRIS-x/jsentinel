@@ -3,15 +3,17 @@
  * Safe, compliant implementations.
  */
 
-// Clean: authorization checks validated on the server API side
-async function renderSecureComponentsSecure() {
-    const res = await fetch("/api/user/authorized-components");
-    if (res.ok) {
-        const data = await res.json();
-        if (data.canViewAdminMenu) {
-            showSpecialSuperAdminMenu();
-        }
+// Clean: administrative action authorization enforced by backend API rather than client checks
+async function executeAdministrativeActionSecure(targetUserId) {
+    const res = await fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin"
+    });
+    if (!res.ok) {
+        throw new Error("Server rejected unauthorized administrative action");
     }
+    return res.json();
 }
 
 // Variation signature: #1

@@ -270,8 +270,8 @@ test('4. Bounded runtime execution of actual pilot sample code in isolated VM co
   // onerror event execution during image load failure) require a browser rendering engine and
   // are explicitly NOT RUN in this Node.js test harness. Asserting string property assignment
   // proves sink data transport and helper contracts; authoritative security distinction
-  // between innerHTML (HTML parser execution per HTML Living Standard Section 4.12.1.2) and
-  // textContent (character data rendering per HTML Living Standard Section 2.5.3) is established
+  // between innerHTML (Dynamic markup insertion per WHATWG HTML Living Standard Section 8.4) and
+  // textContent (Interface Node attribute per WHATWG DOM Standard Section 4.2.3) is established
   // via web platform specifications and AST code structure, not tautological mock objects.
 });
 
@@ -317,3 +317,115 @@ test('5. Scanner observations match expected findings (distinct from ground trut
     }
   }
 });
+
+test('6. Batch B bounded corrections: isolated VM execution of updated clean helpers and contracts', () => {
+  const samplesDir = path.join(rootDir, 'test-samples', 'samples');
+  const manifestPath = path.join(rootDir, 'test-samples', 'dataset-manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+  // 1. Partial coverage explicit flag and scenario status
+  assert.equal(manifest.coverageStatus.partialCoverageExplicit, true, 'partialCoverageExplicit must be true while scenarios are pending');
+  assert.equal(manifest.datasetSummary.scenarioFilesCount, 8);
+  assert.equal(manifest.datasetSummary.reviewedPilotFilesCount, 12);
+  assert.equal(manifest.datasetSummary.reviewedControlledFilesCount, 108);
+
+  // 2. Verified 12 pilot metadata preservation
+  const pilotManifestFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'pilot-reviewed');
+  assert.equal(pilotManifestFiles.length, 12, 'Exactly 12 files must retain pilot-reviewed status');
+
+  // 3. developmentUseRationale distinguishes baseline vs newly updated Batch B files
+  const batchBFiles = manifest.files.filter(f => f.reviewStatus.coverage === 'controlled-reviewed');
+  assert.equal(batchBFiles.length, 96, 'Exactly 96 non-pilot controlled files in Batch B');
+  for (const f of batchBFiles) {
+    assert.ok(f.developmentUseRationale.includes('updated in Phase 04 Batch B'),
+      `${f.fileName} must state updated in Phase 04 Batch B in developmentUseRationale`);
+  }
+
+  // 4. Crypto OTP & Secret Key (C-A2-017): 256-bit secret key and 6-digit OTP
+  {
+    const code = fs.readFileSync(path.join(samplesDir, 'C-A2-017.js'), 'utf8');
+    const context = vm.createContext({ crypto: crypto.webcrypto, Uint8Array, Uint32Array, String, Array });
+    vm.runInContext(code, context);
+
+    assert.equal(typeof context.generateUserOtpSecretSecure, 'function');
+    const result = context.generateUserOtpSecretSecure();
+    assert.match(result.otp, /^\d{6}$/, 'OTP must be 6 decimal digits');
+    assert.ok(result.otp_key.startsWith('secure_'), 'otp_key must start with secure_');
+    const hexKey = result.otp_key.slice('secure_'.length);
+    assert.equal(hexKey.length, 64, '256-bit secret key formatted as 64 hex characters (32 bytes entropy)');
+  }
+
+  // 5. Schema Validation & Privilege Isolation (C-A8-045)
+  {
+    const code = fs.readFileSync(path.join(samplesDir, 'C-A8-045.js'), 'utf8');
+    const context = vm.createContext({ JSON, Error });
+    vm.runInContext(code, context);
+
+    assert.equal(typeof context.validateSessionSchema, 'function', 'validateSessionSchema must be defined');
+    assert.equal(typeof context.loadSessionStateSecure, 'function', 'loadSessionStateSecure must be defined');
+
+    assert.equal(context.validateSessionSchema({ userId: 'user-42', role: 'member' }), true);
+    assert.equal(context.validateSessionSchema({ userId: 123 }), false);
+    assert.equal(context.validateSessionSchema(null), false);
+
+    const safeResult = context.loadSessionStateSecure('{"userId":"user-42","role":"admin","isAdmin":true}');
+    assert.equal(safeResult.userId, 'user-42');
+    assert.equal(safeResult.role, 'standard_user', 'loadSessionStateSecure rejects client-asserted elevated privileges');
+
+    assert.throws(() => {
+      context.loadSessionStateSecure('{"invalid":"structure"}');
+    }, /Invalid session payload schema/);
+  }
+
+  // 6. Config Verification & Endpoint Allowlisting (C-A8-046)
+  {
+    const code = fs.readFileSync(path.join(samplesDir, 'C-A8-046.js'), 'utf8');
+    let fetchedUrl = null;
+    const mockFetch = (url) => { fetchedUrl = url; return Promise.resolve({ ok: true }); };
+    const context = vm.createContext({ JSON, fetch: mockFetch });
+    vm.runInContext(code, context);
+
+    assert.equal(typeof context.verifyAppConfig, 'function', 'verifyAppConfig must be defined');
+    assert.equal(typeof context.loadAppConfigSecure, 'function', 'loadAppConfigSecure must be defined');
+
+    // Allowlisted endpoint preserved
+    assert.equal(context.verifyAppConfig({ endpointUrl: '/api/v1/profile' })?.endpointUrl, '/api/v1/profile');
+    // Hostile / unallowlisted endpoint falls back to safe feed
+    assert.equal(context.verifyAppConfig({ endpointUrl: 'https://attacker.evil.com/leak' })?.endpointUrl, '/api/v1/feed');
+
+    context.loadAppConfigSecure('{"endpointUrl":"https://attacker.evil.com/leak"}');
+    assert.equal(fetchedUrl, '/api/v1/feed', 'loadAppConfigSecure redirects unallowlisted endpoint to safe default');
+  }
+
+  // 7. Cross-Window Action Handler (C-A6-034)
+  {
+    const code = fs.readFileSync(path.join(samplesDir, 'C-A6-034.js'), 'utf8');
+    let messageListener = null;
+    let postMessageArgs = null;
+    const mockWindow = {
+      addEventListener: (type, fn) => { if (type === 'message') messageListener = fn; },
+      parent: {
+        postMessage: (msg, origin) => { postMessageArgs = { msg, origin }; }
+      },
+      location: { reload: () => {} }
+    };
+    const context = vm.createContext({ window: mockWindow, Object });
+    vm.runInContext(code, context);
+
+    assert.equal(typeof context.handleSafeAction, 'function', 'handleSafeAction must be defined');
+    assert.equal(typeof context.listenForRemoteCommandsSecure, 'function', 'listenForRemoteCommandsSecure must be defined');
+
+    context.listenForRemoteCommandsSecure();
+    assert.equal(typeof messageListener, 'function', 'listenForRemoteCommandsSecure registers message listener');
+
+    // Untrusted origin ignored
+    messageListener({ origin: 'https://evil.com', data: { action: 'ping' } });
+    assert.equal(postMessageArgs, null, 'Untrusted origin message must be ignored');
+
+    // Trusted origin processed
+    messageListener({ origin: 'https://trusted.portal.example.com', data: { action: 'ping' } });
+    assert.equal(postMessageArgs?.origin, 'https://trusted.portal.example.com');
+    assert.equal(postMessageArgs?.msg?.status, 'pong', 'Trusted origin ping action handled safely');
+  }
+});
+

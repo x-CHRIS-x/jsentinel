@@ -3,9 +3,15 @@
  * Safe, compliant implementations.
  */
 
-// Clean: non-sensitive UI preference cookie with Secure and SameSite attributes (no false HttpOnly write)
-function storeUiPreferenceCookieSecure(themeName) {
-    document.cookie = "ui_theme=" + encodeURIComponent(themeName) + "; path=/; Secure; SameSite=Strict;";
+// Clean: auth token storage delegated to server Set-Cookie response header via token exchange endpoint
+async function storeAuthCookieSecure(authToken) {
+    const res = await fetch("/api/auth/token-exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: authToken }),
+        credentials: "same-origin"
+    });
+    return res.ok;
 }
 
 // Variation signature: #2

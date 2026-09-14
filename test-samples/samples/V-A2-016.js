@@ -3,7 +3,7 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: insecure cookie token storage (OWASP-A2-003)
+// Vulnerable: storing authentication credentials directly in document.cookie without HttpOnly protection (OWASP-A2-003)
 function storeAuthCookie(authToken) {
     document.cookie = "auth_token=" + authToken + "; path=/;";
 }

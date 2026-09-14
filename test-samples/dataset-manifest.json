@@ -12,10 +12,10 @@
     "pendingReviewFilesCount": 8
   },
   "coverageStatus": {
-    "partialCoverageExplicit": false,
+    "partialCoverageExplicit": true,
     "controlledReviewedCount": 108,
     "pendingBatchCCount": 8,
-    "statement": "All 54 controlled V/C pairs (108 files) have undergone full ground-truth review, threat modeling, and scanner expectation documentation in Batch B. The eight simulated browser application scenarios remain preserved byte-for-byte and are explicitly marked pending Phase 04 Batch C."
+    "statement": "All 54 controlled V/C pairs (108 files) have undergone comprehensive ground-truth review, threat modeling, and scanner expectation documentation in Batch B. The eight simulated browser application scenarios remain preserved byte-identical to baseline hashes and are pending Phase 04 Batch C review; overall partial coverage remains true while scenarios are pending."
   },
   "files": [
     {
@@ -39,7 +39,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -68,7 +68,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -107,7 +107,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -145,7 +145,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -184,7 +184,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -223,7 +223,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -262,7 +262,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -300,7 +300,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -319,36 +319,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns greeting string to textContent, ensuring character-data rendering.",
+      "intendedBehavior": "Renders greeting text by setting element.textContent safely.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Assigns greeting string to textContent, ensuring character-data rendering.",
+        "rationale": "Setting textContent causes the browser to treat username strictly as literal text, preventing HTML parsing and script execution.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A03_2021-Injection/",
-          "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+          "https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Username string from external user profile input.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser DOM content rendering.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Assigns string to textContent, rendering values as plain text without HTML parsing."
+        "trustBoundary": "Dynamic username assigned to textContent property of DOM node.",
+        "attackerControlledInput": "Arbitrary string, including markup characters.",
+        "executionEnvironment": "Browser DOM node property update.",
+        "impactSupportingSeverity": "Benign / Clean: DOM engine creates text node content, preventing script execution.",
+        "safePartnerAssumptions": "textContent renders plain text characters directly; it does not parse or sanitize HTML tags."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Renders strictly plain text. If HTML formatting is needed, safe DOM construction or DOMPurify is required."
     },
     {
       "fileName": "C-A1-008.js",
@@ -382,7 +378,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -401,36 +397,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns return value of clean text helper to textContent.",
+      "intendedBehavior": "Updates container with plain text retrieved from endpoint helper function getCleanTextFromEndpoint.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Assigns return value of clean text helper to textContent.",
+        "rationale": "Using container.textContent ensures returned data is rendered as text without HTML parsing, eliminating DOM XSS.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A03_2021-Injection/",
-          "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+          "https://cwe.mitre.org/data/definitions/79.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External endpoint data source parameter.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser DOM update cycle.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Retrieves text via getCleanTextFromEndpoint and assigns to textContent."
+        "trustBoundary": "Endpoint data assigned to textContent of DOM element.",
+        "attackerControlledInput": "Data payload from endpoint.",
+        "executionEnvironment": "Browser DOM update.",
+        "impactSupportingSeverity": "Benign / Clean: textContent prevents HTML interpretation.",
+        "safePartnerAssumptions": "Assumes getCleanTextFromEndpoint returns text content and textContent renders character data without HTML parsing."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Assumes plain text data."
     },
     {
       "fileName": "C-A1-010.js",
@@ -464,7 +456,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -483,27 +475,29 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Validates target URL against allowlist of authorized origins before fetching.",
+      "intendedBehavior": "Destination domain verified against allowlist of authorized origins before sending credentialed request.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Validates target URL against allowlist of authorized origins before fetching.",
+        "rationale": "Destination domain verified against allowlist of authorized origins before sending credentialed request.",
         "sourceReferences": [
+          "https://fetch.spec.whatwg.org/#cors-protocol-and-credentials",
+          "https://datatracker.ietf.org/doc/html/rfc6265#section-5.3",
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/20.html",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
+          "https://cwe.mitre.org/data/definitions/918.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External user-supplied request destination URL.",
+        "trustBoundary": "User-supplied target URL passed to credentialed fetch.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser Fetch API.",
+        "executionEnvironment": "Browser Fetch API with credentials: include.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Parses destination URL and enforces origin allowlist before dispatching fetch."
+        "safePartnerAssumptions": "Restricts credentialed requests exclusively to verified, approved application API origins."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -542,7 +536,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -580,7 +574,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -618,7 +612,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -657,7 +651,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -695,7 +689,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -735,7 +729,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -747,18 +741,18 @@
       "fileName": "C-A2-016.js",
       "filePath": "test-samples/samples/C-A2-016.js",
       "sampleId": "C-A2-016",
-      "pairId": "PAIR-016-COOKIE-PREFERENCE",
+      "pairId": "PAIR-016-COOKIE-AUTH",
       "primaryModule": "auth.js",
       "label": "clean",
       "legacyClassification": {
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Writes non-sensitive UI preference cookie with Secure and SameSite attributes.",
+      "intendedBehavior": "Delegates auth token storage to server Set-Cookie response header via secure token exchange endpoint.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Writes non-sensitive UI preference cookie with Secure and SameSite attributes.",
+        "rationale": "Delegates auth token storage to server Set-Cookie response header via secure token exchange endpoint.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -766,21 +760,21 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side cookie storage model.",
+        "trustBoundary": "Authentication token exchanged with backend endpoint over TLS.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser document.cookie interface.",
+        "executionEnvironment": "Browser fetch and cookie storage model.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Stores non-sensitive UI preference using Secure and SameSite; does not attempt invalid JS HttpOnly write."
+        "safePartnerAssumptions": "Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Known scanner false positive: scanner rule OWASP-A02-002 flags document.cookie whenever httponly substring is absent, even though JS cannot set HttpOnly cookies per RFC 6265 Section 5.3 Step 10."
+      "ambiguityOrKnownLimitations": "Eliminates client-side document.cookie assignment by delegating session cookie issuance to the server via token exchange."
     },
     {
       "fileName": "C-A2-017.js",
@@ -793,27 +787,28 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Uses Web Crypto API crypto.getRandomValues() for cryptographic random numbers.",
+      "intendedBehavior": "Generates cryptographically secure 6-digit numeric OTP and 256-bit secret key via Web Crypto API.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Uses Web Crypto API crypto.getRandomValues() for cryptographic random numbers.",
+        "rationale": "Generates cryptographically secure 6-digit numeric OTP and 256-bit secret key via Web Crypto API.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
+          "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final",
           "https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "PRNG state predictability boundary.",
+        "trustBoundary": "One-time password generation and shared secret provisioning.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser JavaScript runtime V8 PRNG.",
+        "executionEnvironment": "Browser Web Crypto API execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Uses crypto.getRandomValues() backed by OS-level entropy pool."
+        "safePartnerAssumptions": "Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -852,7 +847,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -890,7 +885,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -928,7 +923,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -966,7 +961,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1004,7 +999,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1023,32 +1018,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "API requests dispatched through backend proxy route without client-exposed secrets.",
+      "intendedBehavior": "Dispatches API operations via backend proxy route (/api/gateway/dispatch) without client-stored secrets.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "API requests dispatched through backend proxy route without client-exposed secrets.",
+        "rationale": "Delegates privileged API requests to a backend service proxy, ensuring long-lived API keys are never held or exposed in the client browser bundle.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html",
           "https://cwe.mitre.org/data/definitions/798.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client application distribution boundary.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser client API caller.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Calls internal backend proxy route (/api/gateway/dispatch), keeping secrets on server."
+        "trustBoundary": "Client sends request payload to internal endpoint /api/gateway/dispatch; secret credentials remain on the server.",
+        "attackerControlledInput": "Client request payload.",
+        "executionEnvironment": "Browser client fetch invocation.",
+        "impactSupportingSeverity": "Benign / Clean: Eliminates client-side secret exposure.",
+        "safePartnerAssumptions": "Assumes the server-side proxy endpoint enforces authentication and authorization checks and manages credentials securely. Moving secrets off the client eliminates bundle exposure but does not prove the backend endpoint is immune to server-side flaws."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Updated in Phase 04 Batch A to replace server-only process.env with genuine browser backend delegation.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Replaces earlier legacy template that used process.env."
     },
     {
       "fileName": "C-A3-024.js",
@@ -1080,7 +1075,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1118,7 +1113,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1156,7 +1151,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1175,33 +1170,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Validates target URL against allowlist of approved domains before redirecting.",
+      "intendedBehavior": "Navigates browser location only when targetUrl matches pre-approved allowedDomains allowlist.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Validates target URL against allowlist of approved domains before redirecting.",
+        "rationale": "Validates targetUrl against an explicit allowedDomains array before redirection, preventing redirection to arbitrary external hosts.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
-          "https://cwe.mitre.org/data/definitions/601.html",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Window/location"
+          "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
+          "https://cwe.mitre.org/data/definitions/601.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External user-controlled URL input parameter.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
+        "trustBoundary": "targetUrl received from external source is checked at the allowlist boundary before reaching the navigation sink.",
+        "attackerControlledInput": "External URL string supplied as parameter.",
         "executionEnvironment": "Browser window navigation.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Enforces allowlist check against allowedDomains before updating location.href."
+        "impactSupportingSeverity": "Benign / Clean: Navigation only occurs for verified domains, eliminating open redirect exposure.",
+        "safePartnerAssumptions": "Assumes allowedDomains is maintained securely with trusted, protocol-restricted URLs; exact string match prevents prefix or subdomain spoofing."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; verified as clean partner in Phase 02 validation testing.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Allowlist check performs exact array string lookup."
     },
     {
       "fileName": "C-A5-028.js",
@@ -1233,7 +1227,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1252,26 +1246,26 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Requests authorized component permissions from server API.",
+      "intendedBehavior": "Enforces administrative action authorization on the server API rather than client checks.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Requests authorized component permissions from server API.",
+        "rationale": "Enforces administrative action authorization on the server API rather than client checks.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side JavaScript state vs server authorization boundary.",
+        "trustBoundary": "Client-to-server administrative endpoint request boundary.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser UI rendering logic.",
+        "executionEnvironment": "Client-side authorization check and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Fetches authorized components from server API; server enforces access control."
+        "safePartnerAssumptions": "Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1309,7 +1303,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1348,7 +1342,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1386,7 +1380,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1425,7 +1419,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1464,7 +1458,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1502,7 +1496,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1540,7 +1534,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1579,7 +1573,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1617,7 +1611,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1636,36 +1630,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns badge string to element.textContent.",
+      "intendedBehavior": "Loads user badge text into an element via textContent safely.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Assigns badge string to element.textContent.",
+        "rationale": "textContent assignment prevents HTML parsing, safely displaying badge text without injection vulnerability.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A03_2021-Injection/",
-          "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+          "https://cwe.mitre.org/data/definitions/79.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "User-provided badge markup parameter.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser DOM innerHTML parsing.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Assigns badge string to textContent, rendering as plain text character data."
+        "trustBoundary": "badgeHtml input assigned to textContent property.",
+        "attackerControlledInput": "Dynamic string value.",
+        "executionEnvironment": "DOM node text assignment.",
+        "impactSupportingSeverity": "Benign / Clean: textContent treats all characters as text.",
+        "safePartnerAssumptions": "textContent renders text directly without invoking HTML parser."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Plain text rendering of badge."
     },
     {
       "fileName": "C-A7-040.js",
@@ -1699,7 +1689,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1738,7 +1728,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1776,7 +1766,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1815,7 +1805,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1853,7 +1843,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1872,26 +1862,26 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses JSON and verifies structural schema before processing.",
+      "intendedBehavior": "Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Parses JSON and verifies structural schema before processing.",
+        "rationale": "Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External serialized JSON payload string.",
+        "trustBoundary": "Deserialization of untrusted serialized session payload.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser JSON parser.",
+        "executionEnvironment": "Client-side session deserialization and authorization logic.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Validates parsed JSON against strict schema specification."
+        "safePartnerAssumptions": "Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -1910,32 +1900,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses JSON followed by explicit primitive property type validation.",
+      "intendedBehavior": "Strict schema verification and endpoint allowlisting before dispatching fetch requests.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Parses JSON followed by explicit primitive property type validation.",
+        "rationale": "Strict schema verification and endpoint allowlisting before dispatching fetch requests.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "User settings JSON string parameter.",
+        "trustBoundary": "Deserialization of untrusted application configuration JSON.",
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser preferences parser.",
+        "executionEnvironment": "Client configuration loader and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Explicitly picks and validates theme (string) and fontSize (number) fields."
+        "safePartnerAssumptions": "Assumes that allowed API endpoints are restricted to pre-approved application paths."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Known scanner limitation: scanner rule OWASP-A08-001 emits false positive on benign JSON.parse() calls."
+      "ambiguityOrKnownLimitations": "Verified secure remediation."
     },
     {
       "fileName": "C-A8-047.js",
@@ -1968,7 +1958,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2007,7 +1997,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2026,33 +2016,32 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Filters __proto__, constructor, and prototype properties and merges into fresh object {}.",
+      "intendedBehavior": "Safely merges configuration into a fresh empty object after sanitizing payload keys.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Filters __proto__, constructor, and prototype properties and merges into fresh object {}.",
+        "rationale": "Filters __proto__, constructor, and prototype properties via sanitizeInputProperties and targets a new empty object {} to avoid mutating defaultConfig.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
           "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Untrusted user payload object parameter.",
-        "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
-        "executionEnvironment": "Browser configuration merge routine.",
-        "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Sanitizes properties stripping prototype keys and merges into a fresh empty object {}."
+        "trustBoundary": "Input userPayload is filtered before merging; target is an isolated fresh object literal {}.",
+        "attackerControlledInput": "Dynamic user payload object.",
+        "executionEnvironment": "JavaScript client object merge routine.",
+        "impactSupportingSeverity": "Benign / Clean: Preserves object integrity and prevents prototype mutation.",
+        "safePartnerAssumptions": "Assumes defaultConfig contains trusted application baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties strips prototype-polluting keys."
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; updated in Phase 04 Batch A with self-contained prototype property filtering.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Shallow property filtering."
     },
     {
       "fileName": "C-A8-050.js",
@@ -2084,7 +2073,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2123,7 +2112,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2161,7 +2150,7 @@
       },
       "expectedScannerFindings": [],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2190,7 +2179,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2219,7 +2208,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2248,7 +2237,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2277,7 +2266,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2306,7 +2295,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2335,7 +2324,7 @@
       "threatModelAndAssumptions": null,
       "expectedScannerFindings": null,
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.",
       "reviewStatus": {
         "coverage": "pending-batch-c",
         "aiReviewer": null,
@@ -2385,7 +2374,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2434,7 +2423,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2484,7 +2473,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2534,7 +2523,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2584,7 +2573,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2633,7 +2622,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2652,26 +2641,23 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns template literal containing interpolated username directly to innerHTML.",
+      "intendedBehavior": "Renders greeting banner interpolating dynamic username parameter into an HTML template literal.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns template literal containing interpolated username directly to innerHTML.",
+        "rationale": "Interpolates unescaped username directly into template literal assigned to element.innerHTML, allowing execution of attacker-supplied markup with event handlers.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Username string from external user profile input.",
-        "attackerControlledInput": "Username string containing markup tags and event handlers (<img src=x onerror=alert(1)>).",
-        "executionEnvironment": "Browser DOM content rendering.",
-        "impactSupportingSeverity": "HIGH: Embedded markup in template literal executes event handlers in victim session.",
-        "safePartnerAssumptions": "Assigns string to textContent, rendering values as plain text without HTML parsing."
+        "trustBoundary": "User-supplied input username crosses trust boundary into client DOM rendering sink without encoding.",
+        "attackerControlledInput": "username containing HTML markup with event-handler payload semantics (e.g. <img src=x onerror=alert(1)>). Inline script tags are not executed by innerHTML per HTML5 Section 4.12.1, but event-handler attributes execute upon element insertion.",
+        "executionEnvironment": "Browser DOM execution environment during page render.",
+        "impactSupportingSeverity": "HIGH severity: Arbitrary script execution within victim origin allows reading DOM state, non-HttpOnly cookies, storage tokens, and executing actions on behalf of the user.",
+        "safePartnerAssumptions": "C-A1-007.js uses element.textContent to render text directly. The browser DOM engine treats input strictly as character data and never invokes the HTML parser; it renders plain text rather than sanitizing HTML."
       },
       "expectedScannerFindings": [
         {
@@ -2682,17 +2668,17 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal"
+          "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Phase 03 deduplication ensures only A03-004 is emitted and A03-006 is suppressed."
     },
     {
       "fileName": "V-A1-008.js",
@@ -2737,7 +2723,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2756,26 +2742,23 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns return value of external endpoint helper directly to innerHTML.",
+      "intendedBehavior": "Updates container innerHTML with markup returned by endpoint helper function getRawHtmlFromEndpoint.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns return value of external endpoint helper directly to innerHTML.",
+        "rationale": "Directly assigns the return value of an external endpoint retrieval function to innerHTML without sanitization, exposing the DOM to script injection via event-handler payloads.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External endpoint data source parameter.",
-        "attackerControlledInput": "Helper function returns markup payload with event handler semantics.",
-        "executionEnvironment": "Browser DOM update cycle.",
-        "impactSupportingSeverity": "HIGH: External endpoint markup execution via innerHTML assignment.",
-        "safePartnerAssumptions": "Retrieves text via getCleanTextFromEndpoint and assigns to textContent."
+        "trustBoundary": "Data source parameter apiSource represents an untrusted endpoint or external data payload whose returned markup is assigned to the DOM.",
+        "attackerControlledInput": "The helper function getRawHtmlFromEndpoint(apiSource) provides an executable synchronous contract returning attacker-controlled markup with event-handler payload semantics.",
+        "executionEnvironment": "Browser DOM content update cycle.",
+        "impactSupportingSeverity": "HIGH severity: Dynamic unneutralized markup assigned to innerHTML executes embedded event handlers in the victim session (DOM XSS).",
+        "safePartnerAssumptions": "C-A1-009.js retrieves text via getCleanTextFromEndpoint and assigns to container.textContent, ensuring the browser renders the string as plain text without parsing markup."
       },
       "expectedScannerFindings": [
         {
@@ -2786,17 +2769,17 @@
             "line": 13,
             "column": 4
           },
-          "weaknessDescription": "Unsafe innerHTML assignment using function return value"
+          "weaknessDescription": "Unsafe innerHTML assignment using function return value."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Executable helper getRawHtmlFromEndpoint defined to provide a synchronous attacker-controlled return contract."
     },
     {
       "fileName": "V-A1-010.js",
@@ -2841,7 +2824,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2860,27 +2843,40 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Fetches arbitrary user-supplied URL with ambient credentials included.",
+      "intendedBehavior": "Client fetch to arbitrary user-supplied URL with ambient credentials enabled.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-20: Improper Input Validation (Client Request Forgery with Ambient Credentials)",
-        "rationale": "Fetches arbitrary user-supplied URL with ambient credentials included.",
+        "rationale": "Client fetch to arbitrary user-supplied URL with ambient credentials enabled.",
         "sourceReferences": [
+          "https://fetch.spec.whatwg.org/#cors-protocol-and-credentials",
+          "https://datatracker.ietf.org/doc/html/rfc6265#section-5.3",
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/20.html",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
+          "https://cwe.mitre.org/data/definitions/918.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External user-supplied request destination URL.",
-        "attackerControlledInput": "Attacker-controlled URL destination receiving victim session credentials.",
-        "executionEnvironment": "Browser Fetch API.",
-        "impactSupportingSeverity": "HIGH: Credential leakage and client-side request forgery to unauthorized endpoints.",
-        "safePartnerAssumptions": "Parses destination URL and enforces origin allowlist before dispatching fetch."
+        "trustBoundary": "User-supplied target URL passed to credentialed fetch.",
+        "attackerControlledInput": "Arbitrary URL targeting intranet services (e.g. localhost, 192.168.x.x) or third-party APIs.",
+        "executionEnvironment": "Browser Fetch API with credentials: include.",
+        "impactSupportingSeverity": "HIGH: Client-side request forgery (CSRF / confused deputy). Per WHATWG Fetch and RFC 6265, browser attaches ambient credentials scoped to the destination host, not the caller origin. If target host has permissive CORS or processes requests with side effects, attacker triggers unauthorized authenticated actions.",
+        "safePartnerAssumptions": "Restricts credentialed requests exclusively to verified, approved application API origins."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-001",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "HIGH",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Client fetch to arbitrary user-supplied URL with ambient credentials enabled."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2917,9 +2913,20 @@
         "impactSupportingSeverity": "CRITICAL: Full execution of arbitrary untrusted third-party script in victim session.",
         "safePartnerAssumptions": "Loads pre-approved script URL with cryptographic SRI integrity hash verification."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-006",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Dynamically injects external script element pointing to unvalidated user-controlled URL."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -2968,7 +2975,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3017,7 +3024,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3067,7 +3074,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3116,7 +3123,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3167,7 +3174,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3179,18 +3186,18 @@
       "fileName": "V-A2-016.js",
       "filePath": "test-samples/samples/V-A2-016.js",
       "sampleId": "V-A2-016",
-      "pairId": "PAIR-016-COOKIE-PREFERENCE",
+      "pairId": "PAIR-016-COOKIE-AUTH",
       "primaryModule": "auth.js",
       "label": "vulnerable",
       "legacyClassification": {
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Writes auth token directly to document.cookie without Secure attribute.",
+      "intendedBehavior": "Stores authentication credentials directly in document.cookie without HttpOnly protection.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
-        "rationale": "Writes auth token directly to document.cookie without Secure attribute.",
+        "rationale": "Stores authentication credentials directly in document.cookie without HttpOnly protection.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/614.html",
@@ -3198,11 +3205,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side cookie storage model.",
-        "attackerControlledInput": "Unencrypted cleartext network transmission.",
-        "executionEnvironment": "Browser document.cookie interface.",
-        "impactSupportingSeverity": "MEDIUM: Insecure cleartext transmission of cookie data.",
-        "safePartnerAssumptions": "Stores non-sensitive UI preference using Secure and SameSite; does not attempt invalid JS HttpOnly write."
+        "trustBoundary": "Authentication token exchanged with backend endpoint over TLS.",
+        "attackerControlledInput": "Stolen or intercepted auth token.",
+        "executionEnvironment": "Browser fetch and cookie storage model.",
+        "impactSupportingSeverity": "MEDIUM: Client-side cookie storage exposes sensitive authentication tokens to XSS read operations.",
+        "safePartnerAssumptions": "Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie."
       },
       "expectedScannerFindings": [
         {
@@ -3217,7 +3224,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3244,15 +3251,16 @@
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
           "https://cwe.mitre.org/data/definitions/338.html",
+          "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final",
           "https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "PRNG state predictability boundary.",
-        "attackerControlledInput": "Observing sequence of generated random values to predict internal PRNG state.",
-        "executionEnvironment": "Browser JavaScript runtime V8 PRNG.",
-        "impactSupportingSeverity": "HIGH: Attackers can predict future OTP secrets, enabling session hijack or MFA bypass.",
-        "safePartnerAssumptions": "Uses crypto.getRandomValues() backed by OS-level entropy pool."
+        "trustBoundary": "One-time password generation and shared secret provisioning.",
+        "attackerControlledInput": "Predicting sequence of Math.random values by reconstructing internal PRNG state (e.g. V8 Xoroshiro128+).",
+        "executionEnvironment": "Browser Web Crypto API execution.",
+        "impactSupportingSeverity": "HIGH: Predictable OTPs and secret keys allow attackers to bypass authentication if PRNG state is observed.",
+        "safePartnerAssumptions": "Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards."
       },
       "expectedScannerFindings": [
         {
@@ -3277,7 +3285,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3314,9 +3322,20 @@
         "impactSupportingSeverity": "HIGH: CSRF token forgery leading to unauthorized state-changing operations.",
         "safePartnerAssumptions": "Generates UUIDv4 using standard Web Crypto API crypto.randomUUID()."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-003",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Uses Math.random() to generate CSRF nonce and session tokens."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3365,7 +3384,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3414,7 +3433,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3473,7 +3492,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3532,7 +3551,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3551,22 +3570,23 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Hardcoded application secret key and gateway token in client code.",
+      "intendedBehavior": "Declares static credentials intended for authenticating API gateway communications.",
       "securityGroundTruth": {
         "isVulnerable": true,
-        "flawType": "CWE-798: Use of Hard-coded Credentials",
-        "rationale": "Hardcoded application secret key and gateway token in client code.",
+        "flawType": "CWE-798: Use of Hard-coded Credentials / CWE-312: Cleartext Storage of Sensitive Information",
+        "rationale": "API key and gateway token are hardcoded as static string literals in client-delivered JavaScript, exposing secret credentials to browser inspection.",
         "sourceReferences": [
           "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
-          "https://cwe.mitre.org/data/definitions/798.html"
+          "https://cwe.mitre.org/data/definitions/798.html",
+          "https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client application distribution boundary.",
-        "attackerControlledInput": "Static code inspection of client bundle.",
-        "executionEnvironment": "Browser client API caller.",
-        "impactSupportingSeverity": "CRITICAL: Direct credential extraction permitting unauthorized gateway operations.",
-        "safePartnerAssumptions": "Calls internal backend proxy route (/api/gateway/dispatch), keeping secrets on server."
+        "trustBoundary": "Client-side JavaScript executes in untrusted browser runtime environments accessible to end users, browser extensions, and reverse engineering tools.",
+        "attackerControlledInput": "None required for exposure; static assets are publicly retrievable and inspectable by any visitor or adversary.",
+        "executionEnvironment": "Client-side web application source bundle delivered to browser.",
+        "impactSupportingSeverity": "CRITICAL severity: Privileged nonpublic service secret keys grant unauthorized, direct access to backend administrative APIs or cloud resources, bypassing client authentication entirely.",
+        "safePartnerAssumptions": "C-A3-023.js delegates operations to an internal backend proxy route (/api/gateway/dispatch) without client-stored secrets. Assumes backend proxy enforces server authentication and authorization."
       },
       "expectedScannerFindings": [
         {
@@ -3577,7 +3597,7 @@
             "line": 7,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'application_secret_key'"
+          "weaknessDescription": "Hardcoded API key or secret found in variable 'application_secret_key'."
         },
         {
           "ruleId": "OWASP-A02-006",
@@ -3587,17 +3607,17 @@
             "line": 8,
             "column": 6
           },
-          "weaknessDescription": "Hardcoded API key or secret found in variable 'gatewayToken'"
+          "weaknessDescription": "Hardcoded API key or secret found in variable 'gatewayToken'."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and guidance catalog tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Synthetic secret strings represent privileged nonpublic credentials. Scanner matches sensitive identifier names with string literal initialization."
     },
     {
       "fileName": "V-A3-024.js",
@@ -3650,7 +3670,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3699,7 +3719,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3748,7 +3768,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3767,11 +3787,11 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns unvalidated target URL directly to window.location.href.",
+      "intendedBehavior": "Navigates browser location to dynamic targetUrl destination parameter.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')",
-        "rationale": "Assigns unvalidated target URL directly to window.location.href.",
+        "rationale": "Directly assigns unvalidated targetUrl parameter to window.location.href without allowlist validation, enabling attacker-directed client redirection to arbitrary external hosts.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/601.html",
@@ -3779,11 +3799,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External user-controlled URL input parameter.",
-        "attackerControlledInput": "Malicious external phishing URL provided as navigation target.",
-        "executionEnvironment": "Browser window navigation.",
-        "impactSupportingSeverity": "HIGH: Open redirect facilitating credential harvesting and phishing attacks.",
-        "safePartnerAssumptions": "Enforces allowlist check against allowedDomains before updating location.href."
+        "trustBoundary": "Input targetUrl crosses the client trust boundary from an untrusted origin, such as a URL query parameter or unverified post-auth redirect target.",
+        "attackerControlledInput": "targetUrl parameter containing arbitrary external URI (e.g. https://attacker.example.com or malicious scheme).",
+        "executionEnvironment": "Browser client executing window navigation in victim session.",
+        "impactSupportingSeverity": "HIGH severity: Arbitrary navigation enables credential phishing, social engineering attacks, and session deception under the application origin.",
+        "safePartnerAssumptions": "C-A5-027.js assumes allowedDomains is an immutable allowlist of trusted origins; exact array lookup rejects arbitrary external hosts and non-HTTP schemes."
       },
       "expectedScannerFindings": [
         {
@@ -3794,17 +3814,17 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Unsafe location redirection using dynamic value"
+          "weaknessDescription": "Unsafe location redirection using dynamic value."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; specifically evaluated for validation-handling in Phase 02.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Scanner uses AST scope allowlist check traversal (isValidated); does not perform whole-program taint tracking."
     },
     {
       "fileName": "V-A5-028.js",
@@ -3847,7 +3867,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3866,22 +3886,22 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Guards administrative component rendering using client-side role check.",
+      "intendedBehavior": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-602: Client-Side Enforcement of Server-Side Security",
-        "rationale": "Guards administrative component rendering using client-side role check.",
+        "rationale": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Client-side JavaScript state vs server authorization boundary.",
-        "attackerControlledInput": "Tampering with client-side userContext object properties in DevTools.",
-        "executionEnvironment": "Browser UI rendering logic.",
-        "impactSupportingSeverity": "MEDIUM: Unauthorized UI component rendering and administrative interface exposure.",
-        "safePartnerAssumptions": "Fetches authorized components from server API; server enforces access control."
+        "trustBoundary": "Client-to-server administrative endpoint request boundary.",
+        "attackerControlledInput": "Tampering with client-side userContext object properties in DevTools or console.",
+        "executionEnvironment": "Client-side authorization check and fetch execution.",
+        "impactSupportingSeverity": "HIGH: Client-side authorization checks are trivially bypassed by modifying client state or sending direct HTTP requests to the API.",
+        "safePartnerAssumptions": "Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges."
       },
       "expectedScannerFindings": [
         {
@@ -3896,7 +3916,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3938,14 +3958,14 @@
           "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "MEDIUM",
           "location": {
-            "line": 8,
+            "line": 12,
             "column": 4
           },
           "weaknessDescription": "Client-side role or authorization check in condition statement"
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -3995,7 +4015,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4044,7 +4064,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4081,9 +4101,20 @@
         "impactSupportingSeverity": "HIGH: Sensitive session token leaked to arbitrary third-party embedding frames.",
         "safePartnerAssumptions": "Specifies exact trusted target origin domain in postMessage call."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-001",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "HIGH",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Transmits sensitive authentication token via window.postMessage with wildcard * target origin."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4133,7 +4164,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4182,7 +4213,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4218,9 +4249,20 @@
         "impactSupportingSeverity": "MEDIUM: Full credential and user context leakage in error log outputs.",
         "safePartnerAssumptions": "Logs only non-sensitive numeric status code."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A05-003",
+          "owasp2021Category": "A05:2021-Security Misconfiguration",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Prints full user authentication context object to console error output."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4257,9 +4299,20 @@
         "impactSupportingSeverity": "MEDIUM: Cleartext WebSocket traffic interception and token hijacking.",
         "safePartnerAssumptions": "Enforces encrypted wss:// WebSocket protocol."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-004",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Connects to WebSocket telemetry service over unencrypted ws:// protocol."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4308,7 +4361,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4327,26 +4380,23 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Assigns badge HTML markup directly to element.innerHTML.",
+      "intendedBehavior": "Loads user badge content into an element via direct innerHTML assignment.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
-        "rationale": "Assigns badge HTML markup directly to element.innerHTML.",
+        "rationale": "Assigns unvalidated badgeHtml variable to element.innerHTML, allowing DOM-based XSS when dynamic input contains markup with event handlers.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/79.html",
-          "https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#dom-element-innerhtml",
-          "https://dom.spec.whatwg.org/#dom-node-textcontent",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML",
-          "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+          "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "User-provided badge markup parameter.",
-        "attackerControlledInput": "Badge HTML string containing malicious script tags or event handlers.",
-        "executionEnvironment": "Browser DOM innerHTML parsing.",
-        "impactSupportingSeverity": "HIGH: Direct DOM XSS via unneutralized markup assignment.",
-        "safePartnerAssumptions": "Assigns badge string to textContent, rendering as plain text character data."
+        "trustBoundary": "Variable badgeHtml carries dynamic input from external source or user profile.",
+        "attackerControlledInput": "badgeHtml variable containing markup with inline event handler attributes (e.g. <img src=x onerror=alert(1)>).",
+        "executionEnvironment": "Browser DOM rendering of UI component.",
+        "impactSupportingSeverity": "HIGH severity: Direct assignment of unvalidated input to innerHTML triggers DOM XSS in victim session.",
+        "safePartnerAssumptions": "C-A7-039.js assigns badgeHtml to element.textContent, rendering the value strictly as plain text characters without markup evaluation."
       },
       "expectedScannerFindings": [
         {
@@ -4357,17 +4407,17 @@
             "line": 8,
             "column": 4
           },
-          "weaknessDescription": "Dangerous use of innerHTML"
+          "weaknessDescription": "Dangerous use of innerHTML."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings tests.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Legacy filename uses OWASP 2017 A7 prefix; scanner and manifest map to OWASP 2021 A03."
     },
     {
       "fileName": "V-A7-040.js",
@@ -4412,7 +4462,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4462,7 +4512,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4498,9 +4548,20 @@
         "impactSupportingSeverity": "CRITICAL: Direct script injection into document DOM stream.",
         "safePartnerAssumptions": "Creates DOM element and assigns to textContent."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-007",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Writes user status markup to document via document.writeln()."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4550,7 +4611,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4599,7 +4660,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4618,37 +4679,47 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses untrusted JSON input string without schema verification.",
+      "intendedBehavior": "Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses untrusted JSON input string without schema verification.",
+        "rationale": "Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "External serialized JSON payload string.",
-        "attackerControlledInput": "Malformed or hostile JSON payload with unexpected properties.",
-        "executionEnvironment": "Browser JSON parser.",
-        "impactSupportingSeverity": "LOW: Insecure deserialization and unexpected application state injection.",
-        "safePartnerAssumptions": "Validates parsed JSON against strict schema specification."
+        "trustBoundary": "Deserialization of untrusted serialized session payload.",
+        "attackerControlledInput": "Manipulated JSON string containing arbitrary properties (e.g. isAdmin: true).",
+        "executionEnvironment": "Client-side session deserialization and authorization logic.",
+        "impactSupportingSeverity": "HIGH: Unvalidated deserialized properties grant unauthorized access when client-asserted privileges are trusted.",
+        "safePartnerAssumptions": "Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags."
       },
       "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-002",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 13,
+            "column": 4
+          },
+          "weaknessDescription": "Client-side role or authorization check in condition statement"
+        },
         {
           "ruleId": "OWASP-A08-001",
           "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
           "severity": "LOW",
           "location": {
-            "line": 8,
-            "column": 11
+            "line": 12,
+            "column": 20
           },
           "weaknessDescription": "JSON.parse() usage detected"
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4667,22 +4738,22 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses user configuration JSON without property type validation.",
+      "intendedBehavior": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses user configuration JSON without property type validation.",
+        "rationale": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "User settings JSON string parameter.",
-        "attackerControlledInput": "JSON string containing unexpected prototype properties or invalid types.",
-        "executionEnvironment": "Browser preferences parser.",
-        "impactSupportingSeverity": "LOW: State confusion and unexpected type injection in client configuration.",
-        "safePartnerAssumptions": "Explicitly picks and validates theme (string) and fontSize (number) fields."
+        "trustBoundary": "Deserialization of untrusted application configuration JSON.",
+        "attackerControlledInput": "JSON payload specifying arbitrary or malicious endpoint URLs.",
+        "executionEnvironment": "Client configuration loader and fetch execution.",
+        "impactSupportingSeverity": "MEDIUM: Unvalidated configuration properties induce unexpected client requests or cross-origin data exposure.",
+        "safePartnerAssumptions": "Assumes that allowed API endpoints are restricted to pre-approved application paths."
       },
       "expectedScannerFindings": [
         {
@@ -4691,13 +4762,13 @@
           "severity": "LOW",
           "location": {
             "line": 8,
-            "column": 11
+            "column": 19
           },
           "weaknessDescription": "JSON.parse() usage detected"
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4747,7 +4818,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4797,7 +4868,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4816,11 +4887,11 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Directly merges untrusted user payload into defaultConfig target via Object.assign.",
+      "intendedBehavior": "Merges default configuration with user payload.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
-        "rationale": "Directly merges untrusted user payload into defaultConfig target via Object.assign.",
+        "rationale": "Mutates target defaultConfig object directly with userPayload using Object.assign. If userPayload contains an own __proto__ property, prototype pollution occurs on the target prototype chain.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/1321.html",
@@ -4828,11 +4899,11 @@
         ]
       },
       "threatModelAndAssumptions": {
-        "trustBoundary": "Untrusted user payload object parameter.",
-        "attackerControlledInput": "JSON-parsed object with own __proto__ property modifying Object.prototype.",
-        "executionEnvironment": "Browser configuration merge routine.",
-        "impactSupportingSeverity": "MEDIUM: In-place target mutation and prototype pollution via Object.assign.",
-        "safePartnerAssumptions": "Sanitizes properties stripping prototype keys and merges into a fresh empty object {}."
+        "trustBoundary": "userPayload represents an untrusted JSON object received from an external caller, API response, or user input.",
+        "attackerControlledInput": "userPayload containing an own __proto__ property (e.g. parsed from JSON data) holding injected properties.",
+        "executionEnvironment": "JavaScript client runtime executing Object.assign on mutable application configuration object.",
+        "impactSupportingSeverity": "MEDIUM severity: Mutating the prototype chain of defaultConfig affects downstream prototype-sensitive property lookups across components sharing that object structure, potentially overriding settings or altering execution logic if suitable gadgets exist.",
+        "safePartnerAssumptions": "C-A8-049.js assumes defaultConfig represents trusted baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties filters dangerous property keys (__proto__, constructor, prototype) and Object.assign({}, ...) merges into a fresh empty object, preventing mutation of defaultConfig."
       },
       "expectedScannerFindings": [
         {
@@ -4843,17 +4914,17 @@
             "line": 8,
             "column": 11
           },
-          "weaknessDescription": "Unsafe use of Object.assign() mutating target object"
+          "weaknessDescription": "Unsafe use of Object.assign() mutating target object."
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
       "reviewStatus": {
         "coverage": "pilot-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier. It does not perform deep taint analysis."
     },
     {
       "fileName": "V-A8-050.js",
@@ -4896,7 +4967,7 @@
         }
       ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4933,9 +5004,20 @@
         "impactSupportingSeverity": "HIGH: Bearer token theft by injected or malicious third-party scripts.",
         "safePartnerAssumptions": "Keeps token in private memory variable without writing to browser web storage."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A07-001",
+          "owasp2021Category": "A07:2021-Identification and Authentication Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Stores sensitive bearer token in unencrypted sessionStorage."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
@@ -4971,9 +5053,20 @@
         "impactSupportingSeverity": "MEDIUM: Authentication token leaked via browser history and external navigation.",
         "safePartnerAssumptions": "Passes access token in HTTP Authorization header in memory."
       },
-      "expectedScannerFindings": [],
+      "expectedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-007",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 1,
+            "column": 0
+          },
+          "weaknessDescription": "Publishes access token in window.location.hash URL fragment."
+        }
+      ],
       "developmentUse": true,
-      "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and engine parity harnesses.",
+      "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
         "coverage": "controlled-reviewed",
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",

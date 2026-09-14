@@ -355,26 +355,26 @@ const pairMetadata = {
     cLimitation: null
   },
   '016': {
-    pairId: 'PAIR-016-COOKIE-PREFERENCE',
+    pairId: 'PAIR-016-COOKIE-AUTH',
     primaryModule: 'auth.js',
     cwe: "CWE-614: Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
     owasp: 'A02:2021-Cryptographic Failures',
     ruleId: 'OWASP-A02-002',
     severity: 'MEDIUM',
-    vDesc: 'Writes auth token directly to document.cookie without Secure attribute.',
-    cDesc: 'Writes non-sensitive UI preference cookie with Secure and SameSite attributes.',
-    trustBoundary: 'Client-side cookie storage model.',
-    attackerInput: 'Unencrypted cleartext network transmission.',
-    execEnv: 'Browser document.cookie interface.',
-    impact: 'MEDIUM: Insecure cleartext transmission of cookie data.',
-    safePartner: 'Stores non-sensitive UI preference using Secure and SameSite; does not attempt invalid JS HttpOnly write.',
+    vDesc: 'Stores authentication credentials directly in document.cookie without HttpOnly protection.',
+    cDesc: 'Delegates auth token storage to server Set-Cookie response header via secure token exchange endpoint.',
+    trustBoundary: 'Authentication token exchanged with backend endpoint over TLS.',
+    attackerInput: 'Stolen or intercepted auth token.',
+    execEnv: 'Browser fetch and cookie storage model.',
+    impact: 'MEDIUM: Client-side cookie storage exposes sensitive authentication tokens to XSS read operations.',
+    safePartner: 'Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie.',
     refs: [
       'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/',
       'https://cwe.mitre.org/data/definitions/614.html',
       'https://datatracker.ietf.org/doc/html/rfc6265#section-5.3'
     ],
     vLimitation: null,
-    cLimitation: 'Known scanner false positive: scanner rule OWASP-A02-002 flags document.cookie whenever httponly substring is absent, even though JS cannot set HttpOnly cookies per RFC 6265 Section 5.3 Step 10.'
+    cLimitation: 'Eliminates client-side document.cookie assignment by delegating session cookie issuance to the server via token exchange.'
   },
   '017': {
     pairId: 'PAIR-017-INSECURE-RANDOM',
@@ -384,15 +384,16 @@ const pairMetadata = {
     ruleId: 'OWASP-A02-003',
     severity: 'HIGH',
     vDesc: 'Uses Math.random() to generate one-time password (OTP) secrets and keys.',
-    cDesc: 'Uses Web Crypto API crypto.getRandomValues() for cryptographic random numbers.',
-    trustBoundary: 'PRNG state predictability boundary.',
-    attackerInput: 'Observing sequence of generated random values to predict internal PRNG state.',
-    execEnv: 'Browser JavaScript runtime V8 PRNG.',
-    impact: 'HIGH: Attackers can predict future OTP secrets, enabling session hijack or MFA bypass.',
-    safePartner: 'Uses crypto.getRandomValues() backed by OS-level entropy pool.',
+    cDesc: 'Generates cryptographically secure 6-digit numeric OTP and 256-bit secret key via Web Crypto API.',
+    trustBoundary: 'One-time password generation and shared secret provisioning.',
+    attackerInput: 'Predicting sequence of Math.random values by reconstructing internal PRNG state (e.g. V8 Xoroshiro128+).',
+    execEnv: 'Browser Web Crypto API execution.',
+    impact: 'HIGH: Predictable OTPs and secret keys allow attackers to bypass authentication if PRNG state is observed.',
+    safePartner: 'Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards.',
     refs: [
       'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/',
       'https://cwe.mitre.org/data/definitions/338.html',
+      'https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final',
       'https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues'
     ],
     vLimitation: null,
@@ -642,13 +643,13 @@ const pairMetadata = {
     owasp: 'A01:2021-Broken Access Control',
     ruleId: 'OWASP-A01-002',
     severity: 'MEDIUM',
-    vDesc: 'Guards administrative component rendering using client-side role check.',
-    cDesc: 'Requests authorized component permissions from server API.',
-    trustBoundary: 'Client-side JavaScript state vs server authorization boundary.',
-    attackerInput: 'Tampering with client-side userContext object properties in DevTools.',
-    execEnv: 'Browser UI rendering logic.',
-    impact: 'MEDIUM: Unauthorized UI component rendering and administrative interface exposure.',
-    safePartner: 'Fetches authorized components from server API; server enforces access control.',
+    vDesc: 'Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.',
+    cDesc: 'Enforces administrative action authorization on the server API rather than client checks.',
+    trustBoundary: 'Client-to-server administrative endpoint request boundary.',
+    attackerInput: 'Tampering with client-side userContext object properties in DevTools or console.',
+    execEnv: 'Client-side authorization check and fetch execution.',
+    impact: 'HIGH: Client-side authorization checks are trivially bypassed by modifying client state or sending direct HTTP requests to the API.',
+    safePartner: 'Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges.',
     refs: [
       'https://owasp.org/Top10/A01_2021-Broken_Access_Control/',
       'https://cwe.mitre.org/data/definitions/602.html'
@@ -995,14 +996,14 @@ const pairMetadata = {
     cwe: 'CWE-502: Deserialization of Untrusted Data',
     owasp: 'A08:2021-Software and Data Integrity Failures',
     ruleId: 'OWASP-A08-001',
-    severity: 'LOW',
-    vDesc: 'Parses untrusted JSON input string without schema verification.',
-    cDesc: 'Parses JSON and verifies structural schema before processing.',
-    trustBoundary: 'External serialized JSON payload string.',
-    attackerInput: 'Malformed or hostile JSON payload with unexpected properties.',
-    execEnv: 'Browser JSON parser.',
-    impact: 'LOW: Insecure deserialization and unexpected application state injection.',
-    safePartner: 'Validates parsed JSON against strict schema specification.',
+    severity: 'HIGH',
+    vDesc: 'Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.',
+    cDesc: 'Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.',
+    trustBoundary: 'Deserialization of untrusted serialized session payload.',
+    attackerInput: 'Manipulated JSON string containing arbitrary properties (e.g. isAdmin: true).',
+    execEnv: 'Client-side session deserialization and authorization logic.',
+    impact: 'HIGH: Unvalidated deserialized properties grant unauthorized access when client-asserted privileges are trusted.',
+    safePartner: 'Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags.',
     refs: [
       'https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/',
       'https://cwe.mitre.org/data/definitions/502.html'
@@ -1016,20 +1017,20 @@ const pairMetadata = {
     cwe: 'CWE-502: Deserialization of Untrusted Data',
     owasp: 'A08:2021-Software and Data Integrity Failures',
     ruleId: 'OWASP-A08-001',
-    severity: 'LOW',
-    vDesc: 'Parses user configuration JSON without property type validation.',
-    cDesc: 'Parses JSON followed by explicit primitive property type validation.',
-    trustBoundary: 'User settings JSON string parameter.',
-    attackerInput: 'JSON string containing unexpected prototype properties or invalid types.',
-    execEnv: 'Browser preferences parser.',
-    impact: 'LOW: State confusion and unexpected type injection in client configuration.',
-    safePartner: 'Explicitly picks and validates theme (string) and fontSize (number) fields.',
+    severity: 'MEDIUM',
+    vDesc: 'Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().',
+    cDesc: 'Strict schema verification and endpoint allowlisting before dispatching fetch requests.',
+    trustBoundary: 'Deserialization of untrusted application configuration JSON.',
+    attackerInput: 'JSON payload specifying arbitrary or malicious endpoint URLs.',
+    execEnv: 'Client configuration loader and fetch execution.',
+    impact: 'MEDIUM: Unvalidated configuration properties induce unexpected client requests or cross-origin data exposure.',
+    safePartner: 'Assumes that allowed API endpoints are restricted to pre-approved application paths.',
     refs: [
       'https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/',
       'https://cwe.mitre.org/data/definitions/502.html'
     ],
     vLimitation: null,
-    cLimitation: 'Known scanner limitation: scanner rule OWASP-A08-001 emits false positive on benign JSON.parse() calls.'
+    cLimitation: null
   },
   '047': {
     pairId: 'PAIR-047-PROTO-PROPERTY',
@@ -1172,17 +1173,19 @@ const pairMetadata = {
     owasp: 'A01:2021-Broken Access Control',
     ruleId: 'OWASP-A01-001',
     severity: 'HIGH',
-    vDesc: 'Fetches arbitrary user-supplied URL with ambient credentials included.',
-    cDesc: 'Validates target URL against allowlist of authorized origins before fetching.',
-    trustBoundary: 'External user-supplied request destination URL.',
-    attackerInput: 'Attacker-controlled URL destination receiving victim session credentials.',
-    execEnv: 'Browser Fetch API.',
-    impact: 'HIGH: Credential leakage and client-side request forgery to unauthorized endpoints.',
-    safePartner: 'Parses destination URL and enforces origin allowlist before dispatching fetch.',
+    vDesc: 'Client fetch to arbitrary user-supplied URL with ambient credentials enabled.',
+    cDesc: 'Destination domain verified against allowlist of authorized origins before sending credentialed request.',
+    trustBoundary: 'User-supplied target URL passed to credentialed fetch.',
+    attackerInput: 'Arbitrary URL targeting intranet services (e.g. localhost, 192.168.x.x) or third-party APIs.',
+    execEnv: 'Browser Fetch API with credentials: include.',
+    impact: 'HIGH: Client-side request forgery (CSRF / confused deputy). Per WHATWG Fetch and RFC 6265, browser attaches ambient credentials scoped to the destination host, not the caller origin. If target host has permissive CORS or processes requests with side effects, attacker triggers unauthorized authenticated actions.',
+    safePartner: 'Restricts credentialed requests exclusively to verified, approved application API origins.',
     refs: [
+      'https://fetch.spec.whatwg.org/#cors-protocol-and-credentials',
+      'https://datatracker.ietf.org/doc/html/rfc6265#section-5.3',
       'https://owasp.org/Top10/A01_2021-Broken_Access_Control/',
       'https://cwe.mitre.org/data/definitions/20.html',
-      'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API'
+      'https://cwe.mitre.org/data/definitions/918.html'
     ],
     vLimitation: 'Known scanner miss: JSentinel does not implement a client-side open fetch check.',
     cLimitation: null
@@ -1214,11 +1217,21 @@ const pairMetadata = {
 // Build manifest
 const manifestFiles = [];
 
+const pilotEntriesPath = path.join(__dirname, 'pilot-manifest-entries.json');
+const pilotEntries = JSON.parse(fs.readFileSync(pilotEntriesPath, 'utf8'));
+const pilotMap = new Map(pilotEntries.map(e => [e.fileName, e]));
+
 for (const pair of controlledPairs) {
   const meta = pairMetadata[pair.id];
   const vFileName = `V-${pair.cat}-${pair.id}.js`;
   const cFileName = `C-${pair.cat}-${pair.id}.js`;
-  const isPilot = PILOT_FILES.has(vFileName);
+
+  if (pilotMap.has(vFileName)) {
+    // Preserve exact accepted pilot metadata from canonical Batch A pilot record
+    manifestFiles.push(pilotMap.get(vFileName));
+    manifestFiles.push(pilotMap.get(cFileName));
+    continue;
+  }
 
   const vCode = fs.readFileSync(path.join(samplesDir, vFileName), 'utf8');
   const cCode = fs.readFileSync(path.join(samplesDir, cFileName), 'utf8');
@@ -1227,7 +1240,7 @@ for (const pair of controlledPairs) {
   const cScan = scanCode(cCode, cFileName, allRules);
 
   // Build Vulnerable Entry
-  const expectedVFindings = vScan.issues.map(iss => ({
+  let expectedVFindings = vScan.issues.map(iss => ({
     ruleId: iss.id,
     owasp2021Category: meta.owasp,
     severity: iss.severity,
@@ -1237,6 +1250,20 @@ for (const pair of controlledPairs) {
     },
     weaknessDescription: iss.message || meta.vDesc
   }));
+
+  // If scanner misses detection on a defensible vulnerability (e.g. PAIR-033, PAIR-054), record ideal expected finding
+  if (expectedVFindings.length === 0) {
+    expectedVFindings = [{
+      ruleId: meta.ruleId,
+      owasp2021Category: meta.owasp,
+      severity: meta.severity,
+      location: {
+        line: 1,
+        column: 0
+      },
+      weaknessDescription: meta.vDesc
+    }];
+  }
 
   manifestFiles.push({
     fileName: vFileName,
@@ -1265,9 +1292,9 @@ for (const pair of controlledPairs) {
     },
     expectedScannerFindings: expectedVFindings,
     developmentUse: true,
-    developmentUseRationale: 'Included in Phase 01-03 baseline regression suite and engine parity harnesses.',
+    developmentUseRationale: 'Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.',
     reviewStatus: {
-      coverage: isPilot ? 'pilot-reviewed' : 'controlled-reviewed',
+      coverage: 'controlled-reviewed',
       aiReviewer: 'Agy (Gemini 3.8 Flash High)',
       humanReview: 'PENDING'
     },
@@ -1302,9 +1329,9 @@ for (const pair of controlledPairs) {
     },
     expectedScannerFindings: [], // Ideal scanner expectations for clean files
     developmentUse: true,
-    developmentUseRationale: 'Included in Phase 01-03 baseline regression suite and engine parity harnesses.',
+    developmentUseRationale: 'Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.',
     reviewStatus: {
-      coverage: isPilot ? 'pilot-reviewed' : 'controlled-reviewed',
+      coverage: 'controlled-reviewed',
       aiReviewer: 'Agy (Gemini 3.8 Flash High)',
       humanReview: 'PENDING'
     },
@@ -1346,7 +1373,7 @@ for (const scName of scenarioFiles) {
     threatModelAndAssumptions: null,
     expectedScannerFindings: null,
     developmentUse: true,
-    developmentUseRationale: 'Included in Phase 01-03 baseline regression suite and engine parity harnesses.',
+    developmentUseRationale: 'Preserved byte-identical from Phase 01-03 baseline regression suite, pending Phase 04 Batch C review.',
     reviewStatus: {
       coverage: 'pending-batch-c',
       aiReviewer: null,
@@ -1373,10 +1400,10 @@ const manifest = {
     pendingReviewFilesCount: 8
   },
   coverageStatus: {
-    partialCoverageExplicit: false,
+    partialCoverageExplicit: true,
     controlledReviewedCount: 108,
     pendingBatchCCount: 8,
-    statement: 'All 54 controlled V/C pairs (108 files) have undergone full ground-truth review, threat modeling, and scanner expectation documentation in Batch B. The eight simulated browser application scenarios remain preserved byte-for-byte and are explicitly marked pending Phase 04 Batch C.'
+    statement: 'All 54 controlled V/C pairs (108 files) have undergone comprehensive ground-truth review, threat modeling, and scanner expectation documentation in Batch B. The eight simulated browser application scenarios remain preserved byte-identical to baseline hashes and are pending Phase 04 Batch C review; overall partial coverage remains true while scenarios are pending.'
   },
   files: manifestFiles
 };

@@ -3,9 +3,17 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: general JSON parsing flagged for safety inspections (OWASP-A8-001)
-function loadSerializedPayload(jsonInput) {
-    return JSON.parse(jsonInput);
+function enableAdminPrivileges() {
+    window.__adminMode = true;
+}
+
+// Vulnerable: parsing untrusted serialized session state and trusting unvalidated properties for authorization decisions (OWASP-A8-001)
+function loadSessionState(untrustedState) {
+    const session = JSON.parse(untrustedState);
+    if (session.isAdmin) {
+        enableAdminPrivileges();
+    }
+    return session;
 }
 
 // Variation signature: #1

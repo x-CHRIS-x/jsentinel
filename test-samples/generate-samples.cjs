@@ -275,13 +275,19 @@ async function createSessionCookieSecure(userId) {
   },
   {
     cat: 'A2', id: '016', varSig: 2,
-    vCode: `// Vulnerable: insecure cookie token storage (OWASP-A2-003)
+    vCode: `// Vulnerable: storing authentication credentials directly in document.cookie without HttpOnly protection (OWASP-A2-003)
 function storeAuthCookie(authToken) {
     document.cookie = "auth_token=" + authToken + "; path=/;";
 }`,
-    cCode: `// Clean: non-sensitive UI preference cookie with Secure and SameSite attributes (no false HttpOnly write)
-function storeUiPreferenceCookieSecure(themeName) {
-    document.cookie = "ui_theme=" + encodeURIComponent(themeName) + "; path=/; Secure; SameSite=Strict;";
+    cCode: `// Clean: auth token storage delegated to server Set-Cookie response header via token exchange endpoint
+async function storeAuthCookieSecure(authToken) {
+    const res = await fetch("/api/auth/token-exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: authToken }),
+        credentials: "same-origin"
+    });
+    return res.ok;
 }`
   },
   {
@@ -292,12 +298,18 @@ function generateUserOtpSecret() {
     const otp_key = "secret_" + Math.random().toString(36);
     return { otp, otp_key };
 }`,
-    cCode: `// Clean: cryptographically secure random values via Web Crypto API
+    cCode: `// Clean: cryptographically secure random values via Web Crypto API with 256-bit secret key
 function generateUserOtpSecretSecure() {
-    const array = new Uint32Array(2);
-    crypto.getRandomValues(array);
-    const otp = String(array[0] % 1000000).padStart(6, '0');
-    const otp_key = "secure_" + array[1].toString(36);
+    // 6-digit numeric OTP generated using crypto.getRandomValues (uniform 20-bit numeric range)
+    const otpBytes = new Uint32Array(1);
+    crypto.getRandomValues(otpBytes);
+    const otp = String(otpBytes[0] % 1000000).padStart(6, '0');
+
+    // Cryptographic secret key using 256 bits (32 bytes) of cryptographic entropy
+    const secretBytes = new Uint8Array(32);
+    crypto.getRandomValues(secretBytes);
+    const otp_key = "secure_" + Array.from(secretBytes, b => b.toString(16).padStart(2, '0')).join('');
+
     return { otp, otp_key };
 }`
   },
@@ -475,37 +487,55 @@ function navigateToPartnerSiteSecure(partnerUrl) {
   },
   {
     cat: 'A5', id: '029', varSig: 1,
-    vCode: `// Vulnerable: Client-side role checking guarding access (OWASP-A5-002)
-function renderSecureComponents(userContext) {
+    vCode: `// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A5-002)
+function executeAdministrativeAction(userContext, targetUserId) {
     if (userContext.role === "admin" || userContext.isAdmin === true) {
-        showSpecialSuperAdminMenu();
+        return fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
+            method: "POST"
+        });
     }
+    return Promise.reject(new Error("Unauthorized"));
 }`,
-    cCode: `// Clean: authorization checks validated on the server API side
-async function renderSecureComponentsSecure() {
-    const res = await fetch("/api/user/authorized-components");
-    if (res.ok) {
-        const data = await res.json();
-        if (data.canViewAdminMenu) {
-            showSpecialSuperAdminMenu();
-        }
+    cCode: `// Clean: administrative action authorization enforced by backend API rather than client checks
+async function executeAdministrativeActionSecure(targetUserId) {
+    const res = await fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin"
+    });
+    if (!res.ok) {
+        throw new Error("Server rejected unauthorized administrative action");
     }
+    return res.json();
 }`
   },
   {
     cat: 'A5', id: '030', varSig: 2,
-    vCode: `// Vulnerable: client-side permission flag guarding destructive action (OWASP-A5-002)
+    vCode: `function triggerSystemPurge() {
+    return fetch("/api/admin/purge", { method: "POST" });
+}
+
+// Vulnerable: client-side permission flag guarding destructive action (OWASP-A5-002)
 function executePurgeOperation(userState) {
     if (userState.role === "admin" || userState.hasPurgePermission === true) {
-        triggerSystemPurge();
+        return triggerSystemPurge();
     }
+    return Promise.reject(new Error("Unauthorized"));
 }`,
-    cCode: `// Clean: destructive action authorized server-side before execution
+    cCode: `function triggerSystemPurge() {
+    return fetch("/api/admin/purge", { method: "POST" });
+}
+
+// Clean: destructive action authorized server-side before execution
 async function executePurgeOperationSecure() {
-    const res = await fetch("/api/admin/purge", { method: "POST" });
+    const res = await fetch("/api/admin/purge-authorized", {
+        method: "POST",
+        credentials: "same-origin"
+    });
     if (res.ok) {
-        triggerSystemPurge();
+        return triggerSystemPurge();
     }
+    throw new Error("Server rejected purge operation");
 }`
   },
 
@@ -552,6 +582,16 @@ function listenForRemoteCommands() {
     });
 }`,
     cCode: `// Clean: cross-window message handler validating event origin before processing
+const allowedActions = {
+    refresh: () => { window.location.reload(); },
+    ping: () => { window.parent.postMessage({ status: "pong" }, "https://trusted.portal.example.com"); }
+};
+function handleSafeAction(action) {
+    if (Object.prototype.hasOwnProperty.call(allowedActions, action)) {
+        allowedActions[action]();
+    }
+}
+
 const trustedOrigins = ["https://trusted.portal.example.com"];
 function listenForRemoteCommandsSecure() {
     window.addEventListener("message", function(event) {
@@ -691,29 +731,57 @@ function renderArticleBannerSecure(bannerText) {
   // A8: Software and Data Integrity Failures (6 pairs: 045 - 050)
   {
     cat: 'A8', id: '045', varSig: 1,
-    vCode: `// Vulnerable: general JSON parsing flagged for safety inspections (OWASP-A8-001)
-function loadSerializedPayload(jsonInput) {
-    return JSON.parse(jsonInput);
+    vCode: `function enableAdminPrivileges() {
+    window.__adminMode = true;
+}
+
+// Vulnerable: parsing untrusted serialized session state and trusting unvalidated properties for authorization decisions (OWASP-A8-001)
+function loadSessionState(untrustedState) {
+    const session = JSON.parse(untrustedState);
+    if (session.isAdmin) {
+        enableAdminPrivileges();
+    }
+    return session;
 }`,
-    cCode: `// Clean: schema verified parsing processes
-function loadSerializedPayloadSecure(jsonInput) {
-    const parsed = JSON.parse(jsonInput);
-    return validateSchema(parsed);
+    cCode: `// Clean: strict schema validation function verifying expected structure and rejecting unverified privileges
+function validateSessionSchema(data) {
+    if (!data || typeof data !== 'object') return false;
+    return typeof data.userId === 'string' && typeof data.role === 'string';
+}
+
+function loadSessionStateSecure(untrustedState) {
+    const session = JSON.parse(untrustedState);
+    if (!validateSessionSchema(session)) {
+        throw new Error('Invalid session payload schema');
+    }
+    return {
+        userId: session.userId,
+        role: 'standard_user' // Never grant elevated privileges from untrusted client JSON
+    };
 }`
   },
   {
     cat: 'A8', id: '046', varSig: 2,
-    vCode: `// Vulnerable: parsing untrusted configuration JSON without schema check (OWASP-A8-001)
-function parseUserPreferences(rawJson) {
-    return JSON.parse(rawJson);
+    vCode: `// Vulnerable: parsing untrusted configuration JSON where unvalidated properties control security behavior (OWASP-A8-001)
+function loadAppConfig(rawConfig) {
+    const config = JSON.parse(rawConfig);
+    // Unsafe context: dispatching fetch to arbitrary unvalidated endpoint URL from parsed JSON
+    return fetch(config.endpointUrl);
 }`,
-    cCode: `// Clean: JSON parsing followed by explicit property type validation
-function parseUserPreferencesSecure(rawJson) {
-    const data = JSON.parse(rawJson);
-    return {
-        theme: typeof data.theme === 'string' ? data.theme : 'light',
-        fontSize: typeof data.fontSize === 'number' ? data.fontSize : 14
-    };
+    cCode: `// Clean: JSON parsing followed by explicit schema verification and endpoint allowlisting
+function verifyAppConfig(config) {
+    if (!config || typeof config !== 'object') return null;
+    const allowedEndpoints = ['/api/v1/feed', '/api/v1/profile'];
+    if (typeof config.endpointUrl === 'string' && allowedEndpoints.includes(config.endpointUrl)) {
+        return { endpointUrl: config.endpointUrl };
+    }
+    return { endpointUrl: '/api/v1/feed' };
+}
+
+function loadAppConfigSecure(rawConfig) {
+    const config = JSON.parse(rawConfig);
+    const verified = verifyAppConfig(config);
+    return fetch(verified.endpointUrl);
 }`
   },
   {

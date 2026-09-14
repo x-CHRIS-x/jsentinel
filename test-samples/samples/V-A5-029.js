@@ -3,11 +3,14 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: Client-side role checking guarding access (OWASP-A5-002)
-function renderSecureComponents(userContext) {
+// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A5-002)
+function executeAdministrativeAction(userContext, targetUserId) {
     if (userContext.role === "admin" || userContext.isAdmin === true) {
-        showSpecialSuperAdminMenu();
+        return fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
+            method: "POST"
+        });
     }
+    return Promise.reject(new Error("Unauthorized"));
 }
 
 // Variation signature: #1
