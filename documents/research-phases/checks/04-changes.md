@@ -68,12 +68,13 @@ Six existing corresponding pairs were identified, audited, and synchronized for 
 | `test-samples/samples/C-A1-009.js` | Defined synchronous text helper `getCleanTextFromEndpoint(source)` and assigned to `textContent`. | Implements genuine browser-safe text rendering. |
 | `test-samples/generate-samples.cjs` | Synchronized templates for A1, A3, and A8, added `--pilot` mode, normalized CRLF. | Reproduces 12 pilot files without modifying the other 104 files. |
 | `test-samples/dataset-manifest.json` | Created complete 116-file manifest draft with unreviewed ground truth separation and pilot threat models. | Establishes ground truth and scanner expectations for Phase 04 pilot. |
-| `validation/pilot-manifest.test.mjs` | Created comprehensive test suite verifying pilot samples, manifest, AST parsing, runtime exploit behavior, and dual-scanner parity. | Automated regression and validation harness for Phase 04 pilot. |
+| `validation/pilot-manifest.test.mjs` | Updated test suite to execute actual sample files in isolated VM contexts and disclose unrun DOM checks. | Automated regression and runtime verification harness for Phase 04 pilot. |
 | `documents/research-phases/checks/04-baseline-hashes.json` | Generated machine-readable inventory of 116 baseline file hashes. | Preserves pre-change state for verification audit. |
 | `documents/research-phases/checks/04-baseline-hashes.md` | Generated human-readable baseline inventory table. | Transparent audit trail for dataset preservation. |
 | `documents/research-phases/checks/04-changes.md` | Recorded Phase 04 Batch A changes, scope, and stopping point. | Primary change documentation. |
 | `documents/research-phases/checks/04-checklist.md` | Recorded Phase 04 criteria checklist and command results. | Quality and integrity checklist. |
 | `documents/research-phases/checks/04-issues.md` | Recorded inventory of former A06/server-only reassignments, inventory reconciliation history, and RFC 6265 cookie audit. | Documented known issues and Batch B/C requirements. |
+| `documents/research-phases/checks/04-correction-self-check-2026-09-14.md` | Recorded correction self-check for isolated VM sample execution and disclosed unrun DOM checks. | Documents correction rationale and updated evidence claims. |
 
 ## 7. Workflow Stopping Point
 
