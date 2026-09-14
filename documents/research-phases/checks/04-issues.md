@@ -60,7 +60,34 @@ Manager inspection of commit `089b864` highlighted specific bounded issues, whic
    - Set `manifest.coverageStatus.partialCoverageExplicit: true` because 8 scenarios are pending Batch C.
    - Updated `developmentUseRationale`: accurately distinguishes baseline regression files from newly updated Batch B files.
 
-## 3. Authoritative Web Standards References
+## 3. Resolved: Post-Commit 697ccb4 Manifest Defect Resolutions
+
+Manager inspection of commit `697ccb4` identified manifest and sample defects, which are now resolved:
+
+1. **Elimination of Borrowed Rule IDs for Unsupported Browser Weaknesses:**
+   - Previous builder logic borrowed unrelated rules (`OWASP-A01-001`, `OWASP-A03-006`) when no active scanner rule existed for an intended browser weakness.
+   - For `PAIR-033` (postMessage wildcard), `PAIR-053` (client fetch credentials), and `PAIR-054` (dynamic script inclusion), `ruleId` is now set to `null` with `unsupported: true` and documented in `ambiguityOrKnownLimitations`. No foreign rules are borrowed.
+
+2. **Elimination of Synthetic Placeholder Coordinates (`line: 1, column: 0`):**
+   - The fallback logic in `build-dataset-manifest.cjs` previously inserted `{ line: 1, column: 0 }` for scanner misses.
+   - Audited all 54 pairs. Replaced every placeholder with exact AST coordinates of the weakness construct in each sample. Zero placeholder coordinates remain in `dataset-manifest.json`.
+
+3. **Canonical Rule-to-Category Mappings:**
+   - In `build-dataset-manifest.cjs`, finding categories are now mapped strictly through canonical rule definitions (`getCanonicalRuleCategory`).
+   - In `V-A8-045.js`, `OWASP-A08-001` maps to `A08:2021-Software and Data Integrity Failures` (severity LOW) and `OWASP-A01-002` maps to `A01:2021-Broken Access Control` (severity MEDIUM).
+   - In `V-A6-034.js`, `OWASP-A03-001` maps to `A03:2021-Injection` (severity CRITICAL).
+   - Zero category mismatches exist across all 116 manifest entries.
+
+4. **Separation of Ideal Ground Truth Expectations and Observed Scanner Output:**
+   - Benchmark ground truth expectations are stored in `expectedScannerFindings` (curated ideal findings, clean files having `[]`).
+   - Actual scanner runtime output is stored independently in `observedScannerFindings`. Scanner misses or false positives do not contaminate expected ground truth.
+
+5. **Sample Security Context Enhancements:**
+   - `PAIR-029`: Explicitly documents backend authorization assumptions. `V-A5-029.js` assumes missing backend RBAC enforcement where client checks are the sole barrier. `C-A5-029.js` relies on a verified server-side RBAC contract on session credentials.
+   - `PAIR-045`: Added `accessAdministrativeDiagnostics()` in `V-A8-045.js` that exposes confidential diagnostic data when `window.__adminMode` is true. `C-A8-045.js` notes that schema validation checks structure and types, while authorization is enforced by setting `role: 'standard_user'`.
+   - `PAIR-046`: `V-A8-046.js` defines an unvalidated telemetry exfiltration context under browser CORS. `C-A8-046.js` updates `verifyAppConfig` to return `{ endpointUrl: '/api/v1/feed' }` for `null`, `undefined`, or primitive inputs, preventing unhandled `TypeError` exceptions.
+
+## 4. Authoritative Web Standards References
 
 Manifest entries, test suites, and documentation cite authoritative, stable web specifications:
 - WHATWG HTML Living Standard: Section 8.4 Dynamic markup insertion (`Element.innerHTML`)
@@ -69,7 +96,7 @@ Manifest entries, test suites, and documentation cite authoritative, stable web 
 - RFC 6265: Section 5.3 Step 10 (Storage Model non-HTTP API rejection)
 - NIST SP 800-131A / SP 800-90A: Cryptographic Key Length and Random Number Generation
 
-## 4. Carry-Forward Items
+## 5. Carry-Forward Items
 
 - A03-001 Column-Zero Coordinate Mismatch: Unrelated `eval()` check at column zero reports column `'unknown'` in web scanner vs column `0` in VS Code extension. Inherited from Phase 01/02 and carried forward.
 - Scenario Migration (Batch C): The 8 simulated browser application scenarios remain byte-identical to their baseline hashes. They are marked `pending-batch-c` with `isVulnerable: null` and are scheduled for review and migration in Phase 04 Batch C.

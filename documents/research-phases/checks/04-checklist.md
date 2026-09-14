@@ -25,20 +25,21 @@ Manager: Astra coordinator (`jsentinel-4`). Verifier: Opus HOLD.
 | 14. Generator support synchronized for full 54 pairs | **PASS** | `test-samples/generate-samples.cjs` implements all 54 pairs with `--check`, `--pilot`, and Windows CRLF normalization. `node test-samples/generate-samples.cjs --check` confirms 108/108 matches. |
 | 15. Manifest covers all 116 files with preserved pilot metadata and explicit partial coverage | **PASS** | `test-samples/dataset-manifest.json` preserves all 12 accepted pilot metadata records from canonical record, sets `partialCoverageExplicit: true`, and marks 8 scenarios as `pending-batch-c`. |
 | 16. Unit tests execute actual sample code in isolated VM contexts | **PASS** | `validation/pilot-manifest.test.mjs` executes actual sample code in isolated VM contexts to verify redirects, prototype pollution filters, sink contracts, schema validation, 256-bit entropy, and origin listeners. |
-| 17. Full validation test suite passes with zero regressions | **PASS** | 46 test cases pass across all validation suites in `validation/` (6 manifest tests + 40 existing regression tests). |
-| 18. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (1.98s). |
+| 17. Full validation test suite passes with zero regressions | **PASS** | 47 test cases pass across all validation suites in `validation/` (7 manifest tests + 40 existing regression tests). |
+| 18. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (1.73s). |
 | 19. Two-stage commit discipline | **PASS** | Implementation committed first, followed by evidence documentation. |
+| 20. Manifest structural integrity and canonical categories | **PASS** | Automated audit and Test 7 confirm 0 placeholder coordinates, 0 rule/category mismatches, and explicit `ruleId: null` with `unsupported: true` for missing scanner rules. |
 
 ## 2. Execution Record and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify generator reproducibility against disk | 0 | Check Mode: 108 matches, 0 mismatches out of 108 checked. |
-| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, and VM tests | 0 | 6 of 6 tests passed (duration ~846ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 46 of 46 tests passed (duration ~4565ms). |
+| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, and VM tests | 0 | 7 of 7 tests passed (duration ~798ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 47 of 47 tests passed (duration ~4207ms). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.98s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 1.73s; 233 modules transformed. |
 
 ## 3. Disclosed Unrun Checks (NOT RUN)
 

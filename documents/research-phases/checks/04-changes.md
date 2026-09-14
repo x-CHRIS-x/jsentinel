@@ -71,7 +71,18 @@ Following manager inspection of commit `089b864`, bounded corrections were appli
    - Preserved all 12 accepted pilot metadata entries from `test-samples/pilot-manifest-entries.json` with 100% fidelity.
    - Set `manifest.coverageStatus.partialCoverageExplicit: true` because 8 scenarios are pending Batch C.
    - Updated `developmentUseRationale`: distinguishes baseline regression files from newly updated Batch B files.
-   - Clean entries record `expectedScannerFindings: []` as ideal security expectations.
+    - Clean entries record `expectedScannerFindings: []` as ideal security expectations.
+
+8. **Manifest Defect Resolution (Post-Commit 697ccb4):**
+   - **Elimination of Borrowed Rule IDs:** In `build-dataset-manifest.cjs`, when a browser weakness has no matching rule in the scanner registry (`PAIR-033`, `PAIR-053`, `PAIR-054`), `ruleId` is now set to `null` and `unsupported: true` is explicitly recorded. The builder no longer borrows rules from other categories.
+   - **Elimination of Synthetic Placeholder Coordinates:** Replaced all 9 instances of `{ line: 1, column: 0 }` with exact AST source coordinates for weakness constructs in `V-A2-018`, `V-A6-033`, `V-A6-036`, `V-A6-037`, `V-A7-042`, `V-A9-051`, `V-A9-052`, `V-A10-053`, and `V-A10-054`. Zero placeholder coordinates remain.
+   - **Canonical Rule-to-Category Mappings:** Introduced `getCanonicalRuleCategory(ruleId)` to resolve categories directly from canonical rule definitions. In `V-A8-045.js`, `OWASP-A08-001` maps to `A08:2021-Software and Data Integrity Failures` while `OWASP-A01-002` maps to `A01:2021-Broken Access Control`. In `V-A6-034.js`, `OWASP-A03-001` correctly maps to `A03:2021-Injection`.
+   - **Separation of Ground Truth from Scanner Behavior:** Expected findings represent benchmark ground truth expectations (`expectedScannerFindings`). Raw scanner results are stored separately under `observedScannerFindings`.
+   - **Sample Security Context Enhancements:**
+     - `PAIR-029`: Explicitly documents that `V-A5-029.js` assumes missing backend RBAC enforcement on `/api/v1/users/:id/grant-superuser`. `C-A5-029.js` relies on a verified server-side RBAC contract on session credentials.
+     - `PAIR-045`: Added `accessAdministrativeDiagnostics()` in `V-A8-045.js`, which unlocks confidential diagnostic data when `window.__adminMode` is true. `C-A8-045.js` documents that schema validation verifies structural integrity, while authorization is enforced by fixing `role: 'standard_user'`.
+     - `PAIR-046`: `V-A8-046.js` defines an unvalidated telemetry exfiltration context under browser CORS. `C-A8-046.js` updates `verifyAppConfig` to return a safe fallback object `{ endpointUrl: '/api/v1/feed' }` for `null`, `undefined`, or primitive inputs, avoiding unhandled `TypeError` exceptions.
+   - **Structural Integrity Validation:** Added Test 7 to `validation/pilot-manifest.test.mjs` verifying canonical category mappings, positive non-placeholder coordinates, unsupported rule contracts, and runtime safety. Total passing tests: 47/47.
 
 ## 4. Implementation Files Changed
 
@@ -80,24 +91,24 @@ Following manager inspection of commit `089b864`, bounded corrections were appli
 | `test-samples/samples/` (12 files updated) | Corrected PAIR-016, PAIR-017, PAIR-029, PAIR-030, PAIR-034, PAIR-045, and PAIR-046. | Eliminates undefined helpers, fixes entropy, establishes concrete consumers, and delegates auth cookies. |
 | `test-samples/generate-samples.cjs` | Synchronized templates for corrected pairs; verified with `--check`. | Deterministic reproducibility for all 108 controlled samples. |
 | `test-samples/pilot-manifest-entries.json` | Extracted and preserved the 12 canonical accepted pilot manifest entries from `92951de`. | Safeguards pilot metadata from automated overwrite. |
-| `test-samples/build-dataset-manifest.cjs` | Preserves pilot entries, updates threat models, distinguishes development rationales, and sets explicit partial coverage. | Produces comprehensive, defensible 116-file manifest. |
-| `test-samples/dataset-manifest.json` | Regenerated complete 116-file manifest reflecting all corrections. | Canonical dataset specification for Phase 04. |
-| `validation/pilot-manifest.test.mjs` | Added Test 6 testing VM execution of updated helpers, contracts, 256-bit entropy, and partial coverage flags. | Automated verification of Batch B corrections. |
-| `documents/research-phases/checks/04-batch-b-correction-self-check-2026-09-14.md` | Recorded itemized findings and resolutions report. | Audit evidence document. |
-| `documents/research-phases/checks/04-changes.md` | Updated changes document with Batch B corrections. | Permanent changes log. |
-| `documents/research-phases/checks/04-checklist.md` | Updated checklist with 46 tests and pass status. | Quality checklist. |
-| `documents/research-phases/checks/04-issues.md` | Updated issues document with resolved findings and cookie/fetch audits. | Issues log. |
+| `test-samples/build-dataset-manifest.cjs` | Resolves canonical categories, removes borrowed rules, eliminates placeholder coordinates, separates ground truth, and sets explicit partial coverage. | Produces comprehensive, defensible 116-file manifest. |
+| `test-samples/dataset-manifest.json` | Regenerated complete 116-file manifest reflecting all corrections. | Canonical dataset specification for Phase 04 with zero placeholders and zero category mismatches. |
+| `validation/pilot-manifest.test.mjs` | Added Test 6 (VM execution of helpers) and Test 7 (structural integrity, categories, coordinates, and null safety). | Automated verification of Batch B corrections and structural manifest integrity. |
+| `documents/research-phases/checks/04-batch-b-manifest-defect-self-check-2026-09-14.md` | Recorded itemized defect resolutions and structural integrity audit report. | Audit evidence document for manifest defect fixes. |
+| `documents/research-phases/checks/04-changes.md` | Updated changes document with Batch B corrections and manifest defect resolution. | Permanent changes log. |
+| `documents/research-phases/checks/04-checklist.md` | Updated checklist with 47 tests and pass status. | Quality checklist. |
+| `documents/research-phases/checks/04-issues.md` | Updated issues document with resolved findings, cookie/fetch audits, and manifest defect breakdown. | Issues log. |
 
 ## 5. Verification Commands and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify disk samples match generator templates | 0 | Check Mode: 108 matches, 0 mismatches out of 108 checked. |
-| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, and VM correction tests | 0 | 6 of 6 tests passed (~846ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 46 of 46 tests passed (~4565ms, zero regressions). |
+| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, and VM correction tests | 0 | 7 of 7 tests passed (~798ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 47 of 47 tests passed (~4207ms, zero regressions). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.98s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 1.73s; 233 modules transformed. |
 
 ## 6. Disclosed Unrun Checks (NOT RUN)
 
