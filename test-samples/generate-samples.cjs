@@ -330,10 +330,15 @@ const STATIC_JWT_TOKEN = process.env.AUTH_JWT_PRIVATE_SIGNATURE;
     },
     {
       id: '02',
-      code: `// Clean: API keys stored in configuration files loaded at runtime
-const application_secret_key = process.env.SECRET_KEY;
-const gatewayToken = process.env.API_GATEWAY_TOKEN;
-`
+      code: `// Clean: API requests dispatched through backend proxy without client-exposed secrets
+async function callGatewayService(payload) {
+    const response = await fetch("/api/gateway/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    return response.json();
+}`
     },
     {
       id: '03',
@@ -442,7 +447,18 @@ function createCleanProperties() {
     },
     {
       id: '03',
-      code: `// Clean: safe mapping copy operations
+      code: `// Clean: safe mapping copy operations with prototype property filtering
+function sanitizeInputProperties(obj) {
+    if (!obj || typeof obj !== 'object') return {};
+    const clean = {};
+    for (const key of Object.keys(obj)) {
+        if (key !== '__proto__' && key !== 'constructor' && key !== 'prototype') {
+            clean[key] = obj[key];
+        }
+    }
+    return clean;
+}
+
 function mergeConfigurationsSecure(defaultConfig, userPayload) {
     const sanitizedPayload = sanitizeInputProperties(userPayload);
     return Object.assign({}, defaultConfig, sanitizedPayload);
@@ -473,15 +489,28 @@ function proxyRemoteResourceSecure(targetUri) {
   ]
 };
 
-// 3. Generate files to reach ~100 samples
+// 3. Generate files
+const isAllMode = process.argv.includes('--all');
+const isPilotMode = process.argv.includes('--pilot') || !isAllMode;
+
+const PILOT_FILES = new Set([
+  'V-A5-027.js', 'C-A5-027.js',
+  'V-A3-023.js', 'C-A3-023.js',
+  'V-A1-007.js', 'C-A1-007.js',
+  'V-A1-009.js', 'C-A1-009.js',
+  'V-A7-039.js', 'C-A7-039.js',
+  'V-A8-049.js', 'C-A8-049.js'
+]);
+
+// Determine line ending (preserve CRLF on Windows or existing samples)
+const EOL = '\r\n';
+
 let vulnerableGeneratedCount = 0;
 let cleanGeneratedCount = 0;
+let pilotWrittenCount = 0;
 
 // Loop over templates and duplicate with numbering variations to reach ~50 vulnerable and ~50 clean files
 const categories = ['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'];
-
-// We want 50 vulnerable and 50 clean files. 
-// We will generate multiple variations per category template.
 const filesPerTemplate = 2; // With 28 vulnerable templates * 2 = 56 files, and 28 clean templates * 2 = 56 files.
 
 categories.forEach(cat => {
@@ -493,8 +522,13 @@ categories.forEach(cat => {
     for (let i = 1; i <= filesPerTemplate; i++) {
       const padNum = String(vulnerableGeneratedCount + 1).padStart(3, '0');
       const filename = `V-${cat}-${padNum}.js`;
-      const finalCode = `/**\n * Test Vulnerable Sample ${padNum} (${cat})\n * Demonstrates OWASP vulnerabilities.\n */\n\n${template.code}\n\n// Variation signature: #${i}\n`;
-      fs.writeFileSync(path.join(outputDir, filename), finalCode);
+      const normalizedCode = template.code.replace(/\r?\n/g, EOL);
+      const finalCode = `/**${EOL} * Test Vulnerable Sample ${padNum} (${cat})${EOL} * Demonstrates OWASP vulnerabilities.${EOL} */${EOL}${EOL}${normalizedCode}${EOL}${EOL}// Variation signature: #${i}${EOL}`;
+
+      if (!isPilotMode || PILOT_FILES.has(filename)) {
+        fs.writeFileSync(path.join(outputDir, filename), finalCode);
+        if (PILOT_FILES.has(filename)) pilotWrittenCount++;
+      }
       vulnerableGeneratedCount++;
     }
   });
@@ -504,13 +538,23 @@ categories.forEach(cat => {
     for (let i = 1; i <= filesPerTemplate; i++) {
       const padNum = String(cleanGeneratedCount + 1).padStart(3, '0');
       const filename = `C-${cat}-${padNum}.js`;
-      const finalCode = `/**\n * Test Clean Sample ${padNum} (${cat})\n * Safe, compliant implementations.\n */\n\n${template.code}\n\n// Variation signature: #${i}\n`;
-      fs.writeFileSync(path.join(outputDir, filename), finalCode);
+      const normalizedCode = template.code.replace(/\r?\n/g, EOL);
+      const finalCode = `/**${EOL} * Test Clean Sample ${padNum} (${cat})${EOL} * Safe, compliant implementations.${EOL} */${EOL}${EOL}${normalizedCode}${EOL}${EOL}// Variation signature: #${i}${EOL}`;
+
+      if (!isPilotMode || PILOT_FILES.has(filename)) {
+        fs.writeFileSync(path.join(outputDir, filename), finalCode);
+        if (PILOT_FILES.has(filename)) pilotWrittenCount++;
+      }
       cleanGeneratedCount++;
     }
   });
 });
 
-console.log(`Successfully generated ${vulnerableGeneratedCount} vulnerable samples.`);
-console.log(`Successfully generated ${cleanGeneratedCount} clean samples.`);
-console.log(`Total samples generated: ${vulnerableGeneratedCount + cleanGeneratedCount}`);
+if (isPilotMode) {
+  console.log(`Phase 04 Batch A Pilot Mode: generated ${pilotWrittenCount} pilot files (6 V/C pairs).`);
+  console.log(`Other 104 files remain unchanged.`);
+} else {
+  console.log(`Successfully generated ${vulnerableGeneratedCount} vulnerable samples.`);
+  console.log(`Successfully generated ${cleanGeneratedCount} clean samples.`);
+  console.log(`Total samples generated: ${vulnerableGeneratedCount + cleanGeneratedCount}`);
+}
