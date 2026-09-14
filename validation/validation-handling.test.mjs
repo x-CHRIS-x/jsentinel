@@ -156,6 +156,111 @@ test('criterion 3: reassignment, shadowing, mutation, and different branch must 
          window.location.href = target;
        }
      }`,
+    // Allowlist directly mutated via unshift before sink
+    `const allowed = ["https://example.com"];
+     allowed.unshift(untrusted);
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Allowlist directly mutated via delete operator
+    `const allowed = ["https://example.com"];
+     delete allowed[0];
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Allowlist directly mutated after sink (conservative: array must remain unchanged)
+    `const allowed = ["https://example.com"];
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }
+     allowed.push(untrusted);`,
+    // Allowlist directly mutated inside function after sink
+    `const allowed = ["https://example.com"];
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+       allowed.push(untrusted);
+     }`,
+    // Alias mutation before check/sink via push (known bypass)
+    `const allowed = ["https://example.com"];
+     const alias = allowed;
+     alias.push(untrusted);
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Alias mutation inside function before sink
+    `const allowed = ["https://example.com"];
+     function redirect(target) {
+       const alias = allowed;
+       alias.push(untrusted);
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Alias mutation via assignment expression
+    `const allowed = ["https://example.com"];
+     let alias;
+     alias = allowed;
+     alias.push(untrusted);
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Transitive alias mutation
+    `const allowed = ["https://example.com"];
+     const alias1 = allowed;
+     const alias2 = alias1;
+     alias2.push(untrusted);
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Alias element assignment
+    `const allowed = ["https://example.com"];
+     const alias = allowed;
+     alias[0] = untrusted;
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Alias delete operator mutation
+    `const allowed = ["https://example.com"];
+     const alias = allowed;
+     delete alias[0];
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }`,
+    // Alias mutation with early return guard pattern
+    `const allowed = ["https://example.com"];
+     const alias = allowed;
+     alias.push(untrusted);
+     function redirect(target) {
+       if (!allowed.includes(target)) return;
+       window.location.href = target;
+     }`,
+    // Alias mutation after sink (conservative: array must remain unchanged)
+    `const allowed = ["https://example.com"];
+     function redirect(target) {
+       if (allowed.includes(target)) {
+         window.location.href = target;
+       }
+     }
+     const alias = allowed;
+     alias.push(untrusted);`,
     // Allowlist mutated via index assignment
     `const allowed = ["https://example.com"];
      allowed[1] = untrusted;
@@ -247,6 +352,14 @@ test('criterion 4: supported permitted destination cases behave correctly in bot
        if (!allowed.includes(target)) {
          throw new Error("untrusted");
        } else {
+         window.location.href = target;
+       }
+     }`,
+    // Unchanged array with unmutated alias reference
+    `const allowed = ["https://app.example.com", "https://api.example.com"];
+     const alias = allowed;
+     function redirect(target) {
+       if (allowed.includes(target)) {
          window.location.href = target;
        }
      }`

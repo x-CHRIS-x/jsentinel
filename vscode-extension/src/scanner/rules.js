@@ -62,22 +62,65 @@ function getValidAllowlistBinding(scope, arrayName) {
     'push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort', 'fill', 'copyWithin'
   ]);
 
-  if (Array.isArray(binding.referencePaths)) {
-    for (const refPath of binding.referencePaths) {
-      const parent = refPath.parentPath;
-      if (parent && parent.isMemberExpression && parent.isMemberExpression() && parent.node.object === refPath.node) {
-        const grandParent = parent.parentPath;
-        if (grandParent && grandParent.isCallExpression && grandParent.isCallExpression() && grandParent.node.callee === parent.node) {
+  const visitedBindings = new Set([binding]);
+  const bindingQueue = [binding];
+
+  while (bindingQueue.length > 0) {
+    const currentBinding = bindingQueue.shift();
+    if (!Array.isArray(currentBinding.referencePaths)) continue;
+
+    for (const refPath of currentBinding.referencePaths) {
+      let parent = refPath.parentPath;
+      while (parent && parent.isParenthesizedExpression && parent.isParenthesizedExpression()) {
+        parent = parent.parentPath;
+      }
+      if (!parent) continue;
+
+      if (parent.isVariableDeclarator && parent.isVariableDeclarator() && parent.node.init === refPath.node) {
+        if (parent.node.id && parent.node.id.type === 'Identifier') {
+          const aliasBinding = refPath.scope?.getBinding(parent.node.id.name);
+          if (aliasBinding && !visitedBindings.has(aliasBinding)) {
+            visitedBindings.add(aliasBinding);
+            bindingQueue.push(aliasBinding);
+          }
+        }
+      }
+
+      if (parent.isAssignmentExpression && parent.isAssignmentExpression() && parent.node.right === refPath.node) {
+        if (parent.node.left && parent.node.left.type === 'Identifier') {
+          const aliasBinding = refPath.scope?.getBinding(parent.node.left.name);
+          if (aliasBinding && !visitedBindings.has(aliasBinding)) {
+            visitedBindings.add(aliasBinding);
+            bindingQueue.push(aliasBinding);
+          }
+        }
+      }
+
+      if (parent.isMemberExpression && parent.isMemberExpression() && parent.node.object === refPath.node) {
+        let grandParent = parent.parentPath;
+        while (grandParent && grandParent.isParenthesizedExpression && grandParent.isParenthesizedExpression()) {
+          grandParent = grandParent.parentPath;
+        }
+        if (!grandParent) continue;
+
+        if (grandParent.isCallExpression && grandParent.isCallExpression() && grandParent.node.callee === parent.node) {
           const prop = parent.node.property;
           const methodName = prop.name || (prop.type === 'StringLiteral' ? prop.value : null);
           if (mutatingMethods.has(methodName)) {
             return null;
           }
         }
-        if (grandParent && grandParent.isAssignmentExpression && grandParent.isAssignmentExpression() && grandParent.node.left === parent.node) {
+
+        if (grandParent.isAssignmentExpression && grandParent.isAssignmentExpression() && grandParent.node.left === parent.node) {
           return null;
         }
-        if (grandParent && grandParent.isUpdateExpression && grandParent.isUpdateExpression()) {
+
+        if (grandParent.isUpdateExpression && grandParent.isUpdateExpression() && grandParent.node.argument === parent.node) {
+          return null;
+        }
+
+        if (grandParent.isUnaryExpression && grandParent.isUnaryExpression() &&
+            grandParent.node.operator === 'delete' && grandParent.node.argument === parent.node) {
           return null;
         }
       }
