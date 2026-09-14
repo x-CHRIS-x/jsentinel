@@ -202,8 +202,36 @@ Following integrated manager review of commit `38c1562`, bounded corrections wer
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm run build` | Build Vite web application bundle | 0 | Built in 1.81s; 233 modules transformed. |
 
-## 10. Workflow Stopping Point
+## 10. Post-Commit 2afe0ff/e21f77f Manager Corrections: Ground Truth Refinements and Evidence Erratum
+
+Following manager review of commits `2afe0ff` and `e21f77f`, further bounded corrections were implemented to ensure strict grounding in actual code semantics:
+
+1. **`chat-application.js` Semantics:**
+   - Omitted Firebase Web API key (line 13) from expected findings: public project identifier per Google Firebase documentation, not a private secret.
+   - Omitted presence (line 62) and timestamp (line 65) cookies: non-sensitive telemetry without auth roles; client JavaScript cannot set `HttpOnly` per RFC 6265 Section 5.3.
+   - Omitted `sessionSalt = Math.random()` (line 68): no security-sensitive consumer demonstrated.
+   - Omitted `localStorage.setItem('chatToken', userId)` (line 71): stores non-sensitive `userId`.
+
+2. **Fixed String Timers:**
+   - Omitted 9 static string timers (`api-gateway.js` line 70, `chat-application.js` lines 99 and 100, `data-pipeline.js` lines 99 and 102, `ecommerce-checkout.js` line 31, `payment-processor.js` lines 106 and 107, and `student-portal.jsx` line 96) from expected findings due to lack of variable interpolation or attacker control.
+   - Retained exactly 1 dynamic string timer: `api-gateway.js` line 73 (`setTimeout(\`reportHealth('\${serviceId}')\`, 5000)`), which interpolates user-controlled `serviceId`.
+
+3. **Prototype Assignments on Unused Targets:**
+   - Omitted 8 prototype assignment pattern hits (`api-gateway.js` lines 51 and 54, `chat-application.js` lines 82 and 88, `data-pipeline.js` lines 51 and 88, `payment-processor.js` lines 68 and 74) where targets are locally scoped empty objects that are unused and do not pollute global `Object.prototype`.
+
+4. **Generic Diagnostic Logging:**
+   - Omitted 9 generic logging pattern hits (`api-gateway.js` lines 61 and 62, `chat-application.js` lines 34 and 35, `data-pipeline.js` line 67, `payment-processor.js` lines 77 and 78, `user-auth-service.js` lines 84 and 85) without confidential credential payloads.
+
+5. **Final Reconciled Totals:**
+   - 75 Expected Findings (genuine exploitable browser vulnerabilities)
+   - 14 Expected Advisories (`OWASP-A06-001` grounded in third-party package imports)
+   - 48 Omitted Pattern Hits (AST heuristic detections without vulnerability context)
+   - 6 Unsupported Browser Weaknesses (no scanner rule; explicit threat models)
+   - Total observed scanner detections: exactly 137 (75 + 14 + 48 = 137).
+
+## 11. Workflow Stopping Point
 
 This completes Phase 04 Batch C bounded ground truth corrections. All work stops here for integrated manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed. No claims of completion or acceptance are made prior to manager review.
+
 
 

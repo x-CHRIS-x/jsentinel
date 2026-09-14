@@ -174,4 +174,40 @@ Manager inspection of commit `38c1562` identified that scenario ground truth cop
    - Updated distribution terminology to refer to the "controlled V/C dataset" rather than a blanket "single-flaw" set.
    - Preserved clear distinctions between sample-level labels and multi-expectation findings (e.g., `V-A8-045.js` has 2 expected findings).
 
+## 9. Resolved: Post-Commit 2afe0ff/e21f77f Ground Truth Corrections and Reconciliation
+
+Manager review of commits `2afe0ff` and `e21f77f` identified remaining unverified assertions and count inconsistencies, which are now resolved:
+
+1. **`chat-application.js` Semantics:**
+   - `firebaseApiKey` (line 13): Per official Google Firebase documentation, web API keys are public project identifiers used for routing, not private secrets. Without server-side privilege escalation, this client identifier is not an authenticating credential leak. Omitted from expected findings.
+   - Presence and timestamp cookies (lines 62 and 65): Non-sensitive UI state and timestamp telemetry. Client JavaScript cannot set `HttpOnly` per RFC 6265 Section 5.3, and these are not authentication session tokens. Omitted from expected findings.
+   - `sessionSalt = Math.random()` (line 68): Merely returned in an object with no demonstrated security-sensitive consumer. Omitted from expected findings.
+   - `localStorage.setItem('chatToken', userId)` (line 71): Stores non-sensitive `userId` under key `'chatToken'`. Key name alone does not establish a sensitive bearer credential. Omitted from expected findings.
+
+2. **Fixed String Timers:**
+   - Static string literals in `setInterval` and `setTimeout` (such as `checkPipelineHealth()` and `cleanupStaleBatches()`) lack variable interpolation and attacker control. While flagged by scanner rule `OWASP-A03-002` as code smells, they cannot be exploited for arbitrary code injection.
+   - Exactly 9 fixed string timers are omitted from expected findings across the 8 scenarios.
+   - Exactly 1 dynamic string timer is retained as an expected finding: `api-gateway.js` line 73 (`setTimeout(\`reportHealth('\${serviceId}')\`, 5000)`), because it interpolates user-controlled `serviceId`.
+
+3. **Prototype Assignments with Unused Targets:**
+   - Direct assignments to `__proto__` or `constructor.prototype` on locally scoped, newly created empty objects (`defaults = {}`, `schema = {}`, `config = {}`).
+   - Under ECMAScript prototype setter semantics (ES6+), assigning `obj.__proto__ = ...` sets the [[Prototype]] of the instance, but does not mutate global `Object.prototype`.
+   - Assigning `obj.constructor.prototype = ...` targets non-writable `Object.prototype`, which is a runtime no-op.
+   - Furthermore, these target objects are unused local variables that are never queried for property lookups.
+   - 8 prototype assignment pattern hits omitted from expected findings: `api-gateway.js` lines 51 and 54, `chat-application.js` lines 82 and 88, `data-pipeline.js` lines 51 and 88, and `payment-processor.js` lines 68 and 74.
+
+4. **Generic Diagnostic Logging:**
+   - `console.log` statements logging generic parameters (`session`, `user`, `credentials`, `config`) without demonstrated secret or credential payloads.
+   - 9 generic logging pattern hits omitted from expected findings: `api-gateway.js` lines 61 and 62, `chat-application.js` lines 34 and 35, `data-pipeline.js` line 67, `payment-processor.js` lines 77 and 78, and `user-auth-service.js` lines 84 and 85.
+   - Legitimate sensitive data logs retained: `ecommerce-checkout.js` line 42 (`paymentToken`), `payment-processor.js` line 33 (`apiKey`), and `user-auth-service.js` line 42 (`password`).
+
+5. **Authoritative Evidence Reconciliation:**
+   - Derived directly from code semantics and manifest records:
+     - 75 Expected Findings (genuine exploitable browser vulnerabilities)
+     - 14 Expected Advisories (`OWASP-A06-001` grounded in third-party package imports)
+     - 48 Omitted Pattern Hits (AST heuristic detections without vulnerability context)
+     - 6 Unsupported Browser Weaknesses (no scanner rule; explicit threat models)
+   - Mathematical Reconciliation: 75 + 14 + 48 = 137 observed scanner detections. Every single issue is fully accounted for.
+
+
 

@@ -283,7 +283,7 @@ Across all 8 simulated browser scenarios:
 | `npm --prefix vscode-extension run lint` | 0 | Clean pass; 0 ESLint errors or warnings. |
 | `npm run build` | 0 | Clean Vite build in 1.81s; 233 modules transformed. |
 
-## 6. Disclosed Limitations and Stopping Point
+## 6. Disclosed Limitations and Scope Boundaries
 
 In accordance with research phase boundaries, the following were explicitly **NOT RUN**:
 1. Live browser DOM event execution / layout rendering: NOT RUN.
@@ -292,4 +292,68 @@ In accordance with research phase boundaries, the following were explicitly **NO
 4. Thesis chapter edits: NOT RUN.
 5. Remote git push: NOT RUN.
 
-This completes the Batch C scenario ground truth corrections. All work stops here for integrated manager review (`jsentinel-4`).
+---
+
+## 7. Post-Commit 2afe0ff/e21f77f Ground Truth Corrections and Erratum
+
+Following manager review of commits `2afe0ff` and `e21f77f`, this section records the bounded scenario ground truth corrections, an erratum on historical evidence counts, and the final 137-issue reconciliation table.
+
+### 7.1 Erratum on Historical Evidence Totals
+
+In commits `2afe0ff` and `e21f77f`, initial omissions were documented, but the summary text contained an arithmetic inconsistency: 9 generic `JSON.parse` instances were itemized in the body, but summarized as 6 in the handoff, and total omissions were summarized as 14 when raw scanner output actually generated 137 issues.
+
+This erratum establishes the authoritative counts derived directly from code semantics and manifest records:
+- Raw scanner output across the 8 scenarios produces exactly **137** issues.
+- Curated Expected Findings (genuine exploitable browser vulnerabilities): **75**.
+- Curated Expected Advisories (`OWASP-A06-001` grounded in third-party package imports): **14**.
+- Curated Omitted Pattern Hits (AST heuristic detections without vulnerability context): **48**.
+- Curated Unsupported Browser Weaknesses (no scanner rule; explicit threat models): **6**.
+- Mathematical Reconciliation: **75 + 14 + 48 = 137** observed scanner detections. Every single issue is fully accounted for.
+
+### 7.2 Code-Based Dispositions for Manager Review Findings
+
+1. **`chat-application.js` Semantics:**
+   - **Line 13 (`firebaseApiKey`):** Hardcoded Firebase Web API key (`AIzaSy...`). Per official Google Firebase documentation, web API keys are public project identifiers used for routing, not private secrets. Without server-side privilege escalation, this client identifier is not an authenticating credential leak. Omitted from expected findings.
+   - **Lines 62 & 65 (Presence & Timestamp Cookies):** `document.cookie` assignments for `presence` and `last_active`. Non-sensitive UI state and timestamp telemetry. Client-side JavaScript cannot set `HttpOnly` per RFC 6265 Section 5.3, and these cookies carry no authentication role. Omitted from expected findings.
+   - **Line 68 (`sessionSalt = Math.random()`):** Pseudorandom value returned in an object with no demonstrated security-sensitive consumer (no cryptographic key derivation, signature, or nonce operation). Omitted from expected findings.
+   - **Line 71 (`localStorage.setItem('chatToken', userId)`):** Stores non-sensitive `userId` under key `'chatToken'`. The key name alone does not establish a sensitive bearer credential. Omitted from expected findings.
+
+2. **Fixed String Timers:**
+   - Static string literals in `setInterval("checkPipelineHealth()", 60000)` and `setTimeout("cleanupStaleBatches()", 300000)` lack variable interpolation and attacker control. While flagged by scanner rule `OWASP-A03-002` as code smells, they cannot be exploited for arbitrary code injection.
+   - Exactly 9 fixed string timers are omitted from expected findings across the 8 scenarios (`api-gateway.js` line 70, `chat-application.js` lines 99 and 100, `data-pipeline.js` lines 99 and 102, `ecommerce-checkout.js` line 31, `payment-processor.js` lines 106 and 107, and `student-portal.jsx` line 96).
+   - Exactly 1 dynamic string timer is retained as an expected finding: `api-gateway.js` line 73 (`setTimeout(\`reportHealth('\${serviceId}')\`, 5000)`), because it interpolates user-controlled `serviceId`, allowing string-to-code breakout.
+
+3. **Prototype Assignments with Unused Targets:**
+   - Direct assignments to `__proto__` or `constructor.prototype` on locally scoped, newly created empty objects (`const defaults = {}`, `const schema = {}`, `const config = {}`).
+   - Under ECMAScript prototype setter semantics (ES6+), assigning `obj.__proto__ = ...` sets the [[Prototype]] of the instance, but does not mutate global `Object.prototype`.
+   - Assigning `obj.constructor.prototype = ...` targets non-writable `Object.prototype`, which is a runtime no-op.
+   - Furthermore, these target objects are unused local variables that are never queried for property lookups.
+   - 8 prototype assignment pattern hits omitted from expected findings: `api-gateway.js` lines 51 and 54, `chat-application.js` lines 82 and 88, `data-pipeline.js` lines 51 and 88, and `payment-processor.js` lines 68 and 74.
+
+4. **Generic Diagnostic Logging:**
+   - `console.log` statements logging generic parameters (`session`, `user`, `credentials`, `config`) without demonstrated secret or credential payloads.
+   - 9 generic logging pattern hits omitted from expected findings: `api-gateway.js` lines 61 and 62, `chat-application.js` lines 34 and 35, `data-pipeline.js` line 67, `payment-processor.js` lines 77 and 78, and `user-auth-service.js` lines 84 and 85.
+   - Legitimate sensitive data logs retained: `ecommerce-checkout.js` line 42 (`paymentToken`), `payment-processor.js` line 33 (`apiKey`), and `user-auth-service.js` line 42 (`password`).
+
+5. **Callable Helper Assumptions vs Fixed-Safe Demonstrated Flows:**
+   - In `admin-dashboard.jsx`: `renderLegacyWidget` at line 115 is invoked with constant string `"System Status: Online"`, making that demonstrated call site fixed-safe; the helper function sink (`document.write`) is documented as a callable helper DOM injection sink.
+   - `handleExternalLink` at line 118 passes static relative path `"/partner"`, making the demonstrated call site fixed-safe; open redirect sink documented as a callable helper.
+   - `renderNotification`, `updateSidebar`, and `navigateToPartner` documented as uninvoked callable helpers.
+   - In `student-portal.jsx`: `MessagePreview` (line 83) and `courseHtml` (line 136) are active demonstrated flows; `renderGradeCard` (line 58), `renderCourseDescription` (line 69), and `loadAnnouncement` (line 75) are callable helper sinks.
+
+### 7.3 Final 137-Issue Itemized Reconciliation Table
+
+| Scenario File | Expected Findings | Expected Advisories | Omitted Pattern Hits | Unsupported Weaknesses | Total Observed Scanner Issues |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| `admin-dashboard.jsx` | 7 | 1 | 1 (L16 role log) | 0 | 9 |
+| `api-gateway.js` | 6 | 1 | 6 (L47 json, L51 proto, L54 proto, L61 log, L62 log, L70 timer) | 1 (L39 POST) | 13 |
+| `chat-application.js` | 10 | 1 | 14 (L13 firebase, L16 ip, L34 log, L35 log, L48 json, L62 cookie, L65 cookie, L68 salt, L71 token, L78 json, L82 proto, L88 proto, L99 timer, L100 timer) | 1 (L108 script) | 25 |
+| `data-pipeline.js` | 5 | 4 | 8 (L19 ip, L44 json, L51 proto, L67 log, L85 json, L88 proto, L99 timer, L102 timer) | 1 (L71 POST) | 17 |
+| `ecommerce-checkout.js` | 6 | 1 | 4 (L31 timer, L38 json, L45:80 duplicate query param, L69 json) | 1 (L10 postMsg) | 11 |
+| `payment-processor.js` | 15 | 1 | 8 (L15 ip, L64 json, L68 proto, L74 proto, L77 log, L78 log, L106 timer, L107 timer) | 1 (L56 fetch) | 24 |
+| `student-portal.jsx` | 13 | 5 | 2 (L30 role log, L96 timer) | 1 (L37 script) | 20 |
+| `user-auth-service.js` | 13 | 0 | 5 (L14 aws, L17 ip, L70 json, L84 log, L85 log) | 0 | 18 |
+| **Totals** | **75** | **14** | **48** | **6** | **137** |
+
+This completes the Batch C scenario ground truth corrections and evidence reconciliation. All work stops here for integrated coordinator review (`jsentinel-4`).
+
