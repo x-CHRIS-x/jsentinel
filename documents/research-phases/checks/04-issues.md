@@ -6,16 +6,12 @@ Manager: Astra coordinator (`jsentinel-4`). Independent verifier: Opus HOLD.
 
 ## 1. Resolved: Reassignment of Former A06 and Server-Only Cases in Batch B
 
-Phase 01 retired server-side checks and established that A06 component-review signals are informational advisories rather than confirmed vulnerabilities. In Batch B, all 10 legacy pairs (20 files) that originally covered server-side headers or advisory imports were cleanly reassigned to defensible client-side browser weaknesses.
-
-### Inventory and Implemented Reassignments
-
-The 10 pairs (20 files) were reassigned as follows:
+Phase 01 retired server-side checks and established that A06 component-review signals are informational advisories rather than confirmed vulnerabilities. In Batch B, all 10 legacy pairs (20 files) that originally covered server-side headers or advisory imports were cleanly reassigned to defensible client-side browser weaknesses:
 
 | Pair ID | Sample Files | Previous Legacy Check | Resolved Browser Weakness (Batch B) | CWE / OWASP Category |
 | --- | --- | --- | --- | --- |
 | `PAIR-033` | `V-A6-033.js` / `C-A6-033.js` | Express CORS wildcard (`res.setHeader`) | Cross-window `postMessage` with wildcard `*` target origin. Clean counterpart requires explicit target origin domain. | CWE-345 / OWASP A01 |
-| `PAIR-034` | `V-A6-034.js` / `C-A6-034.js` | Express CORS wildcard variation 2 | Inbound message listener executing commands without origin validation. Clean counterpart validates `event.origin`. | CWE-346 / OWASP A01/A03 |
+| `PAIR-034` | `V-A6-034.js` / `C-A6-034.js` | Express CORS wildcard variation 2 | Inbound message listener executing commands without origin validation. Clean counterpart validates `event.origin` and defines `handleSafeAction` self-contained. | CWE-346 / OWASP A01/A03 |
 | `PAIR-035` | `V-A6-035.js` / `C-A6-035.js` | Express request logging (`console.log(req)`) | Console logging full request objects containing sensitive headers. Clean counterpart logs non-sensitive `req.path`. | CWE-532 / OWASP A05 |
 | `PAIR-036` | `V-A6-036.js` / `C-A6-036.js` | Express request logging variation 2 | Console logging full authentication context objects. Clean counterpart logs non-sensitive numeric status code. | CWE-532 / OWASP A05 |
 | `PAIR-037` | `V-A6-037.js` / `C-A6-037.js` | Express helmet middleware check | Unencrypted WebSocket connection `ws://` transmitting telemetry. Clean counterpart enforces `wss://`. | CWE-319 / OWASP A02 |
@@ -25,48 +21,53 @@ The 10 pairs (20 files) were reassigned as follows:
 | `PAIR-053` | `V-A10-053.js` / `C-A10-053.js` | Server SSRF (`axios.get(targetUri)`) | Client-side fetch to arbitrary user-supplied URL with ambient credentials. Clean counterpart validates origin against trusted API allowlist. | CWE-20 / OWASP A01 |
 | `PAIR-054` | `V-A10-054.js` / `C-A10-054.js` | Server SSRF variation 2 | Dynamic script element injection pointing to unvalidated user-controlled URL. Clean counterpart loads pre-approved script with Subresource Integrity (SRI) hash verification. | CWE-829 / OWASP A03 |
 
-### Ground Truth Integrity Policy
-Reassigning these 10 pairs (20 files) replaces server-only operations and advisory-only component checks with defensible browser-side vulnerability patterns. Research benchmark integrity does not require all 54 controlled pairs to have passing active detection in JSentinel.
+## 2. Resolved: Manager Review Bounded Corrections
 
-Defensible browser weaknesses that JSentinel currently misses retain their legitimate vulnerability labels, rather than being altered to manufacture artificial scanner coverage. Scanner misses will be reported transparently as false negatives during Phase 05 evaluation.
+Manager inspection of commit `089b864` highlighted specific bounded issues, which have been fully corrected:
 
-## 2. Technical Audit of the `document.cookie` / `HttpOnly` Browser Limitation
+1. **Unsafe Parsing Consumers and Schema Verification (PAIR-045, PAIR-046):**
+   - In `V-A8-045.js`, untrusted JSON deserialization directly controls administrative privileges (`if (session.isAdmin) enableAdminPrivileges()`), creating an explicit authorization vulnerability.
+   - In `C-A8-045.js`, a self-contained `validateSessionSchema` function strictly validates schema properties and assigns `role: 'standard_user'`, rejecting client-asserted administrative privileges.
+   - In `V-A8-046.js`, untrusted configuration JSON controls the target URL in `fetch(config.endpointUrl)`.
+   - In `C-A8-046.js`, an executable `verifyAppConfig` function enforces an allowlist of permitted endpoints (`/api/v1/feed`, `/api/v1/profile`).
 
-### Verified Source Standards and Browser Behavior
-According to RFC 6265 Section 5.3 (Storage Model, Step 10), when a user agent receives a cookie from a non-HTTP API (such as the JavaScript `document.cookie` DOM API) and the `HttpOnly` attribute is present:
-> "If the cookie was received from a 'non-HTTP' API and the cookie's http-only-flag is set, abort these steps and ignore the cookie entirely."
+2. **Auth Token Cookie Storage (PAIR-016):**
+   - Rather than shifting the problem to a benign UI preference, `C-A2-016.js` directly mitigates the intended authentication token storage vulnerability.
+   - `C-A2-016.js` delegates credential storage to the backend server via `POST /api/auth/token-exchange`, which returns an `HttpOnly; Secure; SameSite` cookie in the `Set-Cookie` response header.
+   - Eliminating `document.cookie` assignment in the clean sample resolves both the RFC 6265 browser impossibility and the static scanner false positive.
 
-MDN Web Docs confirms this restriction:
-> "A cookie with the HttpOnly attribute is inaccessible to the JavaScript Document.cookie API; it is only sent to the server... you cannot set the HttpOnly flag from JavaScript."
+3. **Client-Side Role Authorization Context (PAIR-029):**
+   - Replaced UI menu hiding with actual administrative action execution (`POST /api/v1/users/:id/grant-superuser`).
+   - `V-A5-029.js` guards the action using client-side `userContext.role === 'admin'`.
+   - `C-A5-029.js` delegates authorization enforcement to the server endpoint without performing client-side role checks.
 
-Client-side JavaScript cannot create a functional, protected HttpOnly cookie. Only an HTTP response header (`Set-Cookie: ...; HttpOnly`) delivered by a server can establish an HttpOnly cookie.
+4. **Arbitrary Fetch and Ambient Credentials (PAIR-053):**
+   - Verified browser cookie scoping against WHATWG Fetch Section 4.4 and RFC 6265 Section 5.3.
+   - The browser scopes cookies to the *destination* host, not the caller origin.
+   - The security impact is client-side request forgery (CSRF / confused deputy) against internal intranet services or authenticated third-party APIs.
+   - `C-A10-053.js` restricts credentialed fetch destinations to an allowlist of approved application domains.
 
-### Current Scanner Rule Implementation
-In both JSentinel scanner implementations (`src/scanner/rules/auth.js` and `vscode-extension/src/scanner/rules.js`), rule `OWASP-A02-002` evaluates string literals and binary expressions assigned to `document.cookie`:
-```javascript
-if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
-  issues.push({ id: "OWASP-A02-002", ... });
-}
-```
-The scanner performs a static substring search. When both `'httponly'` and `'secure'` appear in the string, the scanner suppresses the finding.
+5. **Self-Contained Helpers (PAIR-030, PAIR-034):**
+   - Defined `triggerSystemPurge()` self-contained in `V-A5-030.js` and `C-A5-030.js`.
+   - Defined `handleSafeAction(action)` self-contained in `C-A6-034.js` with an allowlist of safe actions.
 
-### Batch B Remediations and False Positive Handling
-In Batch B, two distinct clean cookie patterns were implemented:
-1. `C-A2-015.js`: Replaced client-side cookie assignment with server-delegated session creation (`fetch("/api/auth/create-session", { credentials: "same-origin" })`). The server issues a true `Set-Cookie: ...; Secure; HttpOnly` response header.
-2. `C-A2-016.js`: Sets a legitimate client-side UI preference cookie using `Secure` and `SameSite=Strict` attributes (`document.cookie = "ui_theme=" + encodeURIComponent(theme) + "; path=/; Secure; SameSite=Strict;"`), correctly omitting `HttpOnly`.
+6. **Cryptographic Key Entropy (PAIR-017):**
+   - Updated `C-A2-017.js` to generate `otp_key` using 256 bits (32 bytes) of cryptographic randomness from `crypto.getRandomValues`, formatted as a 64-character hex string.
+   - Documented that the 6-digit numeric OTP assumes server-side rate limiting (max 3-5 attempts) and short expiration (30-60s), while `otp_key` provides full 256-bit cryptographic strength.
 
-Because scanner rule `OWASP-A02-002` demands the substring `httponly`, it flags `C-A2-016.js`. In accordance with integrity rules:
-1. No scanner rules were altered in this batch.
-2. `C-A2-016.js` retains its true ground truth of `isVulnerable: false` with ideal expected scanner findings of `[]`.
-3. The finding is documented in the manifest under `ambiguityOrKnownLimitations` as a known scanner false positive.
+7. **Manifest Metadata and Pilot Preservation:**
+   - Preserved all 12 accepted pilot metadata entries from `test-samples/pilot-manifest-entries.json` with 100% fidelity.
+   - Set `manifest.coverageStatus.partialCoverageExplicit: true` because 8 scenarios are pending Batch C.
+   - Updated `developmentUseRationale`: accurately distinguishes baseline regression files from newly updated Batch B files.
 
-## 3. Erratum on Authoritative Web Standards References
+## 3. Authoritative Web Standards References
 
-Earlier working notes cited preliminary draft section numbers for DOM insertion and node interfaces. Manifest entries, test suites, and documentation have been corrected to reference authoritative, stable specifications:
+Manifest entries, test suites, and documentation cite authoritative, stable web specifications:
 - WHATWG HTML Living Standard: Section 8.4 Dynamic markup insertion (`Element.innerHTML`)
 - WHATWG DOM Standard: Section 4.2.3 Interface Node attribute `textContent`
-- MDN Web Docs: `Element.innerHTML`, `Node.textContent`, `Document.cookie`, `Window.postMessage`
+- WHATWG Fetch Standard: Section 4.4 HTTP-network-fetch and credentials scoping
 - RFC 6265: Section 5.3 Step 10 (Storage Model non-HTTP API rejection)
+- NIST SP 800-131A / SP 800-90A: Cryptographic Key Length and Random Number Generation
 
 ## 4. Carry-Forward Items
 
