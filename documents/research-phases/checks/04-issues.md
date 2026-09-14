@@ -2,39 +2,33 @@
 
 Date: September 14, 2026.
 Branch: `ao/jsentinel-24/phase04-dataset-pilot`.
+Manager: Astra coordinator (`jsentinel-4`). Independent verifier: Opus HOLD.
 
-## 1. Inventory of Former A06 and Server-Only Reassignments for Batch B
+## 1. Resolved: Reassignment of Former A06 and Server-Only Cases in Batch B
 
-Phase 01 retired server-side checks and established that A06 component-review signals are informational advisories rather than confirmed vulnerabilities. 
+Phase 01 retired server-side checks and established that A06 component-review signals are informational advisories rather than confirmed vulnerabilities. In Batch B, all 10 legacy pairs (20 files) that originally covered server-side headers or advisory imports were cleanly reassigned to defensible client-side browser weaknesses.
 
-### Actual Inventory Reconciliation and Correction History
-An initial working draft conflated the count of generator templates with generated variation pairs, stating "6 pairs / 12 files". The actual inventory across the 116 dataset contains 5 retired or advisory templates generating **10 pairs (20 files)** that fall outside browser vulnerability detection:
-- Express CORS wildcard: 1 template generating 2 pairs (`PAIR-033`, `PAIR-034`) = 4 files
-- Express request logging: 1 template generating 2 pairs (`PAIR-035`, `PAIR-036`) = 4 files
-- Express helmet middleware: 1 template generating 2 pairs (`PAIR-037`, `PAIR-038`) = 4 files
-- Outdated component imports: 1 advisory template generating 2 pairs (`PAIR-051`, `PAIR-052`) = 4 files
-- Dynamic SSRF Axios requests: 1 template generating 2 pairs (`PAIR-053`, `PAIR-054`) = 4 files
-- **Total:** 10 pairs (20 files).
+### Inventory and Implemented Reassignments
 
-The complete inventory of these 10 pairs is detailed below:
+The 10 pairs (20 files) were reassigned as follows:
 
-| Legacy Pair / Files | Legacy Category / Check | Issue in Browser Scope | Batch B Reassignment Plan |
-| --- | --- | --- | --- |
-| `V-A6-033.js` / `C-A6-033.js` | A05-002 CORS wildcard (`res.setHeader`) | Server-side Express header check; retired from active browser scan. | Reassign to defensible browser weakness (e.g., client storage exposure or postMessage origin validation). |
-| `V-A6-034.js` / `C-A6-034.js` | A05-002 CORS wildcard variation 2 | Server-side Express header check; retired from active browser scan. | Reassign to defensible browser weakness variation. |
-| `V-A6-035.js` / `C-A6-035.js` | A06-003 Express request logging (`console.log(req)`) | Server-side Express request logging; retired from active browser scan. | Reassign to defensible browser weakness (e.g., URL parameter token exposure or DOM storage leakage). |
-| `V-A6-036.js` / `C-A6-036.js` | A06-003 Express request logging variation 2 | Server-side Express request logging; retired from active browser scan. | Reassign to defensible browser weakness variation. |
-| `V-A6-037.js` / `C-A6-037.js` | A06-004 Express helmet middleware | Server-side Express middleware check; retired from active browser scan. | Reassign to defensible browser weakness (e.g., unencrypted HTTP endpoint communication). |
-| `V-A6-038.js` / `C-A6-038.js` | A06-004 Express helmet variation 2 | Server-side Express middleware check; retired from active browser scan. | Reassign to defensible browser weakness variation. |
-| `V-A9-051.js` / `C-A9-051.js` | A06-001 Package imports (`serialize-javascript`, `lodash`) | Advisory review signal, not a confirmed vulnerability; excluded from vulnerability matrix. | Reassign controlled pair to defensible browser vulnerability; retain advisory behavior testing in scenarios or regressions. |
-| `V-A9-052.js` / `C-A9-052.js` | A06-001 Package imports variation 2 | Advisory review signal, not a confirmed vulnerability; excluded from vulnerability matrix. | Reassign controlled pair to defensible browser vulnerability. |
-| `V-A10-053.js` / `C-A10-053.js` | A10-001 SSRF (`axios.get(targetUri)`) | Dynamic browser requests are not SSRF; retired from active browser scan. | Reassign to defensible browser weakness (e.g., additional DOM injection or client access control variation). |
-| `V-A10-054.js` / `C-A10-054.js` | A10-001 SSRF variation 2 | Dynamic browser requests are not SSRF; retired from active browser scan. | Reassign to defensible browser weakness variation. |
+| Pair ID | Sample Files | Previous Legacy Check | Resolved Browser Weakness (Batch B) | CWE / OWASP Category |
+| --- | --- | --- | --- | --- |
+| `PAIR-033` | `V-A6-033.js` / `C-A6-033.js` | Express CORS wildcard (`res.setHeader`) | Cross-window `postMessage` with wildcard `*` target origin. Clean counterpart requires explicit target origin domain. | CWE-345 / OWASP A01 |
+| `PAIR-034` | `V-A6-034.js` / `C-A6-034.js` | Express CORS wildcard variation 2 | Inbound message listener executing commands without origin validation. Clean counterpart validates `event.origin`. | CWE-346 / OWASP A01/A03 |
+| `PAIR-035` | `V-A6-035.js` / `C-A6-035.js` | Express request logging (`console.log(req)`) | Console logging full request objects containing sensitive headers. Clean counterpart logs non-sensitive `req.path`. | CWE-532 / OWASP A05 |
+| `PAIR-036` | `V-A6-036.js` / `C-A6-036.js` | Express request logging variation 2 | Console logging full authentication context objects. Clean counterpart logs non-sensitive numeric status code. | CWE-532 / OWASP A05 |
+| `PAIR-037` | `V-A6-037.js` / `C-A6-037.js` | Express helmet middleware check | Unencrypted WebSocket connection `ws://` transmitting telemetry. Clean counterpart enforces `wss://`. | CWE-319 / OWASP A02 |
+| `PAIR-038` | `V-A6-038.js` / `C-A6-038.js` | Express helmet variation 2 | External script inclusion over cleartext HTTP `http://`. Clean counterpart enforces HTTPS script source. | CWE-319 / OWASP A02 |
+| `PAIR-051` | `V-A9-051.js` / `C-A9-051.js` | Advisory package imports (`serialize-javascript`) | Storing sensitive bearer authentication tokens in `sessionStorage`. Clean counterpart stores transient token in module memory closure. | CWE-922 / OWASP A07 |
+| `PAIR-052` | `V-A9-052.js` / `C-A9-052.js` | Advisory package imports (`lodash`) | Exposing sensitive authentication tokens in `window.location.hash` URL fragment. Clean counterpart transmits token via in-memory Authorization request header. | CWE-598 / OWASP A02 |
+| `PAIR-053` | `V-A10-053.js` / `C-A10-053.js` | Server SSRF (`axios.get(targetUri)`) | Client-side fetch to arbitrary user-supplied URL with ambient credentials. Clean counterpart validates origin against trusted API allowlist. | CWE-20 / OWASP A01 |
+| `PAIR-054` | `V-A10-054.js` / `C-A10-054.js` | Server SSRF variation 2 | Dynamic script element injection pointing to unvalidated user-controlled URL. Clean counterpart loads pre-approved script with Subresource Integrity (SRI) hash verification. | CWE-829 / OWASP A03 |
 
 ### Ground Truth Integrity Policy
-Reassigning these 10 pairs (20 files) replaces server-only operations and advisory-only component checks with defensible browser-side vulnerability patterns. Research benchmark integrity does not require all 54 controlled pairs to have passing active detection in JSentinel. 
+Reassigning these 10 pairs (20 files) replaces server-only operations and advisory-only component checks with defensible browser-side vulnerability patterns. Research benchmark integrity does not require all 54 controlled pairs to have passing active detection in JSentinel.
 
-Defensible browser weaknesses that JSentinel currently misses (or handles incompletely) must retain their legitimate vulnerability labels, rather than being replaced or altered to manufacture higher scanner coverage or artificial benchmark scores. Any remaining scanner misses will be reported honestly as false negatives during Phase 05 evaluation.
+Defensible browser weaknesses that JSentinel currently misses retain their legitimate vulnerability labels, rather than being altered to manufacture artificial scanner coverage. Scanner misses will be reported transparently as false negatives during Phase 05 evaluation.
 
 ## 2. Technical Audit of the `document.cookie` / `HttpOnly` Browser Limitation
 
@@ -42,10 +36,10 @@ Defensible browser weaknesses that JSentinel currently misses (or handles incomp
 According to RFC 6265 Section 5.3 (Storage Model, Step 10), when a user agent receives a cookie from a non-HTTP API (such as the JavaScript `document.cookie` DOM API) and the `HttpOnly` attribute is present:
 > "If the cookie was received from a 'non-HTTP' API and the cookie's http-only-flag is set, abort these steps and ignore the cookie entirely."
 
-MDN Web Docs similarly confirms this restriction:
+MDN Web Docs confirms this restriction:
 > "A cookie with the HttpOnly attribute is inaccessible to the JavaScript Document.cookie API; it is only sent to the server... you cannot set the HttpOnly flag from JavaScript."
 
-Whether a specific browser engine strictly aborts and rejects the write per RFC 6265 Step 10 or discards the attribute, client-side JavaScript cannot create a functional, protected HttpOnly cookie. Only an HTTP response header (`Set-Cookie: ...; HttpOnly`) delivered by a server can establish an HttpOnly cookie.
+Client-side JavaScript cannot create a functional, protected HttpOnly cookie. Only an HTTP response header (`Set-Cookie: ...; HttpOnly`) delivered by a server can establish an HttpOnly cookie.
 
 ### Current Scanner Rule Implementation
 In both JSentinel scanner implementations (`src/scanner/rules/auth.js` and `vscode-extension/src/scanner/rules.js`), rule `OWASP-A02-002` evaluates string literals and binary expressions assigned to `document.cookie`:
@@ -56,16 +50,25 @@ if (!cookieVal.includes('httponly') || !cookieVal.includes('secure')) {
 ```
 The scanner performs a static substring search. When both `'httponly'` and `'secure'` appear in the string, the scanner suppresses the finding.
 
-### Impact on Benchmark Ground Truth
-Legacy sample `C-A2-014.js` (and clean template `A2` id `03`) relies on this suppression by including `; Secure; HttpOnly; SameSite=Strict;` in a `document.cookie` assignment. Statically, the scanner treats this file as clean. However, in reality, the code cannot provide HttpOnly protection in a browser. Labeling `C-A2-014.js` as a secure remediation is a false ground truth claim based on scanner evasion rather than genuine security.
+### Batch B Remediations and False Positive Handling
+In Batch B, two distinct clean cookie patterns were implemented:
+1. `C-A2-015.js`: Replaced client-side cookie assignment with server-delegated session creation (`fetch("/api/auth/create-session", { credentials: "same-origin" })`). The server issues a true `Set-Cookie: ...; Secure; HttpOnly` response header.
+2. `C-A2-016.js`: Sets a legitimate client-side UI preference cookie using `Secure` and `SameSite=Strict` attributes (`document.cookie = "ui_theme=" + encodeURIComponent(theme) + "; path=/; Secure; SameSite=Strict;"`), correctly omitting `HttpOnly`.
 
-### Policy and Next Steps
-Per assignment instructions:
-1. No scanner rules are altered in this assignment.
-2. This limitation is cataloged as a known issue.
-3. In Batch B, the benchmark pair must be reviewed: either remediating the clean partner to a defensible client architecture (for example, server-issued session cookies) or scheduling a bounded rule correction and documenting the remaining scanner limitation before benchmark freeze. Under no circumstances should ground truth be distorted to match scanner heuristics.
+Because scanner rule `OWASP-A02-002` demands the substring `httponly`, it flags `C-A2-016.js`. In accordance with integrity rules:
+1. No scanner rules were altered in this batch.
+2. `C-A2-016.js` retains its true ground truth of `isVulnerable: false` with ideal expected scanner findings of `[]`.
+3. The finding is documented in the manifest under `ambiguityOrKnownLimitations` as a known scanner false positive.
 
-## 3. Carry-Forward Items
+## 3. Erratum on Authoritative Web Standards References
+
+Earlier working notes cited preliminary draft section numbers for DOM insertion and node interfaces. Manifest entries, test suites, and documentation have been corrected to reference authoritative, stable specifications:
+- WHATWG HTML Living Standard: Section 8.4 Dynamic markup insertion (`Element.innerHTML`)
+- WHATWG DOM Standard: Section 4.2.3 Interface Node attribute `textContent`
+- MDN Web Docs: `Element.innerHTML`, `Node.textContent`, `Document.cookie`, `Window.postMessage`
+- RFC 6265: Section 5.3 Step 10 (Storage Model non-HTTP API rejection)
+
+## 4. Carry-Forward Items
 
 - A03-001 Column-Zero Coordinate Mismatch: Unrelated `eval()` check at column zero reports column `'unknown'` in web scanner vs column `0` in VS Code extension. Inherited from Phase 01/02 and carried forward.
-- Partial Manifest Coverage: The manifest draft currently covers 12 pilot files as `pilot-reviewed`. The remaining 104 files are explicitly pending Batch B and Batch C.
+- Scenario Migration (Batch C): The 8 simulated browser application scenarios remain byte-identical to their baseline hashes. They are marked `pending-batch-c` with `isVulnerable: null` and are scheduled for review and migration in Phase 04 Batch C.
