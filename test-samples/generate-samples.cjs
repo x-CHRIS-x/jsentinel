@@ -487,7 +487,11 @@ function navigateToPartnerSiteSecure(partnerUrl) {
   },
   {
     cat: 'A5', id: '029', varSig: 1,
-    vCode: `// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A5-002)
+    vCode: `// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A01-002).
+// System context: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks
+// server-side RBAC enforcement, blindly executing the action for any incoming request.
+// Client code acts as the sole, easily bypassed authorization barrier. Note that client snippets
+// alone do not prove backend configuration; this sample explicitly assumes missing server enforcement.
 function executeAdministrativeAction(userContext, targetUserId) {
     if (userContext.role === "admin" || userContext.isAdmin === true) {
         return fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
@@ -496,7 +500,11 @@ function executeAdministrativeAction(userContext, targetUserId) {
     }
     return Promise.reject(new Error("Unauthorized"));
 }`,
-    cCode: `// Clean: administrative action authorization enforced by backend API rather than client checks
+    cCode: `// Clean: administrative action authorization enforced by backend API rather than client checks.
+// Architectural assumption: The backend endpoint /api/v1/users/:id/grant-superuser enforces
+// server-side Role-Based Access Control (RBAC) on session credentials, rejecting unauthorized users.
+// Client code dispenses with cosmetic client-side role gates. Note that client snippets alone do
+// not prove backend configuration; security here relies on the verified server authorization contract.
 async function executeAdministrativeActionSecure(targetUserId) {
     const res = await fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
         method: "POST",
@@ -735,7 +743,16 @@ function renderArticleBannerSecure(bannerText) {
     window.__adminMode = true;
 }
 
-// Vulnerable: parsing untrusted serialized session state and trusting unvalidated properties for authorization decisions (OWASP-A8-001)
+// Concrete protected operation affected by window.__adminMode
+function accessAdministrativeDiagnostics() {
+    if (window.__adminMode) {
+        return "DIAGNOSTIC_DATA: System internals and sensitive user session audit logs.";
+    }
+    return "ACCESS_DENIED: Administrator privileges required.";
+}
+
+// Vulnerable: parsing untrusted serialized session state and trusting unvalidated properties
+// to grant elevated privileges and access protected diagnostics (OWASP-A08-001, OWASP-A01-002).
 function loadSessionState(untrustedState) {
     const session = JSON.parse(untrustedState);
     if (session.isAdmin) {
@@ -743,7 +760,9 @@ function loadSessionState(untrustedState) {
     }
     return session;
 }`,
-    cCode: `// Clean: strict schema validation function verifying expected structure and rejecting unverified privileges
+    cCode: `// Clean: strict schema validation function verifying expected structure.
+// Important: Schema validation verifies data structure and types, NOT authorization.
+// Real authorization must never be derived from client-controlled payload properties.
 function validateSessionSchema(data) {
     if (!data || typeof data !== 'object') return false;
     return typeof data.userId === 'string' && typeof data.role === 'string';
@@ -754,6 +773,8 @@ function loadSessionStateSecure(untrustedState) {
     if (!validateSessionSchema(session)) {
         throw new Error('Invalid session payload schema');
     }
+    // Authorization safety: enforce standard unprivileged role regardless of input flags.
+    // Structural validation confirms schema; authorization is isolated from client state.
     return {
         userId: session.userId,
         role: 'standard_user' // Never grant elevated privileges from untrusted client JSON
@@ -762,26 +783,42 @@ function loadSessionStateSecure(untrustedState) {
   },
   {
     cat: 'A8', id: '046', varSig: 2,
-    vCode: `// Vulnerable: parsing untrusted configuration JSON where unvalidated properties control security behavior (OWASP-A8-001)
+    vCode: `// Vulnerable: parsing untrusted configuration JSON where unvalidated properties control
+// destination endpoint URL for sensitive client telemetry transmission (OWASP-A08-001).
+// Security context: Transmits client session telemetry to an unvalidated endpoint URL.
+// Under browser fetch semantics, if target host permits cross-origin POST or under simple-request rules,
+// sensitive client telemetry payload is transmitted to an attacker-controlled origin.
 function loadAppConfig(rawConfig) {
     const config = JSON.parse(rawConfig);
-    // Unsafe context: dispatching fetch to arbitrary unvalidated endpoint URL from parsed JSON
-    return fetch(config.endpointUrl);
+    const telemetryPayload = { sessionStatus: "active" };
+    // Unsafe context: dispatching sensitive telemetry to arbitrary unvalidated endpoint URL from parsed JSON
+    return fetch(config.endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(telemetryPayload)
+    });
 }`,
-    cCode: `// Clean: JSON parsing followed by explicit schema verification and endpoint allowlisting
+    cCode: `// Clean: JSON parsing followed by explicit schema verification and endpoint allowlisting.
+// Prevents data transmission to untrusted origins by restricting destinations to approved application paths.
 function verifyAppConfig(config) {
-    if (!config || typeof config !== 'object') return null;
+    const fallback = { endpointUrl: '/api/v1/feed' };
+    if (!config || typeof config !== 'object') return fallback;
     const allowedEndpoints = ['/api/v1/feed', '/api/v1/profile'];
     if (typeof config.endpointUrl === 'string' && allowedEndpoints.includes(config.endpointUrl)) {
         return { endpointUrl: config.endpointUrl };
     }
-    return { endpointUrl: '/api/v1/feed' };
+    return fallback;
 }
 
 function loadAppConfigSecure(rawConfig) {
     const config = JSON.parse(rawConfig);
     const verified = verifyAppConfig(config);
-    return fetch(verified.endpointUrl);
+    const telemetryPayload = { sessionStatus: "active" };
+    return fetch(verified.endpointUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(telemetryPayload)
+    });
 }`
   },
   {

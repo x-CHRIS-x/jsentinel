@@ -392,12 +392,35 @@ test('6. Batch B bounded corrections: isolated VM execution of updated clean hel
     assert.equal(context.verifyAppConfig({ endpointUrl: '/api/v1/profile' })?.endpointUrl, '/api/v1/profile');
     // Hostile / unallowlisted endpoint falls back to safe feed
     assert.equal(context.verifyAppConfig({ endpointUrl: 'https://attacker.evil.com/leak' })?.endpointUrl, '/api/v1/feed');
+    // Null, undefined, and primitive inputs return safe fallback without crashing or throwing
+    assert.equal(context.verifyAppConfig(null)?.endpointUrl, '/api/v1/feed', 'verifyAppConfig(null) must return safe fallback');
+    assert.equal(context.verifyAppConfig(undefined)?.endpointUrl, '/api/v1/feed', 'verifyAppConfig(undefined) must return safe fallback');
+    assert.equal(context.verifyAppConfig('invalid-primitive')?.endpointUrl, '/api/v1/feed', 'verifyAppConfig(primitive) must return safe fallback');
 
     context.loadAppConfigSecure('{"endpointUrl":"https://attacker.evil.com/leak"}');
     assert.equal(fetchedUrl, '/api/v1/feed', 'loadAppConfigSecure redirects unallowlisted endpoint to safe default');
   }
 
-  // 7. Cross-Window Action Handler (C-A6-034)
+  // 7. Protected Diagnostics & Admin Mode (V-A8-045)
+  {
+    const vCode = fs.readFileSync(path.join(samplesDir, 'V-A8-045.js'), 'utf8');
+    const vWindow = {};
+    const vContext = vm.createContext({ window: vWindow, JSON });
+    vm.runInContext(vCode, vContext);
+
+    assert.equal(typeof vContext.accessAdministrativeDiagnostics, 'function', 'accessAdministrativeDiagnostics must be defined');
+    assert.equal(typeof vContext.loadSessionState, 'function', 'loadSessionState must be defined');
+
+    // Access denied before elevation
+    assert.match(vContext.accessAdministrativeDiagnostics(), /ACCESS_DENIED/);
+
+    // Session state with isAdmin: true sets window.__adminMode and unlocks diagnostics
+    vContext.loadSessionState('{"userId":"attacker","isAdmin":true}');
+    assert.equal(vWindow.__adminMode, true, 'loadSessionState enables window.__adminMode on isAdmin property');
+    assert.match(vContext.accessAdministrativeDiagnostics(), /DIAGNOSTIC_DATA/);
+  }
+
+  // 8. Cross-Window Action Handler (C-A6-034)
   {
     const code = fs.readFileSync(path.join(samplesDir, 'C-A6-034.js'), 'utf8');
     let messageListener = null;
@@ -427,5 +450,88 @@ test('6. Batch B bounded corrections: isolated VM execution of updated clean hel
     assert.equal(postMessageArgs?.origin, 'https://trusted.portal.example.com');
     assert.equal(postMessageArgs?.msg?.status, 'pong', 'Trusted origin ping action handled safely');
   }
+});
+
+test('7. Manifest structural integrity: reject rule/category mismatches, placeholder coordinates, and borrowed unsupported rules', () => {
+  const manifestPath = path.join(rootDir, 'test-samples', 'dataset-manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+  const CANONICAL_CATEGORIES = {
+    'A01': 'A01:2021-Broken Access Control',
+    'A02': 'A02:2021-Cryptographic Failures',
+    'A03': 'A03:2021-Injection',
+    'A05': 'A05:2021-Security Misconfiguration',
+    'A06': 'A06:2021-Vulnerable and Outdated Components',
+    'A07': 'A07:2021-Identification and Authentication Failures',
+    'A08': 'A08:2021-Software and Data Integrity Failures',
+    'A10': 'A10:2021-Server-Side Request Forgery'
+  };
+
+  const controlledFiles = manifest.files.filter(f => f.reviewStatus.coverage !== 'pending-batch-c');
+
+  for (const file of controlledFiles) {
+    if (file.label === 'clean') {
+      assert.deepEqual(file.expectedScannerFindings, [], `${file.fileName} clean sample must have empty expected findings`);
+      continue;
+    }
+
+    assert.ok(Array.isArray(file.expectedScannerFindings), `${file.fileName} must contain expectedScannerFindings array`);
+    assert.ok(file.expectedScannerFindings.length > 0, `${file.fileName} vulnerable sample must have at least one expected finding`);
+
+    for (const finding of file.expectedScannerFindings) {
+      // 1. Coordinates must be strictly positive and never synthetic placeholders (line: 1, column: 0)
+      assert.ok(finding.location && typeof finding.location.line === 'number' && finding.location.line > 0,
+        `${file.fileName} finding must have positive line number`);
+      assert.ok(typeof finding.location.column === 'number' && finding.location.column >= 0,
+        `${file.fileName} finding must have non-negative column`);
+      assert.ok(!(finding.location.line === 1 && finding.location.column === 0),
+        `${file.fileName} finding must not use placeholder coordinates (line 1, column 0)`);
+
+      // 2. Weakness description must be non-empty
+      assert.ok(finding.weaknessDescription && finding.weaknessDescription.length > 0,
+        `${file.fileName} finding must include weaknessDescription`);
+
+      // 3. Category validation and rule registry mapping
+      if (finding.ruleId) {
+        const parts = finding.ruleId.split('-');
+        assert.ok(parts.length >= 2, `${finding.ruleId} must follow OWASP-Axx-xxx format`);
+        const catCode = parts[1];
+        const expectedCat = CANONICAL_CATEGORIES[catCode];
+        assert.ok(expectedCat, `Category code ${catCode} must exist in canonical categories`);
+        assert.equal(finding.owasp2021Category, expectedCat,
+          `${file.fileName} rule ${finding.ruleId} category ${finding.owasp2021Category} must match canonical category ${expectedCat}`);
+      } else {
+        // 4. Unsupported mechanisms must explicitly declare unsupported: true and have null ruleId
+        assert.equal(finding.ruleId, null, `${file.fileName} unsupported mechanism must have ruleId: null`);
+        assert.equal(finding.unsupported, true, `${file.fileName} unsupported mechanism must declare unsupported: true`);
+        assert.ok(finding.owasp2021Category, `${file.fileName} unsupported mechanism must declare its OWASP category`);
+      }
+    }
+  }
+
+  // 5. Specific manager regression checks
+  const v045 = manifest.files.find(f => f.fileName === 'V-A8-045.js');
+  assert.equal(v045.expectedScannerFindings.length, 2, 'V-A8-045 must have exactly two expected findings');
+  const a08Finding = v045.expectedScannerFindings.find(f => f.ruleId === 'OWASP-A08-001');
+  const a01Finding = v045.expectedScannerFindings.find(f => f.ruleId === 'OWASP-A01-002');
+  assert.ok(a08Finding, 'V-A8-045 must include OWASP-A08-001 finding');
+  assert.equal(a08Finding.owasp2021Category, 'A08:2021-Software and Data Integrity Failures');
+  assert.ok(a01Finding, 'V-A8-045 must include OWASP-A01-002 finding');
+  assert.equal(a01Finding.owasp2021Category, 'A01:2021-Broken Access Control');
+
+  const v053 = manifest.files.find(f => f.fileName === 'V-A10-053.js');
+  assert.equal(v053.expectedScannerFindings[0].ruleId, null, 'V-A10-053 must not borrow unrelated redirect rule');
+  assert.equal(v053.expectedScannerFindings[0].unsupported, true, 'V-A10-053 must declare unsupported: true');
+  assert.equal(v053.expectedScannerFindings[0].location.line, 8, 'V-A10-053 must point to real fetch call line');
+
+  const v054 = manifest.files.find(f => f.fileName === 'V-A10-054.js');
+  assert.equal(v054.expectedScannerFindings[0].ruleId, null, 'V-A10-054 must not borrow unrelated innerHTML rule');
+  assert.equal(v054.expectedScannerFindings[0].unsupported, true, 'V-A10-054 must declare unsupported: true');
+  assert.equal(v054.expectedScannerFindings[0].location.line, 9, 'V-A10-054 must point to real script.src line');
+
+  const v033 = manifest.files.find(f => f.fileName === 'V-A6-033.js');
+  assert.equal(v033.expectedScannerFindings[0].ruleId, null, 'V-A6-033 must not borrow unrelated redirect rule');
+  assert.equal(v033.expectedScannerFindings[0].unsupported, true, 'V-A6-033 must declare unsupported: true');
+  assert.equal(v033.expectedScannerFindings[0].location.line, 8, 'V-A6-033 must point to real postMessage line');
 });
 

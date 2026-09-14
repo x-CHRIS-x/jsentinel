@@ -106,6 +106,18 @@
         "safePartnerAssumptions": "Parses input with JSON.parse() and validates structure without executing code."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-001",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "LOW",
+          "location": {
+            "line": 9,
+            "column": 23
+          },
+          "message": "JSON.parse() usage detected"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -144,6 +156,7 @@
         "safePartnerAssumptions": "Coerces arguments to safe numbers and performs standard arithmetic operations."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -183,6 +196,7 @@
         "safePartnerAssumptions": "Validates that task argument is a function reference and invokes it directly."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -222,6 +236,7 @@
         "safePartnerAssumptions": "Passes an anonymous arrow function invoking the callback function safely."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -261,6 +276,7 @@
         "safePartnerAssumptions": "Resolves operation name from an object dictionary of approved mathematical functions."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -299,6 +315,7 @@
         "safePartnerAssumptions": "Uses standard parameterized comparison logic without compiling code."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -377,6 +394,7 @@
         "safePartnerAssumptions": "Creates span element and assigns bio text to textContent, avoiding HTML parser."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -455,6 +473,7 @@
         "safePartnerAssumptions": "Extracts message property and assigns to textContent for safe text display."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -496,6 +515,7 @@
         "safePartnerAssumptions": "Restricts credentialed requests exclusively to verified, approved application API origins."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -535,6 +555,7 @@
         "safePartnerAssumptions": "Loads pre-approved script URL with cryptographic SRI integrity hash verification."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -573,6 +594,7 @@
         "safePartnerAssumptions": "Submits credentials to server API route; password verified server-side."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -611,6 +633,7 @@
         "safePartnerAssumptions": "Challenges are submitted to server; secret keys are never distributed to client."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -650,6 +673,7 @@
         "safePartnerAssumptions": "Retains token in transient memory closure; token is not written to disk or web storage."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -688,6 +712,7 @@
         "safePartnerAssumptions": "Delegates session authentication to HTTP API; avoids client-side token storage."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -728,6 +753,7 @@
         "safePartnerAssumptions": "Server issues HttpOnly, Secure session cookie via HTTP response headers per RFC 6265."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -767,6 +793,7 @@
         "safePartnerAssumptions": "Assumes the server token-exchange endpoint (/api/auth/token-exchange) issues an HttpOnly, Secure, SameSite session cookie in the Set-Cookie HTTP response header; client script never stores raw tokens in document.cookie."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -807,6 +834,7 @@
         "safePartnerAssumptions": "Assumes the backend authentication server enforces strict attempt rate limiting (max 3-5 failed attempts) and short expiration windows (30-60 seconds) for the 6-digit numeric OTP. 256-bit otp_key provides full collision and brute-force resistance meeting NIST SP 800-131A standards."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -846,6 +874,7 @@
         "safePartnerAssumptions": "Generates UUIDv4 using standard Web Crypto API crypto.randomUUID()."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -884,6 +913,7 @@
         "safePartnerAssumptions": "Enforces HTTPS protocol for all endpoint communications."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -922,6 +952,7 @@
         "safePartnerAssumptions": "Configures telemetry endpoint with HTTPS scheme."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -960,6 +991,7 @@
         "safePartnerAssumptions": "Uploads to backend API endpoint; AWS credentials remain secured on server."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -998,6 +1030,7 @@
         "safePartnerAssumptions": "Creates payment intents on server; client code never handles secret keys."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1074,6 +1107,7 @@
         "safePartnerAssumptions": "Client dispatches queries to backend API route; server handles database credentials."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1112,6 +1146,7 @@
         "safePartnerAssumptions": "Transmits credentials in JSON body of POST request over HTTPS."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1150,6 +1185,7 @@
         "safePartnerAssumptions": "Sends reset token in POST body payload to authentication endpoint."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1226,6 +1262,7 @@
         "safePartnerAssumptions": "Validates destination domain against trustedPartnerDomains allowlist."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1246,11 +1283,11 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Enforces administrative action authorization on the server API rather than client checks.",
+      "intendedBehavior": "Dispatches administrative request to backend API that enforces server-side RBAC on caller session.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Enforces administrative action authorization on the server API rather than client checks.",
+        "rationale": "Dispatches administrative request to backend API that enforces server-side RBAC on caller session.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -1261,9 +1298,10 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Client-side authorization check and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges."
+        "safePartnerAssumptions": "Relies on the explicit architectural assumption that the backend endpoint enforces server-side Role-Based Access Control (RBAC) on session credentials. Note that client snippets alone do not prove backend configuration; security depends on the verified server authorization contract."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1271,7 +1309,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Assumes backend enforces server-side RBAC; client snippets alone do not prove backend configuration."
     },
     {
       "fileName": "C-A5-030.js",
@@ -1302,6 +1340,7 @@
         "safePartnerAssumptions": "Dispatches request to server endpoint; server verifies session authorization."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1341,6 +1380,7 @@
         "safePartnerAssumptions": "Logs user identity only, never logging passwords or credentials."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1379,6 +1419,7 @@
         "safePartnerAssumptions": "Logs session status without printing secret key values."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1418,6 +1459,7 @@
         "safePartnerAssumptions": "Specifies exact trusted target origin domain in postMessage call."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1444,7 +1486,8 @@
         "flawType": null,
         "rationale": "Validates event.origin against allowlist and executes structured actions without eval().",
         "sourceReferences": [
-          "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+          "https://owasp.org/Top10/A03_2021-Injection/",
+          "https://cwe.mitre.org/data/definitions/95.html",
           "https://cwe.mitre.org/data/definitions/346.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
         ]
@@ -1457,6 +1500,7 @@
         "safePartnerAssumptions": "Validates event.origin against trustedOrigins and handles only structured safe actions."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1495,6 +1539,7 @@
         "safePartnerAssumptions": "Logs only explicit non-sensitive property (req.path)."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1533,6 +1578,7 @@
         "safePartnerAssumptions": "Logs only non-sensitive numeric status code."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1572,6 +1618,7 @@
         "safePartnerAssumptions": "Enforces encrypted wss:// WebSocket protocol."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1610,6 +1657,7 @@
         "safePartnerAssumptions": "Loads external script assets exclusively over HTTPS."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1688,6 +1736,7 @@
         "safePartnerAssumptions": "Creates DOM node with createElement and sets textContent, avoiding HTML parser."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1727,6 +1776,7 @@
         "safePartnerAssumptions": "Creates text node using createTextNode, ensuring character data rendering."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1765,6 +1815,7 @@
         "safePartnerAssumptions": "Creates DOM element and assigns to textContent."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1804,6 +1855,7 @@
         "safePartnerAssumptions": "Uses standard React JSX children interpolation {contentStr}, which automatically escapes HTML entities."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1842,6 +1894,7 @@
         "safePartnerAssumptions": "Renders banner as text child within React section component."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1862,11 +1915,11 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.",
+      "intendedBehavior": "Validates session schema structurally and enforces standard unprivileged role regardless of client-supplied payload.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.",
+        "rationale": "Validates session schema structurally and enforces standard unprivileged role regardless of client-supplied payload.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -1877,9 +1930,10 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Client-side session deserialization and authorization logic.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags."
+        "safePartnerAssumptions": "Enforces schema validation to confirm object structure and assigns standard unprivileged role. Demonstrates that schema validation verifies data structure and types, not authorization, which must be derived from verified server authority."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1887,7 +1941,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "Schema validation ensures structure and types; unprivileged role assignment isolates authorization from client input."
     },
     {
       "fileName": "C-A8-046.js",
@@ -1900,11 +1954,11 @@
         "legacyLabel": "clean",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Strict schema verification and endpoint allowlisting before dispatching fetch requests.",
+      "intendedBehavior": "Verifies configuration schema with null-safe allowlisting fallback before dispatching client telemetry.",
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Strict schema verification and endpoint allowlisting before dispatching fetch requests.",
+        "rationale": "Verifies configuration schema with null-safe allowlisting fallback before dispatching client telemetry.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -1915,9 +1969,10 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Client configuration loader and fetch execution.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Assumes that allowed API endpoints are restricted to pre-approved application paths."
+        "safePartnerAssumptions": "verifyAppConfig provides a null-safe fallback restricting telemetry requests strictly to approved application paths (/api/v1/feed, /api/v1/profile)."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1925,7 +1980,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Verified secure remediation."
+      "ambiguityOrKnownLimitations": "verifyAppConfig returns a valid fallback configuration object when passed null or invalid input, preventing null dereference errors."
     },
     {
       "fileName": "C-A8-047.js",
@@ -1957,6 +2012,7 @@
         "safePartnerAssumptions": "Creates target object using Object.create(null), eliminating __proto__ accessor."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -1996,6 +2052,7 @@
         "safePartnerAssumptions": "Uses JavaScript Map data structure, which isolates keys from prototype chain."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2072,6 +2129,7 @@
         "safePartnerAssumptions": "Picks only explicitly allowed keys (theme, accentColor, layoutMode) into fresh object."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2111,6 +2169,7 @@
         "safePartnerAssumptions": "Keeps token in private memory variable without writing to browser web storage."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2149,6 +2208,7 @@
         "safePartnerAssumptions": "Passes access token in HTTP Authorization header in memory."
       },
       "expectedScannerFindings": [],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2373,6 +2433,18 @@
           "weaknessDescription": "Dangerous use of eval()"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-001",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Dangerous use of eval()"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2420,6 +2492,18 @@
             "column": 11
           },
           "weaknessDescription": "Dangerous use of eval()"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-001",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 11
+          },
+          "message": "Dangerous use of eval()"
         }
       ],
       "developmentUse": true,
@@ -2472,6 +2556,18 @@
           "weaknessDescription": "Dangerous use of string in setTimeout"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-002",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Dangerous use of string in setTimeout"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2520,6 +2616,18 @@
             "column": 11
           },
           "weaknessDescription": "Dangerous use of string in setInterval"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-002",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 11
+          },
+          "message": "Dangerous use of string in setInterval"
         }
       ],
       "developmentUse": true,
@@ -2572,6 +2680,18 @@
           "weaknessDescription": "Unsafe use of Function constructor"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-003",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 15
+          },
+          "message": "Unsafe use of Function constructor"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2619,6 +2739,18 @@
             "column": 21
           },
           "weaknessDescription": "Unsafe use of Function constructor"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-003",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 21
+          },
+          "message": "Unsafe use of Function constructor"
         }
       ],
       "developmentUse": true,
@@ -2722,6 +2854,18 @@
           "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-004",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Unsafe innerHTML assignment using dynamic template literal"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2823,6 +2967,18 @@
           "weaknessDescription": "Unsafe innerHTML assignment using function return value"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-005",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 13,
+            "column": 4
+          },
+          "message": "Unsafe innerHTML assignment using function return value"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2865,16 +3021,18 @@
       },
       "expectedScannerFindings": [
         {
-          "ruleId": "OWASP-A01-001",
+          "ruleId": null,
+          "unsupported": true,
           "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "HIGH",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 11
           },
           "weaknessDescription": "Client fetch to arbitrary user-supplied URL with ambient credentials enabled."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2882,7 +3040,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not implement a client-side open fetch check."
+      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not implement client-side open fetch ambient credentials detection in its active rule registry."
     },
     {
       "fileName": "V-A10-054.js",
@@ -2915,16 +3073,18 @@
       },
       "expectedScannerFindings": [
         {
-          "ruleId": "OWASP-A03-006",
+          "ruleId": null,
+          "unsupported": true,
           "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 9,
+            "column": 4
           },
           "weaknessDescription": "Dynamically injects external script element pointing to unvalidated user-controlled URL."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -2932,7 +3092,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not implement dynamic script.src detection."
+      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not implement dynamic script.src detection in its active rule registry."
     },
     {
       "fileName": "V-A2-011.js",
@@ -2972,6 +3132,18 @@
             "column": 6
           },
           "weaknessDescription": "Hardcoded password found in variable 'adminAuthPassword'"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-001",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 6
+          },
+          "message": "Hardcoded password found in variable 'adminAuthPassword'"
         }
       ],
       "developmentUse": true,
@@ -3021,6 +3193,18 @@
             "column": 6
           },
           "weaknessDescription": "Hardcoded API key or secret found in variable 'recoveryAuthKey'"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'recoveryAuthKey'"
         }
       ],
       "developmentUse": true,
@@ -3073,6 +3257,18 @@
           "weaknessDescription": "Sensitive token stored in localStorage (key: 'session_token')"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A07-001",
+          "owasp2021Category": "A07:2021-Identification and Authentication Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Sensitive token stored in localStorage (key: 'session_token')"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3120,6 +3316,18 @@
             "column": 4
           },
           "weaknessDescription": "Sensitive token stored in localStorage (key: 'user_auth_credential')"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A07-001",
+          "owasp2021Category": "A07:2021-Identification and Authentication Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Sensitive token stored in localStorage (key: 'user_auth_credential')"
         }
       ],
       "developmentUse": true,
@@ -3173,6 +3381,18 @@
           "weaknessDescription": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-002",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3221,6 +3441,18 @@
             "column": 4
           },
           "weaknessDescription": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-002",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags"
         }
       ],
       "developmentUse": true,
@@ -3284,6 +3516,28 @@
           "weaknessDescription": "Insecure pseudo-random number generator used for sensitive variable 'otp_key'"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-003",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 10
+          },
+          "message": "Insecure pseudo-random number generator used for sensitive variable 'otp'"
+        },
+        {
+          "ruleId": "OWASP-A02-003",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 9,
+            "column": 10
+          },
+          "message": "Insecure pseudo-random number generator used for sensitive variable 'otp_key'"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3328,12 +3582,13 @@
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "HIGH",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Uses Math.random() to generate CSRF nonce and session tokens."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3383,6 +3638,18 @@
           "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://unencrypted.internal-services.com/v1/auth'"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-004",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 7,
+            "column": 22
+          },
+          "message": "Insecure plaintext connection URL hardcoded: 'http://unencrypted.internal-services.com/v1/auth'"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3430,6 +3697,18 @@
             "column": 26
           },
           "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://telemetry.logging-service.net/events'"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-004",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 7,
+            "column": 26
+          },
+          "message": "Insecure plaintext connection URL hardcoded: 'http://telemetry.logging-service.net/events'"
         }
       ],
       "developmentUse": true,
@@ -3491,6 +3770,28 @@
           "weaknessDescription": "Hardcoded API key or secret found in variable 'STATIC_JWT_TOKEN'"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-005",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 26
+          },
+          "message": "Hardcoded AWS Access Key detected in string."
+        },
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'STATIC_JWT_TOKEN'"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3548,6 +3849,28 @@
             "column": 6
           },
           "weaknessDescription": "Hardcoded API key or secret found in variable 'STRIPE_SECRET_KEY'"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-005",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 30
+          },
+          "message": "Hardcoded JWT Token detected in string."
+        },
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'STRIPE_SECRET_KEY'"
         }
       ],
       "developmentUse": true,
@@ -3669,6 +3992,28 @@
           "weaknessDescription": "Hardcoded API key or secret found in variable 'clientSecretToken'"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 7,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'databaseServiceApiKey'"
+        },
+        {
+          "ruleId": "OWASP-A02-006",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 6
+          },
+          "message": "Hardcoded API key or secret found in variable 'clientSecretToken'"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3718,6 +4063,18 @@
           "weaknessDescription": "Sensitive credentials embedded in URL query string"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-007",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 47
+          },
+          "message": "Sensitive credentials embedded in URL query string"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3765,6 +4122,18 @@
             "column": 49
           },
           "weaknessDescription": "Sensitive credentials embedded in URL query string"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-007",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 49
+          },
+          "message": "Sensitive credentials embedded in URL query string"
         }
       ],
       "developmentUse": true,
@@ -3866,6 +4235,18 @@
           "weaknessDescription": "Unsafe location.replace() using dynamic value"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-001",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Unsafe location.replace() using dynamic value"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -3886,11 +4267,11 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.",
+      "intendedBehavior": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) with client-side role check when backend lacks authorization enforcement.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-602: Client-Side Enforcement of Server-Side Security",
-        "rationale": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.",
+        "rationale": "Guards administrative action execution (/api/v1/users/:id/grant-superuser) with client-side role check when backend lacks authorization enforcement.",
         "sourceReferences": [
           "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
           "https://cwe.mitre.org/data/definitions/602.html"
@@ -3898,10 +4279,10 @@
       },
       "threatModelAndAssumptions": {
         "trustBoundary": "Client-to-server administrative endpoint request boundary.",
-        "attackerControlledInput": "Tampering with client-side userContext object properties in DevTools or console.",
+        "attackerControlledInput": "Tampering with client-side userContext object in memory or issuing direct HTTP requests to the backend endpoint.",
         "executionEnvironment": "Client-side authorization check and fetch execution.",
-        "impactSupportingSeverity": "HIGH: Client-side authorization checks are trivially bypassed by modifying client state or sending direct HTTP requests to the API.",
-        "safePartnerAssumptions": "Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges."
+        "impactSupportingSeverity": "HIGH: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks authorization enforcement; trusting client-side role checks allows attackers to bypass controls and grant superuser privileges. Note that client snippets alone do not prove backend configuration; this sample explicitly assumes missing server-side enforcement.",
+        "safePartnerAssumptions": "Relies on the explicit architectural assumption that the backend endpoint enforces server-side Role-Based Access Control (RBAC) on session credentials. Note that client snippets alone do not prove backend configuration; security depends on the verified server authorization contract."
       },
       "expectedScannerFindings": [
         {
@@ -3909,10 +4290,22 @@
           "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "MEDIUM",
           "location": {
-            "line": 8,
+            "line": 12,
             "column": 4
           },
           "weaknessDescription": "Client-side role or authorization check in condition statement"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-002",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 12,
+            "column": 4
+          },
+          "message": "Client-side role or authorization check in condition statement"
         }
       ],
       "developmentUse": true,
@@ -3922,7 +4315,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Assumes backend lacks authorization enforcement; client snippets alone do not prove backend configuration."
     },
     {
       "fileName": "V-A5-030.js",
@@ -3962,6 +4355,18 @@
             "column": 4
           },
           "weaknessDescription": "Client-side role or authorization check in condition statement"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-002",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 12,
+            "column": 4
+          },
+          "message": "Client-side role or authorization check in condition statement"
         }
       ],
       "developmentUse": true,
@@ -4014,6 +4419,18 @@
           "weaknessDescription": "Sensitive variable 'password' logged to console"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A05-001",
+          "owasp2021Category": "A05:2021-Security Misconfiguration",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Sensitive variable 'password' logged to console"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4063,6 +4480,18 @@
           "weaknessDescription": "Sensitive variable 'secretKey' logged to console"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A05-001",
+          "owasp2021Category": "A05:2021-Security Misconfiguration",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Sensitive variable 'secretKey' logged to console"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4103,16 +4532,18 @@
       },
       "expectedScannerFindings": [
         {
-          "ruleId": "OWASP-A01-001",
+          "ruleId": null,
+          "unsupported": true,
           "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "HIGH",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Transmits sensitive authentication token via window.postMessage with wildcard * target origin."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4120,7 +4551,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not currently implement a dedicated postMessage targetOrigin check."
+      "ambiguityOrKnownLimitations": "Known scanner miss: JSentinel does not implement a dedicated postMessage targetOrigin check in its active rule registry."
     },
     {
       "fileName": "V-A6-034.js",
@@ -4136,10 +4567,11 @@
       "intendedBehavior": "Listens for cross-window messages and executes event data command using eval() without origin validation.",
       "securityGroundTruth": {
         "isVulnerable": true,
-        "flawType": "CWE-346: Origin Validation Error in Message Event Listener",
+        "flawType": "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
         "rationale": "Listens for cross-window messages and executes event data command using eval() without origin validation.",
         "sourceReferences": [
-          "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+          "https://owasp.org/Top10/A03_2021-Injection/",
+          "https://cwe.mitre.org/data/definitions/95.html",
           "https://cwe.mitre.org/data/definitions/346.html",
           "https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
         ]
@@ -4154,13 +4586,25 @@
       "expectedScannerFindings": [
         {
           "ruleId": "OWASP-A03-001",
-          "owasp2021Category": "A01:2021-Broken Access Control",
+          "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
           "location": {
             "line": 9,
             "column": 8
           },
           "weaknessDescription": "Dangerous use of eval()"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-001",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 9,
+            "column": 8
+          },
+          "message": "Dangerous use of eval()"
         }
       ],
       "developmentUse": true,
@@ -4212,6 +4656,18 @@
           "weaknessDescription": "Sensitive object variable 'req' logged to console"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A05-003",
+          "owasp2021Category": "A05:2021-Security Misconfiguration",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Sensitive object variable 'req' logged to console"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4255,12 +4711,13 @@
           "owasp2021Category": "A05:2021-Security Misconfiguration",
           "severity": "MEDIUM",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Prints full user authentication context object to console error output."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4305,12 +4762,13 @@
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "MEDIUM",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 7,
+            "column": 6
           },
           "weaknessDescription": "Connects to WebSocket telemetry service over unencrypted ws:// protocol."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4358,6 +4816,18 @@
             "column": 24
           },
           "weaknessDescription": "Insecure plaintext connection URL hardcoded: 'http://cdn.unencrypted.internal-services.com/library.js'"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A02-004",
+          "owasp2021Category": "A02:2021-Cryptographic Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 7,
+            "column": 24
+          },
+          "message": "Insecure plaintext connection URL hardcoded: 'http://cdn.unencrypted.internal-services.com/library.js'"
         }
       ],
       "developmentUse": true,
@@ -4461,6 +4931,18 @@
           "weaknessDescription": "Dangerous use of innerHTML"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-006",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Dangerous use of innerHTML"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4511,6 +4993,18 @@
           "weaknessDescription": "Dangerous use of document.write()"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-007",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "CRITICAL",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Dangerous use of document.write()"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4554,12 +5048,13 @@
           "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Writes user status markup to document via document.writeln()."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4608,6 +5103,18 @@
             "column": 16
           },
           "weaknessDescription": "Dangerous use of dangerouslySetInnerHTML"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-008",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 16
+          },
+          "message": "Dangerous use of dangerouslySetInnerHTML"
         }
       ],
       "developmentUse": true,
@@ -4659,6 +5166,18 @@
           "weaknessDescription": "Dangerous use of dangerouslySetInnerHTML"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A03-008",
+          "owasp2021Category": "A03:2021-Injection",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 20
+          },
+          "message": "Dangerous use of dangerouslySetInnerHTML"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4679,11 +5198,11 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.",
+      "intendedBehavior": "Parses untrusted serialized session state and trusts unvalidated properties to grant elevated privileges and access protected diagnostics.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.",
+        "rationale": "Parses untrusted serialized session state and trusts unvalidated properties to grant elevated privileges and access protected diagnostics.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -4693,29 +5212,51 @@
         "trustBoundary": "Deserialization of untrusted serialized session payload.",
         "attackerControlledInput": "Manipulated JSON string containing arbitrary properties (e.g. isAdmin: true).",
         "executionEnvironment": "Client-side session deserialization and authorization logic.",
-        "impactSupportingSeverity": "HIGH: Unvalidated deserialized properties grant unauthorized access when client-asserted privileges are trusted.",
-        "safePartnerAssumptions": "Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags."
+        "impactSupportingSeverity": "HIGH: Unvalidated deserialized properties grant unauthorized access to confidential diagnostic data and audit logs when client-asserted privileges are trusted.",
+        "safePartnerAssumptions": "Enforces schema validation to confirm object structure and assigns standard unprivileged role. Demonstrates that schema validation verifies data structure and types, not authorization, which must be derived from verified server authority."
       },
       "expectedScannerFindings": [
         {
-          "ruleId": "OWASP-A01-002",
+          "ruleId": "OWASP-A08-001",
           "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "LOW",
+          "location": {
+            "line": 21,
+            "column": 20
+          },
+          "weaknessDescription": "JSON.parse() usage detected"
+        },
+        {
+          "ruleId": "OWASP-A01-002",
+          "owasp2021Category": "A01:2021-Broken Access Control",
           "severity": "MEDIUM",
           "location": {
-            "line": 13,
+            "line": 22,
             "column": 4
           },
           "weaknessDescription": "Client-side role or authorization check in condition statement"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A01-002",
+          "owasp2021Category": "A01:2021-Broken Access Control",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 22,
+            "column": 4
+          },
+          "message": "Client-side role or authorization check in condition statement"
         },
         {
           "ruleId": "OWASP-A08-001",
           "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
           "severity": "LOW",
           "location": {
-            "line": 12,
+            "line": 21,
             "column": 20
           },
-          "weaknessDescription": "JSON.parse() usage detected"
+          "message": "JSON.parse() usage detected"
         }
       ],
       "developmentUse": true,
@@ -4725,7 +5266,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Reviewed controlled benchmark sample."
+      "ambiguityOrKnownLimitations": "Vulnerable sample triggers two applicable rules: OWASP-A08-001 for deserialization and OWASP-A01-002 for client-side role check guarding protected diagnostics."
     },
     {
       "fileName": "V-A8-046.js",
@@ -4738,11 +5279,11 @@
         "legacyLabel": "vulnerable",
         "source": "filename-prefix"
       },
-      "intendedBehavior": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().",
+      "intendedBehavior": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs transmitting client telemetry.",
       "securityGroundTruth": {
         "isVulnerable": true,
         "flawType": "CWE-502: Deserialization of Untrusted Data",
-        "rationale": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().",
+        "rationale": "Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs transmitting client telemetry.",
         "sourceReferences": [
           "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
           "https://cwe.mitre.org/data/definitions/502.html"
@@ -4750,10 +5291,10 @@
       },
       "threatModelAndAssumptions": {
         "trustBoundary": "Deserialization of untrusted application configuration JSON.",
-        "attackerControlledInput": "JSON payload specifying arbitrary or malicious endpoint URLs.",
+        "attackerControlledInput": "JSON payload specifying external or malicious endpoint URL target for telemetry exfiltration.",
         "executionEnvironment": "Client configuration loader and fetch execution.",
-        "impactSupportingSeverity": "MEDIUM: Unvalidated configuration properties induce unexpected client requests or cross-origin data exposure.",
-        "safePartnerAssumptions": "Assumes that allowed API endpoints are restricted to pre-approved application paths."
+        "impactSupportingSeverity": "MEDIUM: Transmits client session telemetry to an unvalidated endpoint URL. Under browser fetch semantics, if target host permits cross-origin POST or under simple-request rules, sensitive client telemetry payload is transmitted to an attacker-controlled origin.",
+        "safePartnerAssumptions": "verifyAppConfig provides a null-safe fallback restricting telemetry requests strictly to approved application paths (/api/v1/feed, /api/v1/profile)."
       },
       "expectedScannerFindings": [
         {
@@ -4761,10 +5302,22 @@
           "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
           "severity": "LOW",
           "location": {
-            "line": 8,
+            "line": 12,
             "column": 19
           },
           "weaknessDescription": "JSON.parse() usage detected"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-001",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "LOW",
+          "location": {
+            "line": 12,
+            "column": 19
+          },
+          "message": "JSON.parse() usage detected"
         }
       ],
       "developmentUse": true,
@@ -4817,6 +5370,18 @@
           "weaknessDescription": "Potential prototype pollution assignment detected"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-002",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Potential prototype pollution assignment detected"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -4865,6 +5430,18 @@
             "column": 4
           },
           "weaknessDescription": "Potential prototype pollution assignment detected"
+        }
+      ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-002",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "HIGH",
+          "location": {
+            "line": 8,
+            "column": 4
+          },
+          "message": "Potential prototype pollution assignment detected"
         }
       ],
       "developmentUse": true,
@@ -4966,6 +5543,18 @@
           "weaknessDescription": "Unsafe use of Object.assign() mutating target object"
         }
       ],
+      "observedScannerFindings": [
+        {
+          "ruleId": "OWASP-A08-003",
+          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+          "severity": "MEDIUM",
+          "location": {
+            "line": 8,
+            "column": 11
+          },
+          "message": "Unsafe use of Object.assign() mutating target object"
+        }
+      ],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -5010,12 +5599,13 @@
           "owasp2021Category": "A07:2021-Identification and Authentication Failures",
           "severity": "HIGH",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Stores sensitive bearer token in unencrypted sessionStorage."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {
@@ -5059,12 +5649,13 @@
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "MEDIUM",
           "location": {
-            "line": 1,
-            "column": 0
+            "line": 8,
+            "column": 4
           },
           "weaknessDescription": "Publishes access token in window.location.hash URL fragment."
         }
       ],
+      "observedScannerFindings": [],
       "developmentUse": true,
       "developmentUseRationale": "Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.",
       "reviewStatus": {

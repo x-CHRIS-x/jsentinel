@@ -15,6 +15,29 @@ const { controlledPairs, PILOT_FILES } = require('./generate-samples.cjs');
 const samplesDir = path.join(__dirname, 'samples');
 const manifestPath = path.join(__dirname, 'dataset-manifest.json');
 
+// Canonical OWASP Top 10:2021 categories for active rule registry
+const CANONICAL_CATEGORIES = {
+  'A01': 'A01:2021-Broken Access Control',
+  'A02': 'A02:2021-Cryptographic Failures',
+  'A03': 'A03:2021-Injection',
+  'A05': 'A05:2021-Security Misconfiguration',
+  'A06': 'A06:2021-Vulnerable and Outdated Components',
+  'A07': 'A07:2021-Identification and Authentication Failures',
+  'A08': 'A08:2021-Software and Data Integrity Failures',
+  'A10': 'A10:2021-Server-Side Request Forgery'
+};
+
+function getCanonicalRuleCategory(ruleId) {
+  if (!ruleId) return null;
+  const parts = ruleId.split('-');
+  if (parts.length >= 2 && CANONICAL_CATEGORIES[parts[1]]) {
+    return CANONICAL_CATEGORIES[parts[1]];
+  }
+  return null;
+}
+
+const ruleMap = new Map(allRules.map(r => [r.id, r]));
+
 // Metadata dictionary for all 54 pairs
 const pairMetadata = {
   // A1
@@ -418,6 +441,7 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/338.html',
       'https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID'
     ],
+    trueLocation: { line: 8, column: 4 },
     vLimitation: 'Known scanner miss: rule OWASP-A02-003 inspects variable names matching token/secret/password, missing nonceVal identifier.',
     cLimitation: null
   },
@@ -643,19 +667,19 @@ const pairMetadata = {
     owasp: 'A01:2021-Broken Access Control',
     ruleId: 'OWASP-A01-002',
     severity: 'MEDIUM',
-    vDesc: 'Guards administrative action execution (/api/v1/users/:id/grant-superuser) using client-side role check.',
-    cDesc: 'Enforces administrative action authorization on the server API rather than client checks.',
+    vDesc: 'Guards administrative action execution (/api/v1/users/:id/grant-superuser) with client-side role check when backend lacks authorization enforcement.',
+    cDesc: 'Dispatches administrative request to backend API that enforces server-side RBAC on caller session.',
     trustBoundary: 'Client-to-server administrative endpoint request boundary.',
-    attackerInput: 'Tampering with client-side userContext object properties in DevTools or console.',
+    attackerInput: 'Tampering with client-side userContext object in memory or issuing direct HTTP requests to the backend endpoint.',
     execEnv: 'Client-side authorization check and fetch execution.',
-    impact: 'HIGH: Client-side authorization checks are trivially bypassed by modifying client state or sending direct HTTP requests to the API.',
-    safePartner: 'Assumes the backend server endpoint validates the authenticated caller session and enforces role-based access control (RBAC) before granting superuser privileges.',
+    impact: 'HIGH: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks authorization enforcement; trusting client-side role checks allows attackers to bypass controls and grant superuser privileges. Note that client snippets alone do not prove backend configuration; this sample explicitly assumes missing server-side enforcement.',
+    safePartner: 'Relies on the explicit architectural assumption that the backend endpoint enforces server-side Role-Based Access Control (RBAC) on session credentials. Note that client snippets alone do not prove backend configuration; security depends on the verified server authorization contract.',
     refs: [
       'https://owasp.org/Top10/A01_2021-Broken_Access_Control/',
       'https://cwe.mitre.org/data/definitions/602.html'
     ],
-    vLimitation: null,
-    cLimitation: null
+    vLimitation: 'Assumes backend lacks authorization enforcement; client snippets alone do not prove backend configuration.',
+    cLimitation: 'Assumes backend enforces server-side RBAC; client snippets alone do not prove backend configuration.'
   },
   '030': {
     pairId: 'PAIR-030-CLIENT-PERMISSION',
@@ -728,7 +752,8 @@ const pairMetadata = {
     primaryModule: 'accessControl.js',
     cwe: 'CWE-345: Insufficient Verification of Data Authenticity (Wildcard Target Origin)',
     owasp: 'A01:2021-Broken Access Control',
-    ruleId: 'OWASP-A01-001',
+    ruleId: null,
+    unsupported: true,
     severity: 'HIGH',
     vDesc: 'Transmits sensitive authentication token via window.postMessage with wildcard * target origin.',
     cDesc: 'Transmits authentication token with strict target origin restriction.',
@@ -742,14 +767,15 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/345.html',
       'https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage'
     ],
-    vLimitation: 'Known scanner miss: JSentinel does not currently implement a dedicated postMessage targetOrigin check.',
+    trueLocation: { line: 8, column: 4 },
+    vLimitation: 'Known scanner miss: JSentinel does not implement a dedicated postMessage targetOrigin check in its active rule registry.',
     cLimitation: null
   },
   '034': {
     pairId: 'PAIR-034-POSTMESSAGE-INBOUND',
     primaryModule: 'injection.js',
-    cwe: 'CWE-346: Origin Validation Error in Message Event Listener',
-    owasp: 'A01:2021-Broken Access Control',
+    cwe: "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')",
+    owasp: 'A03:2021-Injection',
     ruleId: 'OWASP-A03-001',
     severity: 'CRITICAL',
     vDesc: 'Listens for cross-window messages and executes event data command using eval() without origin validation.',
@@ -760,7 +786,8 @@ const pairMetadata = {
     impact: 'CRITICAL: Arbitrary script execution triggered by external cross-origin web pages.',
     safePartner: 'Validates event.origin against trustedOrigins and handles only structured safe actions.',
     refs: [
-      'https://owasp.org/Top10/A01_2021-Broken_Access_Control/',
+      'https://owasp.org/Top10/A03_2021-Injection/',
+      'https://cwe.mitre.org/data/definitions/95.html',
       'https://cwe.mitre.org/data/definitions/346.html',
       'https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage'
     ],
@@ -806,6 +833,7 @@ const pairMetadata = {
       'https://owasp.org/Top10/A05_2021-Security_Misconfiguration/',
       'https://cwe.mitre.org/data/definitions/532.html'
     ],
+    trueLocation: { line: 8, column: 4 },
     vLimitation: 'Known scanner miss: rule OWASP-A05-003 checks req/session variables, missing authContext parameter.',
     cLimitation: null
   },
@@ -828,6 +856,7 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/319.html',
       'https://developer.mozilla.org/en-US/docs/Web/API/WebSocket'
     ],
+    trueLocation: { line: 7, column: 6 },
     vLimitation: 'Known scanner miss: rule OWASP-A02-004 checks http:// URL strings, missing ws:// protocol schemes.',
     cLimitation: null
   },
@@ -942,6 +971,7 @@ const pairMetadata = {
       'https://owasp.org/Top10/A03_2021-Injection/',
       'https://cwe.mitre.org/data/definitions/79.html'
     ],
+    trueLocation: { line: 8, column: 4 },
     vLimitation: 'Known scanner miss: rule OWASP-A03-007 checks document.write, missing document.writeln calls.',
     cLimitation: null
   },
@@ -996,20 +1026,36 @@ const pairMetadata = {
     cwe: 'CWE-502: Deserialization of Untrusted Data',
     owasp: 'A08:2021-Software and Data Integrity Failures',
     ruleId: 'OWASP-A08-001',
-    severity: 'HIGH',
-    vDesc: 'Parses untrusted serialized session state and directly trusts unvalidated properties for authorization decisions.',
-    cDesc: 'Strict schema validation function verifying expected structure and rejecting client-asserted administrative privileges.',
+    severity: 'MEDIUM',
+    vDesc: 'Parses untrusted serialized session state and trusts unvalidated properties to grant elevated privileges and access protected diagnostics.',
+    cDesc: 'Validates session schema structurally and enforces standard unprivileged role regardless of client-supplied payload.',
     trustBoundary: 'Deserialization of untrusted serialized session payload.',
     attackerInput: 'Manipulated JSON string containing arbitrary properties (e.g. isAdmin: true).',
     execEnv: 'Client-side session deserialization and authorization logic.',
-    impact: 'HIGH: Unvalidated deserialized properties grant unauthorized access when client-asserted privileges are trusted.',
-    safePartner: 'Assumes that administrative privileges are strictly determined and signed by the server, and that client state deserialization enforces a strict allowlist schema rejecting unverified privilege flags.',
+    impact: 'HIGH: Unvalidated deserialized properties grant unauthorized access to confidential diagnostic data and audit logs when client-asserted privileges are trusted.',
+    safePartner: 'Enforces schema validation to confirm object structure and assigns standard unprivileged role. Demonstrates that schema validation verifies data structure and types, not authorization, which must be derived from verified server authority.',
     refs: [
       'https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/',
       'https://cwe.mitre.org/data/definitions/502.html'
     ],
-    vLimitation: null,
-    cLimitation: null
+    expectedFindings: [
+      {
+        ruleId: 'OWASP-A08-001',
+        owasp: 'A08:2021-Software and Data Integrity Failures',
+        severity: 'LOW',
+        location: { line: 21, column: 20 },
+        weaknessDescription: 'JSON.parse() usage detected'
+      },
+      {
+        ruleId: 'OWASP-A01-002',
+        owasp: 'A01:2021-Broken Access Control',
+        severity: 'MEDIUM',
+        location: { line: 22, column: 4 },
+        weaknessDescription: 'Client-side role or authorization check in condition statement'
+      }
+    ],
+    vLimitation: 'Vulnerable sample triggers two applicable rules: OWASP-A08-001 for deserialization and OWASP-A01-002 for client-side role check guarding protected diagnostics.',
+    cLimitation: 'Schema validation ensures structure and types; unprivileged role assignment isolates authorization from client input.'
   },
   '046': {
     pairId: 'PAIR-046-JSON-PREFERENCES',
@@ -1018,19 +1064,19 @@ const pairMetadata = {
     owasp: 'A08:2021-Software and Data Integrity Failures',
     ruleId: 'OWASP-A08-001',
     severity: 'MEDIUM',
-    vDesc: 'Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs passed to fetch().',
-    cDesc: 'Strict schema verification and endpoint allowlisting before dispatching fetch requests.',
+    vDesc: 'Parses untrusted configuration JSON where unvalidated properties control destination endpoint URLs transmitting client telemetry.',
+    cDesc: 'Verifies configuration schema with null-safe allowlisting fallback before dispatching client telemetry.',
     trustBoundary: 'Deserialization of untrusted application configuration JSON.',
-    attackerInput: 'JSON payload specifying arbitrary or malicious endpoint URLs.',
+    attackerInput: 'JSON payload specifying external or malicious endpoint URL target for telemetry exfiltration.',
     execEnv: 'Client configuration loader and fetch execution.',
-    impact: 'MEDIUM: Unvalidated configuration properties induce unexpected client requests or cross-origin data exposure.',
-    safePartner: 'Assumes that allowed API endpoints are restricted to pre-approved application paths.',
+    impact: 'MEDIUM: Transmits client session telemetry to an unvalidated endpoint URL. Under browser fetch semantics, if target host permits cross-origin POST or under simple-request rules, sensitive client telemetry payload is transmitted to an attacker-controlled origin.',
+    safePartner: 'verifyAppConfig provides a null-safe fallback restricting telemetry requests strictly to approved application paths (/api/v1/feed, /api/v1/profile).',
     refs: [
       'https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/',
       'https://cwe.mitre.org/data/definitions/502.html'
     ],
     vLimitation: null,
-    cLimitation: null
+    cLimitation: 'verifyAppConfig returns a valid fallback configuration object when passed null or invalid input, preventing null dereference errors.'
   },
   '047': {
     pairId: 'PAIR-047-PROTO-PROPERTY',
@@ -1140,6 +1186,7 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/922.html',
       'https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage'
     ],
+    trueLocation: { line: 8, column: 4 },
     vLimitation: 'Known scanner miss: rule OWASP-A07-001 checks localStorage, missing sessionStorage calls.',
     cLimitation: null
   },
@@ -1161,6 +1208,7 @@ const pairMetadata = {
       'https://owasp.org/Top10/A02_2021-Cryptographic_Failures/',
       'https://cwe.mitre.org/data/definitions/598.html'
     ],
+    trueLocation: { line: 8, column: 4 },
     vLimitation: 'Known scanner miss: rule OWASP-A02-007 checks query string concatenation, missing location.hash assignments.',
     cLimitation: null
   },
@@ -1171,7 +1219,8 @@ const pairMetadata = {
     primaryModule: 'accessControl.js',
     cwe: 'CWE-20: Improper Input Validation (Client Request Forgery with Ambient Credentials)',
     owasp: 'A01:2021-Broken Access Control',
-    ruleId: 'OWASP-A01-001',
+    ruleId: null,
+    unsupported: true,
     severity: 'HIGH',
     vDesc: 'Client fetch to arbitrary user-supplied URL with ambient credentials enabled.',
     cDesc: 'Destination domain verified against allowlist of authorized origins before sending credentialed request.',
@@ -1187,7 +1236,8 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/20.html',
       'https://cwe.mitre.org/data/definitions/918.html'
     ],
-    vLimitation: 'Known scanner miss: JSentinel does not implement a client-side open fetch check.',
+    trueLocation: { line: 8, column: 11 },
+    vLimitation: 'Known scanner miss: JSentinel does not implement client-side open fetch ambient credentials detection in its active rule registry.',
     cLimitation: null
   },
   '054': {
@@ -1195,7 +1245,8 @@ const pairMetadata = {
     primaryModule: 'xss.js',
     cwe: 'CWE-829: Inclusion of Functionality from Untrusted Control Sphere',
     owasp: 'A03:2021-Injection',
-    ruleId: 'OWASP-A03-006',
+    ruleId: null,
+    unsupported: true,
     severity: 'CRITICAL',
     vDesc: 'Dynamically injects external script element pointing to unvalidated user-controlled URL.',
     cDesc: 'Loads script only from approved CDN with Subresource Integrity (SRI) hash verification.',
@@ -1209,7 +1260,8 @@ const pairMetadata = {
       'https://cwe.mitre.org/data/definitions/829.html',
       'https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity'
     ],
-    vLimitation: 'Known scanner miss: JSentinel does not implement dynamic script.src detection.',
+    trueLocation: { line: 9, column: 4 },
+    vLimitation: 'Known scanner miss: JSentinel does not implement dynamic script.src detection in its active rule registry.',
     cLimitation: null
   }
 };
@@ -1239,31 +1291,73 @@ for (const pair of controlledPairs) {
   const vScan = scanCode(vCode, vFileName, allRules);
   const cScan = scanCode(cCode, cFileName, allRules);
 
-  // Build Vulnerable Entry
-  let expectedVFindings = vScan.issues.map(iss => ({
+  // Build Curated Ideal Vulnerable Findings
+  let expectedVFindings = [];
+  if (meta.expectedFindings) {
+    // Explicitly curated multi-finding or custom expectations (e.g. PAIR-045)
+    expectedVFindings = meta.expectedFindings.map(ef => ({
+      ruleId: ef.ruleId || null,
+      ...(ef.unsupported ? { unsupported: true } : {}),
+      owasp2021Category: ef.ruleId ? (getCanonicalRuleCategory(ef.ruleId) || ef.owasp) : ef.owasp,
+      severity: ef.severity,
+      location: ef.location,
+      weaknessDescription: ef.weaknessDescription
+    }));
+  } else if (meta.ruleId === null || meta.unsupported) {
+    // Unsupported browser weakness (e.g. PAIR-033, PAIR-053, PAIR-054)
+    expectedVFindings = [{
+      ruleId: null,
+      unsupported: true,
+      owasp2021Category: meta.owasp,
+      severity: meta.severity,
+      location: meta.trueLocation,
+      weaknessDescription: meta.vDesc
+    }];
+  } else if (meta.trueLocation && vScan.issues.length === 0) {
+    // Known scanner miss on supported rule (e.g. PAIR-018, PAIR-036, PAIR-037, PAIR-042, PAIR-051, PAIR-052)
+    expectedVFindings = [{
+      ruleId: meta.ruleId,
+      owasp2021Category: getCanonicalRuleCategory(meta.ruleId) || meta.owasp,
+      severity: ruleMap.get(meta.ruleId)?.severity || meta.severity,
+      location: meta.trueLocation,
+      weaknessDescription: meta.vDesc
+    }];
+  } else {
+    // Supported rule where scanner reliably detects weakness: map findings with canonical rule categories
+    expectedVFindings = vScan.issues.map(iss => ({
+      ruleId: iss.id,
+      owasp2021Category: getCanonicalRuleCategory(iss.id) || meta.owasp,
+      severity: iss.severity,
+      location: {
+        line: iss.line,
+        column: iss.column
+      },
+      weaknessDescription: iss.message || meta.vDesc
+    }));
+  }
+
+  // Observed scanner output (preserved separately from ideal ground truth expectations)
+  const observedVFindings = vScan.issues.map(iss => ({
     ruleId: iss.id,
-    owasp2021Category: meta.owasp,
+    owasp2021Category: getCanonicalRuleCategory(iss.id) || meta.owasp,
     severity: iss.severity,
     location: {
       line: iss.line,
       column: iss.column
     },
-    weaknessDescription: iss.message || meta.vDesc
+    message: iss.message
   }));
 
-  // If scanner misses detection on a defensible vulnerability (e.g. PAIR-033, PAIR-054), record ideal expected finding
-  if (expectedVFindings.length === 0) {
-    expectedVFindings = [{
-      ruleId: meta.ruleId,
-      owasp2021Category: meta.owasp,
-      severity: meta.severity,
-      location: {
-        line: 1,
-        column: 0
-      },
-      weaknessDescription: meta.vDesc
-    }];
-  }
+  const observedCFindings = cScan.issues.map(iss => ({
+    ruleId: iss.id,
+    owasp2021Category: getCanonicalRuleCategory(iss.id) || meta.owasp,
+    severity: iss.severity,
+    location: {
+      line: iss.line,
+      column: iss.column
+    },
+    message: iss.message
+  }));
 
   manifestFiles.push({
     fileName: vFileName,
@@ -1291,6 +1385,7 @@ for (const pair of controlledPairs) {
       safePartnerAssumptions: meta.safePartner
     },
     expectedScannerFindings: expectedVFindings,
+    observedScannerFindings: observedVFindings,
     developmentUse: true,
     developmentUseRationale: 'Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.',
     reviewStatus: {
@@ -1328,6 +1423,7 @@ for (const pair of controlledPairs) {
       safePartnerAssumptions: meta.safePartner
     },
     expectedScannerFindings: [], // Ideal scanner expectations for clean files
+    observedScannerFindings: observedCFindings,
     developmentUse: true,
     developmentUseRationale: 'Derived from Phase 01-03 baseline regression sample; updated in Phase 04 Batch B with genuine browser mitigations and meaningful variations.',
     reviewStatus: {

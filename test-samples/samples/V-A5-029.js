@@ -3,7 +3,11 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A5-002)
+// Vulnerable: client-side role check guarding access to privileged administrative endpoint (OWASP-A01-002).
+// System context: The backend endpoint /api/v1/users/:id/grant-superuser explicitly lacks
+// server-side RBAC enforcement, blindly executing the action for any incoming request.
+// Client code acts as the sole, easily bypassed authorization barrier. Note that client snippets
+// alone do not prove backend configuration; this sample explicitly assumes missing server enforcement.
 function executeAdministrativeAction(userContext, targetUserId) {
     if (userContext.role === "admin" || userContext.isAdmin === true) {
         return fetch("/api/v1/users/" + targetUserId + "/grant-superuser", {
