@@ -617,7 +617,44 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
   assert.equal(v033.expectedScannerFindings[0].ruleId, null, 'V-A6-033 must not borrow unrelated redirect rule');
   assert.equal(v033.expectedScannerFindings[0].unsupported, true, 'V-A6-033 must declare unsupported: true');
   assert.equal(v033.expectedScannerFindings[0].location.line, 8, 'V-A6-033 must point to real postMessage line');
+
+  // 7. Batch C Scenario ground truth safeguards
+  assert.equal(scenarioFiles.length, 8, 'Must contain exactly 8 scenario files');
+
+  let totalScenarioExpected = 0;
+  let totalScenarioAdvisories = 0;
+  let totalScenarioUnsupported = 0;
+  let totalScenarioObserved = 0;
+
+  for (const sc of scenarioFiles) {
+    totalScenarioExpected += sc.expectedScannerFindings.length;
+    totalScenarioAdvisories += sc.expectedAdvisories.length;
+    totalScenarioUnsupported += sc.unsupportedWeaknesses.length;
+    totalScenarioObserved += sc.observedScannerFindings.length;
+
+    // Reject omitted pattern hits from expectedScannerFindings
+    for (const exp of sc.expectedScannerFindings) {
+      assert.notEqual(exp.ruleId, 'OWASP-A08-001',
+        `${sc.fileName} must not include generic JSON.parse in expected findings`);
+      assert.notEqual(exp.ruleId, 'OWASP-A08-002',
+        `${sc.fileName} must not include prototype assignments with unused targets in expected findings`);
+      assert.notEqual(exp.ruleId, 'OWASP-A05-003',
+        `${sc.fileName} must not include generic diagnostic logging in expected findings`);
+      if (exp.ruleId === 'OWASP-A03-002') {
+        assert.equal(sc.fileName, 'api-gateway.js',
+          'Only api-gateway.js may contain OWASP-A03-002 due to dynamic serviceId interpolation');
+        assert.equal(exp.location.line, 73,
+          'Only dynamic template literal at line 73 in api-gateway.js is an expected timer finding');
+      }
+    }
+  }
+
+  assert.equal(totalScenarioExpected, 75, 'Scenarios must have exactly 75 curated expected vulnerability findings');
+  assert.equal(totalScenarioAdvisories, 14, 'Scenarios must have exactly 14 package import advisories');
+  assert.equal(totalScenarioUnsupported, 6, 'Scenarios must have exactly 6 unsupported browser weaknesses');
+  assert.equal(totalScenarioObserved, 137, 'Scenarios must record exactly 137 observed scanner detections');
 });
+
 
 test('8. Manifest observation invariance: replacing observation provider with empty/extra/altered findings changes only observed fields, never expected/security/labels', () => {
   const { buildManifest } = require('../test-samples/build-dataset-manifest.cjs');

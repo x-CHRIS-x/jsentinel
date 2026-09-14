@@ -90,7 +90,7 @@
             "line": 62,
             "column": 8
           },
-          "weaknessDescription": "Callable helper renderLegacyWidget passes widgetData directly to document.write(); note demonstrated flow at line 115 passes a fixed constant string."
+          "weaknessDescription": "Callable helper renderLegacyWidget passes widgetData directly to document.write; note demonstrated JSX button at line 115 passes constant string \"System Status: Online\" making that call site fixed-safe, while the helper function itself represents a critical DOM injection sink if supplied untrusted input."
         },
         {
           "ruleId": "OWASP-A03-006",
@@ -235,7 +235,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Simulated React component; live browser rendering and DOM event dispatching NOT RUN. Scanner hit at line 16 (currentUser.role === \"admin\") is omitted from expected findings as it only gates console.log with no authorization decision."
+      "ambiguityOrKnownLimitations": "Simulated React component; live browser rendering and DOM event dispatching NOT RUN. Scanner hit at line 16 (currentUser.role === \"admin\") is omitted from expected findings as it only gates console.log with no authorization decision. Demonstrated JSX call at line 115 passes a fixed constant string (\"System Status: Online\"), making that invocation site fixed-safe; renderLegacyWidget is documented as a callable helper DOM injection sink. Dynamic GET fetch at line 28 carries no ambient credentials or exfiltration impact and is omitted."
     },
     {
       "fileName": "api-gateway.js",
@@ -300,46 +300,6 @@
             "column": 25
           },
           "weaknessDescription": "Dangerous use of eval() on unvalidated legacy routing rule string."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 51,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with untrusted webhook data."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 54,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with untrusted webhook data."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 62,
-            "column": 4
-          },
-          "weaknessDescription": "Logging sensitive credentials object directly to browser console."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 70,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string argument in setInterval for periodic monitoring."
         },
         {
           "ruleId": "OWASP-A03-002",
@@ -541,7 +501,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side routing module; backend microservices and live network responses NOT RUN. Scanner hit at line 47 (JSON.parse) is omitted as a syntactic pattern hit."
+      "ambiguityOrKnownLimitations": "Client-side routing module; backend microservices and live network responses NOT RUN. Scanner hits omitted from expected findings: L47 (JSON.parse syntactic warning), L51 and L54 (prototype assignments on locally scoped unused config object that do not mutate Object.prototype), L61 and L62 (generic configuration and credentials logging without demonstrated secret payload), and L70 (static string literal in setInterval without variable interpolation or attacker control)."
     },
     {
       "fileName": "C-A1-001.js",
@@ -2737,16 +2697,6 @@
           "weaknessDescription": "Hardcoded WebSocket signing key in client source code."
         },
         {
-          "ruleId": "OWASP-A02-006",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "CRITICAL",
-          "location": {
-            "line": 13,
-            "column": 6
-          },
-          "weaknessDescription": "Hardcoded Firebase API key in client source code."
-        },
-        {
           "ruleId": "OWASP-A03-004",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "HIGH",
@@ -2777,26 +2727,6 @@
           "weaknessDescription": "Dangerous use of document.write() to render unescaped chat messages."
         },
         {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 34,
-            "column": 4
-          },
-          "weaknessDescription": "Logging sensitive room session object directly to browser console."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 35,
-            "column": 4
-          },
-          "weaknessDescription": "Logging user context object containing profile data to console."
-        },
-        {
           "ruleId": "OWASP-A03-001",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
@@ -2817,66 +2747,6 @@
           "weaknessDescription": "Unsafe use of Function constructor to execute dynamic validationRule."
         },
         {
-          "ruleId": "OWASP-A02-002",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 62,
-            "column": 4
-          },
-          "weaknessDescription": "Presence cookie written without Secure or HttpOnly flags."
-        },
-        {
-          "ruleId": "OWASP-A02-002",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 65,
-            "column": 4
-          },
-          "weaknessDescription": "Active user cookie written via template literal without security flags."
-        },
-        {
-          "ruleId": "OWASP-A02-003",
-          "owasp2021Category": "A02:2021-Cryptographic Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 68,
-            "column": 22
-          },
-          "weaknessDescription": "Insecure Math.random() used to generate sessionSalt."
-        },
-        {
-          "ruleId": "OWASP-A07-001",
-          "owasp2021Category": "A07:2021-Identification and Authentication Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 71,
-            "column": 4
-          },
-          "weaknessDescription": "Sensitive chatToken stored in plaintext localStorage."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 82,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with room overrides."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 88,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with globalSettings."
-        },
-        {
           "ruleId": "OWASP-A03-001",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
@@ -2885,26 +2755,6 @@
             "column": 17
           },
           "weaknessDescription": "Arbitrary code execution via eval() on bot command."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 99,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string argument in setTimeout for scheduled bot task."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 100,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string argument in setInterval for bot queue checks."
         },
         {
           "ruleId": "OWASP-A02-007",
@@ -3226,7 +3076,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side chat client; live WebSocket connections and backend presence servers NOT RUN. Line 16 (internal IP) and lines 48, 78 (JSON.parse) are omitted as non-vulnerabilities."
+      "ambiguityOrKnownLimitations": "Browser chat client; live WebSocket servers and push services NOT RUN. Scanner hits omitted from expected findings: L13 (Firebase Web API key is a public project identifier per Google Firebase documentation, not a private secret), L16 (internal IP address constant), L34 and L35 (generic session and user object logging), L48 and L78 (JSON.parse syntactic warnings), L62 and L65 (non-sensitive presence and timestamp cookies without auth roles; client JavaScript cannot set HttpOnly per RFC 6265 Section 5.3), L68 (Math.random sessionSalt returned without security-sensitive consumer), L71 (localStorage chatToken stores non-sensitive userId), L82 and L88 (prototype assignments on unused local defaults object that do not mutate Object.prototype), and L99 and L100 (static string literals in setTimeout and setInterval without variable interpolation or attacker control)."
     },
     {
       "fileName": "data-pipeline.js",
@@ -3292,16 +3142,6 @@
           "weaknessDescription": "Dynamic query filter built using Function constructor with unsanitized sourceQuery."
         },
         {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 51,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with schemaOverrides."
-        },
-        {
           "ruleId": "OWASP-A02-007",
           "owasp2021Category": "A02:2021-Cryptographic Failures",
           "severity": "MEDIUM",
@@ -3312,16 +3152,6 @@
           "weaknessDescription": "Warehouse API key and master secret exposed in export URL query string."
         },
         {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 67,
-            "column": 4
-          },
-          "weaknessDescription": "Logging credentials object containing secrets directly to console."
-        },
-        {
           "ruleId": "OWASP-A03-001",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "CRITICAL",
@@ -3330,36 +3160,6 @@
             "column": 20
           },
           "weaknessDescription": "Dynamic validation expression evaluated using eval()."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 88,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with globalDefaults."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 99,
-            "column": 4
-          },
-          "weaknessDescription": "String argument passed to setInterval for periodic health checks."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 102,
-            "column": 4
-          },
-          "weaknessDescription": "String argument passed to setTimeout for delayed cleanup."
         }
       ],
       "expectedAdvisories": [
@@ -3601,7 +3401,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client data pipeline module; live database connections and warehouse services NOT RUN. Line 19 (internal IP) and lines 44, 85 (JSON.parse) are omitted as non-vulnerabilities."
+      "ambiguityOrKnownLimitations": "Client data pipeline module; live database connections and warehouse services NOT RUN. Scanner hits omitted from expected findings: L19 (internal IP constant), L44 and L85 (JSON.parse syntactic warnings), L51 and L88 (prototype assignments on unused schema object and non-writable Object.prototype), L67 (generic credentials logging without demonstrated confidential payload), and L99 and L102 (static string literals in setInterval and setTimeout without variable interpolation or attacker control)."
     },
     {
       "fileName": "ecommerce-checkout.js",
@@ -3674,16 +3474,6 @@
             "column": 4
           },
           "weaknessDescription": "Checkout session cookie set via concatenation without Secure flag."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 31,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string code in setTimeout for analytics ping."
         },
         {
           "ruleId": "OWASP-A05-001",
@@ -3855,7 +3645,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side checkout workflow; live payment gateway servers and merchant banks NOT RUN. Lines 38, 69 (JSON.parse) are omitted as pattern warnings."
+      "ambiguityOrKnownLimitations": "Client-side checkout workflow; live payment gateway servers and merchant banks NOT RUN. Scanner hits omitted from expected findings: L31 (static string literal in setTimeout without variable interpolation or attacker control), L38 and L69 (JSON.parse syntactic warnings), and L45 duplicate AST parameter hit."
     },
     {
       "fileName": "payment-processor.js",
@@ -4003,46 +3793,6 @@
           "weaknessDescription": "Refund webhook secret and verification token exposed in notification URL."
         },
         {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 68,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through direct __proto__ assignment with transaction overrides."
-        },
-        {
-          "ruleId": "OWASP-A08-002",
-          "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
-          "severity": "HIGH",
-          "location": {
-            "line": 74,
-            "column": 4
-          },
-          "weaknessDescription": "Prototype pollution through constructor.prototype assignment with transaction config."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 77,
-            "column": 4
-          },
-          "weaknessDescription": "Logging sensitive reconciliation credentials object to console."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 78,
-            "column": 4
-          },
-          "weaknessDescription": "Logging sensitive session details to console."
-        },
-        {
           "ruleId": "OWASP-A03-004",
           "owasp2021Category": "A03:2021-Injection",
           "severity": "HIGH",
@@ -4071,26 +3821,6 @@
             "column": 4
           },
           "weaknessDescription": "Dangerous use of document.write() to render unescaped receipt HTML."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 106,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string argument in setInterval for recurring charges."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 107,
-            "column": 4
-          },
-          "weaknessDescription": "Dangerous use of string argument in setTimeout for payment reminder."
         },
         {
           "ruleId": "OWASP-A01-001",
@@ -4382,7 +4112,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client payment processor SDK; live banking APIs and card networks NOT RUN. Line 15 (internal IP), line 64 (JSON.parse), and line 79 (requestContext log) are omitted as non-vulnerabilities."
+      "ambiguityOrKnownLimitations": "Browser payment SDK; live payment networks and banking APIs NOT RUN. Scanner hits omitted from expected findings: L15 (internal IP constant), L64 (JSON.parse syntactic warning), L68 and L74 (prototype assignments on unused defaults object that do not mutate Object.prototype), L77 and L78 (generic credentials and session object logging), and L106 and L107 (static string literals in setInterval and setTimeout without variable interpolation or attacker control)."
     },
     {
       "fileName": "student-portal.jsx",
@@ -4507,16 +4237,6 @@
             "column": 8
           },
           "weaknessDescription": "Sensitive enrollmentToken stored in plaintext localStorage."
-        },
-        {
-          "ruleId": "OWASP-A03-002",
-          "owasp2021Category": "A03:2021-Injection",
-          "severity": "HIGH",
-          "location": {
-            "line": 96,
-            "column": 8
-          },
-          "weaknessDescription": "Dangerous use of string argument in setTimeout for enrollment confirmation."
         },
         {
           "ruleId": "OWASP-A03-001",
@@ -4838,7 +4558,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Simulated React component; live student information servers and enrollment databases NOT RUN. Scanner hit at line 30 (student.isAdmin) is omitted as it only gates console.log."
+      "ambiguityOrKnownLimitations": "Simulated university student portal React component; live browser rendering and enrollment services NOT RUN. Scanner hits omitted from expected findings: L30 (role check gating only console.log without authorization decision) and L96 (static string literal in setTimeout without variable interpolation or attacker control). Demonstrated component flows MessagePreview (L83) and courseHtml (L136) render dynamic markup; renderGradeCard (L58), renderCourseDescription (L69), and loadAnnouncement (L75) are documented as uninvoked callable helpers."
     },
     {
       "fileName": "user-auth-service.js",
@@ -5002,26 +4722,6 @@
             "column": 4
           },
           "weaknessDescription": "Client-side authorization check: validateClientSession assigns isAdmin = true based on untrusted client role."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 84,
-            "column": 4
-          },
-          "weaknessDescription": "Sensitive user object logged directly to console during account deletion."
-        },
-        {
-          "ruleId": "OWASP-A05-003",
-          "owasp2021Category": "A05:2021-Security Misconfiguration",
-          "severity": "MEDIUM",
-          "location": {
-            "line": 85,
-            "column": 4
-          },
-          "weaknessDescription": "Active session state object logged directly to console during account deletion."
         }
       ],
       "expectedAdvisories": [],
@@ -5215,7 +4915,7 @@
         "aiReviewer": "Agy (Gemini 3.8 Flash High)",
         "humanReview": "PENDING"
       },
-      "ambiguityOrKnownLimitations": "Client-side authentication service; live backend authentication servers and identity providers NOT RUN. Line 14 (AWS Key ID without secret), line 17 (internal IP), line 70 (JSON.parse), and line 86 (requestContext log) are omitted as non-vulnerabilities."
+      "ambiguityOrKnownLimitations": "Client-side authentication service; live backend authentication servers and identity providers NOT RUN. Scanner hits omitted from expected findings: L14 (AWS Access Key ID without secret key; per AWS documentation, Access Key IDs are public identifiers that cannot sign requests alone), L17 (internal IP constant), L70 (JSON.parse syntactic warning), and L84 and L85 (generic user and session object logging during account deletion)."
     },
     {
       "fileName": "V-A1-001.js",
