@@ -160,19 +160,50 @@ Phase 04 Batch C completed the final segment of Phase 04 per `04-dataset-and-man
    - All 108 controlled benchmark files remain 100% byte-identical to commit `c650be9`.
    - Verified against `documents/research-phases/checks/04-batch-c-controlled-108-hashes.json`.
 
-## 8. Verification Commands and Exit Codes
+## 8. Post-Commit 38c1562 Manager Corrections: Ground Truth & Evidence Accuracy
+
+Following integrated manager review of commit `38c1562`, bounded corrections were applied to establish true security ground truth:
+
+1. **Elimination of Copied Scanner Output as Ground Truth:**
+   - Evaluated all 133 raw scanner detections across the 8 scenarios against concrete trust boundaries, attacker control, exploit prerequisites, and demonstrable security impact.
+   - Curated 105 genuine expected vulnerability findings across the 8 scenarios, rejecting false positives and syntactic pattern warnings.
+   - Removed client role checks that only log to console (`admin-dashboard.jsx` line 16, `student-portal.jsx` line 30).
+   - Removed non-secret internal IP address constants (`chat-application.js` line 16, `data-pipeline.js` line 19, `payment-processor.js` line 15, `user-auth-service.js` line 17).
+   - Removed public AWS Access Key ID without secret (`user-auth-service.js` line 14).
+   - Removed `JSON.parse` syntactic warnings where no unsafe consumer exists.
+   - Preserved all scanner signals in `observedScannerFindings`.
+
+2. **Callable Helper Assumptions vs Demonstrated Application Flows:**
+   - Documented callable helper assumptions for uninvoked functions (`renderNotification`, `updateSidebar`, `navigateToPartner`, `renderGradeCard`, `renderCourseDescription`, `loadAnnouncement`).
+   - Disclosed that in `admin-dashboard.jsx`, `renderLegacyWidget` is invoked with a fixed constant string (`"System Status: Online"`), making that call site fixed-safe in demonstrated UI execution, while representing a critical DOM injection sink under callable helper assumptions.
+
+3. **Grounded Expected Advisories:**
+   - Grounded all component review advisories strictly in third-party package imports.
+   - Verified that 7 of the 8 scenarios import third-party packages (14 advisories total), while `user-auth-service.js` imports zero third-party packages and has 0 advisories.
+
+4. **Severity and Threat Models for Unsupported Weaknesses:**
+   - Curated 6 authentic browser weaknesses without scanner rules (`api-gateway.js` line 39, `chat-application.js` line 108, `data-pipeline.js` line 71, `ecommerce-checkout.js` line 10, `payment-processor.js` line 56, `student-portal.jsx` line 37).
+   - Added explicit `severity`, `severityAssumptions`, `trustBoundary`, `attackerControlledInput`, and `securityImpact` to every unsupported record.
+   - Removed the uncredited dynamic GET fetch in `admin-dashboard.jsx` due to lack of ambient credentials, state exfiltration, or concrete security impact.
+
+5. **Controlled Dataset Terminology:**
+   - Replaced "controlled single-flaw" phrasing with "controlled V/C dataset".
+   - Preserved per-file labels and multi-expectation findings (e.g. `V-A8-045.js` with 2 findings).
+
+## 9. Verification Commands and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify disk samples match generator templates | 0 | Check Mode: 116 matches, 0 mismatches out of 116 checked. |
 | `node test-samples/build-dataset-manifest.cjs` | Rebuild manifest from explicit metadata | 0 | Generated 116 files (108 controlled reviewed, 8 scenarios reviewed, 0 pending). |
-| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, VM, structural, and invariance tests | 0 | 8 of 8 tests passed (~922ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 48 of 48 tests passed (~4132ms, zero regressions). |
+| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, VM, structural, and invariance tests | 0 | 8 of 8 tests passed (~939ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 48 of 48 tests passed (~4000ms, zero regressions). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.70s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 1.81s; 233 modules transformed. |
 
-## 9. Workflow Stopping Point
+## 10. Workflow Stopping Point
 
-This completes Phase 04 Batch C. All work stops here for manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed.
+This completes Phase 04 Batch C bounded ground truth corrections. All work stops here for integrated manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed. No claims of completion or acceptance are made prior to manager review.
+
 

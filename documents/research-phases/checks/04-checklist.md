@@ -24,24 +24,27 @@ Manager: Astra coordinator (`jsentinel-4`). Verifier: Opus HOLD.
 | 13. Cryptographic secret key entropy in OTP generator | **PASS** | `C-A2-017.js` generates `otp_key` using 256 bits (32 bytes) of cryptographic randomness from `crypto.getRandomValues`, and documents rate limiting assumptions for 6-digit OTPs. |
 | 14. Generator support synchronized for all 116 files | **PASS** | `test-samples/generate-samples.cjs` imports canonical scenario definitions, producing all 116 files with Windows CRLF normalization. `node test-samples/generate-samples.cjs --check` confirms 116/116 matches. |
 | 15. Manifest covers all 116 files with complete review status | **PASS** | `test-samples/dataset-manifest.json` defines ground truth, browser contexts, and threat models for all 116 files; `pendingReviewFilesCount` is 0. |
-| 16. Decoupled curated scenario expectations | **PASS** | Curated 123 expected vulnerabilities, 14 expected advisories, and 10 unsupported browser weaknesses; raw scanner output populates observed fields only. |
-| 17. Manifest observation invariance across all 116 files | **PASS** | Test 8 in `validation/pilot-manifest.test.mjs` verifies expected findings, expected advisories, ground truth, and labels are 100% invariant under mock empty or noisy scanner observations. |
-| 18. Unit tests execute actual sample code in isolated VM contexts | **PASS** | `validation/pilot-manifest.test.mjs` executes actual sample code in isolated VM contexts to verify redirects, prototype pollution filters, sink contracts, schema validation, 256-bit entropy, and origin listeners. |
-| 19. Full validation test suite passes with zero regressions | **PASS** | 48 test cases pass across all validation suites in `validation/` (8 manifest tests + 40 existing regression tests). |
-| 20. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (1.70s). |
-| 21. Dataset distribution table artifact derived from manifest | **PASS** | Table created in `test-samples/dataset-distribution.md` and `documents/research-phases/checks/04-dataset-distribution.md` reconciling 108 controlled (54 V, 54 C), 8 scenarios, and 0 controlled pairs in `knownVulns.js`. |
-| 22. Two-stage commit discipline | **PASS** | Implementation committed first, followed by documentation and evidence records. |
+| 16. Curated scenario expectations distinct from scanner signals | **PASS** | Curated 105 genuine expected vulnerabilities, 14 expected advisories, and 6 unsupported browser weaknesses. Removed non-vulnerability pattern hits (console.log role checks, non-secret IPs, AWS ID without secret, JSON.parse alone); preserved in observed findings. |
+| 17. Callable helper assumptions vs demonstrated flows distinguished | **PASS** | Disclosed that `admin-dashboard.jsx` line 115 `renderLegacyWidget` is fixed-safe in demonstrated flow (called with constant string), while representing a DOM injection sink under callable helper assumptions. |
+| 18. Advisories grounded in actual package import registry | **PASS** | 14 component review advisories (`OWASP-A06-001`) grounded in third-party package imports across 7 scenarios; `user-auth-service.js` has zero package imports and correctly defines 0 advisories. |
+| 19. Severity and threat models for unsupported weaknesses | **PASS** | All 6 unsupported weaknesses define explicit `severity`, `severityAssumptions`, `trustBoundary`, `attackerControlledInput`, and `securityImpact`. Removed uncredited GET fetch. |
+| 20. Manifest observation invariance across all 116 files | **PASS** | Test 8 in `validation/pilot-manifest.test.mjs` verifies expected findings, expected advisories, ground truth, and labels are 100% invariant under mock empty or noisy scanner observations. |
+| 21. Unit tests execute actual sample code in isolated VM contexts | **PASS** | `validation/pilot-manifest.test.mjs` executes actual sample code in isolated VM contexts to verify redirects, prototype pollution filters, sink contracts, schema validation, 256-bit entropy, and origin listeners. |
+| 22. Full validation test suite passes with zero regressions | **PASS** | 48 test cases pass across all validation suites in `validation/` (8 manifest tests + 40 existing regression tests). |
+| 23. Linters and web build pass cleanly | **PASS** | `npm run lint` passes (0 errors, 0 warnings); extension lint passes (0 errors, 0 warnings); `npm run build` succeeds (1.81s). |
+| 24. Dataset distribution table artifact derived from manifest | **PASS** | Table created in `test-samples/dataset-distribution.md` and `documents/research-phases/checks/04-dataset-distribution.md` reconciling 108 controlled V/C dataset files (54 V, 54 C), 8 scenarios, and 0 controlled pairs in `knownVulns.js`. |
+| 25. Two-stage commit discipline | **PASS** | Implementation committed first, followed by documentation and evidence records. |
 
 ## 2. Execution Record and Exit Codes
 
 | Command Line | Purpose | Exit Code | Observed Result |
 | --- | --- | ---: | --- |
 | `node test-samples/generate-samples.cjs --check` | Verify generator reproducibility against disk | 0 | Check Mode: 116 matches, 0 mismatches out of 116 checked. |
-| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, VM, and invariance tests | 0 | 8 of 8 tests passed (duration ~922ms). |
-| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 48 of 48 tests passed (duration ~4132ms). |
+| `node --test validation/pilot-manifest.test.mjs` | Run Phase 04 manifest, hash, VM, and invariance tests | 0 | 8 of 8 tests passed (duration ~939ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run complete regression test suite across project | 0 | 48 of 48 tests passed (duration ~4000ms). |
 | `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
-| `npm run build` | Build Vite web application bundle | 0 | Built in 1.70s; 233 modules transformed. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 1.81s; 233 modules transformed. |
 
 ## 3. Disclosed Unrun Checks (NOT RUN)
 

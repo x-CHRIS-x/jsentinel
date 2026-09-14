@@ -123,9 +123,9 @@ Manifest entries, test suites, and documentation cite authoritative, stable web 
 - **Client-Side Unit Test Scope:** Tests execute inside Node.js isolated VM contexts. Real browser DOM rendering, layout calculation, event loop dispatching (such as `onerror`), and live backend HTTP server enforcement were NOT RUN.
 - **Client Visibility Limitations:** Client-side JavaScript is publicly visible to end users. Simulated access controls (such as `PAIR-045` diagnostic data) demonstrate client logic flaws, but production security requires backend authorization.
 
-## 7. Resolved: Phase 04 Batch C Scenario Adaptation, Decoupled Expectations, and Inventory
+## 7. Resolved: Phase 04 Batch C Scenario Adaptation and Inventory
 
-Phase 04 Batch C resolved the remaining dataset and scenario requirements:
+Phase 04 Batch C resolved the initial scenario conversion and decoupling requirements:
 
 1. **Browser Workload Scenario Adaptation:**
    - The 8 baseline scenarios contained mixed server-side logic (Express server routing, `app.listen()`, server CORS middleware).
@@ -133,23 +133,45 @@ Phase 04 Batch C resolved the remaining dataset and scenario requirements:
    - All server listeners and server CORS middleware were removed, while retaining all authentic client-side security weaknesses.
    - Both AST scanner engines parse all 8 scenarios cleanly with zero syntax errors and 100% location and classification agreement.
 
-2. **Decoupled Curated Scenario Expectations:**
-   - The manifest builder now imports canonical scenario definitions from `test-samples/scenario-definitions.cjs`.
-   - Curated 123 distinct expected vulnerability findings across the 8 scenarios with canonical rule IDs, OWASP 2021 categories, severities, exact AST coordinates, and semantic weakness descriptions.
-   - Curated 14 component-review advisories for third-party client library imports under `OWASP-A06-001`.
-   - Curated 10 unsupported browser weaknesses with explicit `ruleId: null` and `unsupported: true`.
+2. **Decoupled Scenario Expectations and Architecture:**
+   - The manifest builder imports canonical scenario definitions from `test-samples/scenario-definitions.cjs`.
    - Raw scanner outputs populate only `observedScannerFindings`.
+   - Manifest observation invariance (Test 8) covers all 116 files in `dataset-manifest.json`, proving that changing the observation scanner leaves expected findings, severities, and labels completely invariant.
 
-3. **Manifest Observation Invariance (Test 8):**
-   - Extended Test 8 to all 116 files in `dataset-manifest.json`.
-   - Confirmed that replacing the scanner observation provider with an empty or noisy mock scanner leaves `expectedScannerFindings`, `expectedAdvisories`, `unsupportedWeaknesses`, `securityGroundTruth`, and `label` 100% invariant across all 116 files.
-   - Mock scanner outputs appear exclusively in `observedScannerFindings`.
-
-4. **Preservation of 108 Controlled Files:**
+3. **Preservation of 108 Controlled Files:**
    - All 54 vulnerable and 54 clean benchmark files (108 files) were held byte-identical to starting commit `c650be9`.
    - Hashes are verified against `04-batch-c-controlled-108-hashes.json`.
 
-5. **Dataset Distribution Table Reconciliation:**
-   - Derived the distribution table artifact (`test-samples/dataset-distribution.md` and `documents/research-phases/checks/04-dataset-distribution.md`).
-   - Reconciled 108 controlled files across 7 active vulnerability modules, 0 controlled pairs for the advisory-only `knownVulns.js` module, 8 composite simulated browser scenarios, and 116 total files.
+## 8. Resolved: Post-Commit 38c1562 Scenario Ground Truth Refinements and Threat Models
+
+Manager inspection of commit `38c1562` identified that scenario ground truth copied scanner output patterns rather than verifying exploitability, requiring bounded corrections:
+
+1. **Elimination of Copied Scanner Output and Ground Truth Re-evaluation:**
+   - Re-evaluated all 133 raw scanner detections across the 8 scenarios against concrete trust boundaries, attacker control, and exploit prerequisites.
+   - 14 non-vulnerability pattern hits were removed from `expectedScannerFindings` (retained in `observedScannerFindings`):
+     - Role checks gating only `console.log` (`admin-dashboard.jsx` line 16, `student-portal.jsx` line 30).
+     - Non-secret internal IP address constants (`chat-application.js` line 16, `data-pipeline.js` line 19, `payment-processor.js` line 15, `user-auth-service.js` line 17).
+     - Public AWS Access Key ID (`AKIA...`) without a secret key (`user-auth-service.js` line 14).
+     - Generic `JSON.parse()` syntactic calls without unsafe sinks (`api-gateway.js` line 47, `chat-application.js` lines 48 and 78, `data-pipeline.js` lines 44 and 85, `ecommerce-checkout.js` lines 38 and 69, `payment-processor.js` line 64, `user-auth-service.js` line 70).
+     - Logging of non-sensitive configuration objects (`api-gateway.js` line 61).
+   - Ground truth expected vulnerabilities across the 8 scenarios were refined from 123 to exactly 105.
+
+2. **Callable Helper Assumptions vs Demonstrated Application Flows:**
+   - For functions containing dangerous sinks, we explicitly distinguish whether the flaw is demonstrated in the active component flow or whether it represents a callable helper assumption:
+     - In `admin-dashboard.jsx`, `renderLegacyWidget` is invoked in demonstrated JSX flow only with a constant string (`"System Status: Online"`), making that call site fixed-safe; under callable helper assumptions, it represents a critical DOM injection sink. `renderNotification`, `updateSidebar`, and `navigateToPartner` are uninvoked callable helpers.
+     - In `student-portal.jsx`, `MessagePreview` and `courseHtml` are active demonstrated flows, while `renderGradeCard` and `loadAnnouncement` are callable helper sinks.
+
+3. **Grounding Advisories in Package Import Registries:**
+   - Component review advisories (`OWASP-A06-001`) are grounded strictly in third-party package imports.
+   - Seven scenarios import third-party packages, totaling 14 advisories.
+   - `user-auth-service.js` contains zero third-party package imports and therefore records 0 advisories.
+
+4. **Severity and Threat Models for Unsupported Browser Weaknesses:**
+   - Curated 6 genuine browser weaknesses without scanner rules with explicit `severity`, `severityAssumptions`, `trustBoundary`, `attackerControlledInput`, and `securityImpact`.
+   - Removed the uncredited dynamic GET fetch in `admin-dashboard.jsx` because it lacked ambient credentials, exfiltrated no state, and had no concrete security impact.
+
+5. **Reconciliation of Dataset Distribution Terminology:**
+   - Updated distribution terminology to refer to the "controlled V/C dataset" rather than a blanket "single-flaw" set.
+   - Preserved clear distinctions between sample-level labels and multi-expectation findings (e.g., `V-A8-045.js` has 2 expected findings).
+
 
