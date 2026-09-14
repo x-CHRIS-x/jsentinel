@@ -209,5 +209,7 @@ Manager review of commits `2afe0ff` and `e21f77f` identified remaining unverifie
      - 6 Unsupported Browser Weaknesses (no scanner rule; explicit threat models)
    - Mathematical Reconciliation: 75 + 14 + 48 = 137 observed scanner detections. Every single issue is fully accounted for.
 
-
-
+6. **Final Bounded Pre-Opus Cleanup Resolutions:**
+   - Over-broad test assertions: Resolved in `validation/pilot-manifest.test.mjs` Test 7 by replacing global rule-ID bans with precise coordinate assertions for reviewed omitted hits, ensuring future valid uses of `OWASP-A08-002` or `OWASP-A05-003` are not blocked.
+   - Terminology precision: Replaced "controlled single-flaw" with "controlled V/C dataset" in `test-samples/build-dataset-manifest.cjs` and `test-samples/dataset-manifest.json` because multi-finding expectations exist in controlled benchmark files like `V-A8-045.js`.
+   - Whitespace hygiene: Cleaned trailing blank lines across touched files for clean `git diff --check` passes.

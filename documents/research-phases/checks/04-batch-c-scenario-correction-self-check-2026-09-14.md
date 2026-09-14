@@ -355,5 +355,11 @@ This erratum establishes the authoritative counts derived directly from code sem
 | `user-auth-service.js` | 13 | 0 | 5 (L14 aws, L17 ip, L70 json, L84 log, L85 log) | 0 | 18 |
 | **Totals** | **75** | **14** | **48** | **6** | **137** |
 
-This completes the Batch C scenario ground truth corrections and evidence reconciliation. All work stops here for integrated coordinator review (`jsentinel-4`).
+### 7.4 Final Bounded Pre-Opus Cleanup
 
+Following final manager integrated inspection:
+1. **Precise Test Assertions in `validation/pilot-manifest.test.mjs`:** Replaced global prohibitions on `OWASP-A08-002` and `OWASP-A05-003` with precise file and location assertions for the reviewed omitted hits (prototype assignments with unused targets, generic diagnostic logging, static string timers, and generic JSON.parse warnings). Dynamic string timer at `api-gateway.js:73` remains explicitly asserted. Manifest inventory counts (75 expected, 14 advisories, 6 unsupported, 137 observed) are affirmed as structural manifest integrity checks rather than accuracy measurements.
+2. **Controlled Dataset Terminology:** Replaced "controlled single-flaw" wording in `test-samples/build-dataset-manifest.cjs` and `test-samples/dataset-manifest.json` with "controlled V/C dataset" because controlled benchmark files (such as `V-A8-045.js`) may carry multiple finding expectations.
+3. **Whitespace and Formatting:** Cleaned trailing blank lines at end-of-file to ensure clean passes under `git diff --check`.
+
+This completes the Batch C scenario ground truth corrections and evidence reconciliation. All work stops here for integrated coordinator review (`jsentinel-4`).

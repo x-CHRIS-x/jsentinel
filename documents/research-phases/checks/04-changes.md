@@ -229,9 +229,13 @@ Following manager review of commits `2afe0ff` and `e21f77f`, further bounded cor
    - 6 Unsupported Browser Weaknesses (no scanner rule; explicit threat models)
    - Total observed scanner detections: exactly 137 (75 + 14 + 48 = 137).
 
-## 11. Workflow Stopping Point
+## 11. Final Bounded Pre-Opus Cleanup
 
-This completes Phase 04 Batch C bounded ground truth corrections. All work stops here for integrated manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed. No claims of completion or acceptance are made prior to manager review.
+Following manager review of the reconciled evidence:
+1. **Refined Test Assertions:** Replaced global prohibitions on `OWASP-A08-002` and `OWASP-A05-003` in `validation/pilot-manifest.test.mjs` Test 7 with precise assertions for reviewed omitted hits (prototype assignments with unused targets, generic diagnostic logging, static string timers, and generic JSON.parse warnings). Retained explicit check for dynamic timer at `api-gateway.js:73`.
+2. **Controlled Dataset Terminology:** Replaced "controlled single-flaw" phrasing with "controlled V/C dataset" in `test-samples/build-dataset-manifest.cjs` and `test-samples/dataset-manifest.json` because controlled files like `V-A8-045.js` carry multiple expected findings.
+3. **Clean Diffs:** Addressed trailing blank lines at EOF to ensure clean passes under `git diff --check`.
 
+## 12. Workflow Stopping Point
 
-
+This completes Phase 04 Batch C bounded ground truth corrections and final pre-Opus cleanup. All work stops here for integrated manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed. No claims of completion or acceptance are made prior to manager review.
