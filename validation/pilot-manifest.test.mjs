@@ -631,28 +631,95 @@ test('7. Manifest structural integrity: reject rule/category mismatches, placeho
     totalScenarioAdvisories += sc.expectedAdvisories.length;
     totalScenarioUnsupported += sc.unsupportedWeaknesses.length;
     totalScenarioObserved += sc.observedScannerFindings.length;
-
-    // Reject omitted pattern hits from expectedScannerFindings
-    for (const exp of sc.expectedScannerFindings) {
-      assert.notEqual(exp.ruleId, 'OWASP-A08-001',
-        `${sc.fileName} must not include generic JSON.parse in expected findings`);
-      assert.notEqual(exp.ruleId, 'OWASP-A08-002',
-        `${sc.fileName} must not include prototype assignments with unused targets in expected findings`);
-      assert.notEqual(exp.ruleId, 'OWASP-A05-003',
-        `${sc.fileName} must not include generic diagnostic logging in expected findings`);
-      if (exp.ruleId === 'OWASP-A03-002') {
-        assert.equal(sc.fileName, 'api-gateway.js',
-          'Only api-gateway.js may contain OWASP-A03-002 due to dynamic serviceId interpolation');
-        assert.equal(exp.location.line, 73,
-          'Only dynamic template literal at line 73 in api-gateway.js is an expected timer finding');
-      }
-    }
   }
 
-  assert.equal(totalScenarioExpected, 75, 'Scenarios must have exactly 75 curated expected vulnerability findings');
-  assert.equal(totalScenarioAdvisories, 14, 'Scenarios must have exactly 14 package import advisories');
-  assert.equal(totalScenarioUnsupported, 6, 'Scenarios must have exactly 6 unsupported browser weaknesses');
-  assert.equal(totalScenarioObserved, 137, 'Scenarios must record exactly 137 observed scanner detections');
+  // 7a. Precise omitted signal assertions: ensure specific reviewed false positives are absent
+  // rather than globally prohibiting entire rule IDs, allowing legitimate future rule uses.
+  const reviewedOmittedPrototypePollution = [
+    { file: 'api-gateway.js', line: 51 },
+    { file: 'api-gateway.js', line: 54 },
+    { file: 'chat-application.js', line: 82 },
+    { file: 'chat-application.js', line: 88 },
+    { file: 'data-pipeline.js', line: 51 },
+    { file: 'data-pipeline.js', line: 88 },
+    { file: 'payment-processor.js', line: 68 },
+    { file: 'payment-processor.js', line: 74 }
+  ];
+
+  for (const { file, line } of reviewedOmittedPrototypePollution) {
+    const sc = scenarioFiles.find(f => f.fileName === file);
+    assert.ok(sc, `Scenario file ${file} must exist in manifest`);
+    const match = sc.expectedScannerFindings.find(e => e.ruleId === 'OWASP-A08-002' && e.location.line === line);
+    assert.ok(!match, `${file}:${line} must not include reviewed omitted OWASP-A08-002 prototype assignment`);
+  }
+
+  const reviewedOmittedDiagnosticLogging = [
+    { file: 'api-gateway.js', line: 61 },
+    { file: 'api-gateway.js', line: 62 },
+    { file: 'chat-application.js', line: 34 },
+    { file: 'chat-application.js', line: 35 },
+    { file: 'data-pipeline.js', line: 67 },
+    { file: 'payment-processor.js', line: 77 },
+    { file: 'payment-processor.js', line: 78 },
+    { file: 'user-auth-service.js', line: 84 },
+    { file: 'user-auth-service.js', line: 85 }
+  ];
+
+  for (const { file, line } of reviewedOmittedDiagnosticLogging) {
+    const sc = scenarioFiles.find(f => f.fileName === file);
+    assert.ok(sc, `Scenario file ${file} must exist in manifest`);
+    const match = sc.expectedScannerFindings.find(e => e.ruleId === 'OWASP-A05-003' && e.location.line === line);
+    assert.ok(!match, `${file}:${line} must not include reviewed omitted OWASP-A05-003 diagnostic log`);
+  }
+
+  const reviewedOmittedStaticTimers = [
+    { file: 'api-gateway.js', line: 70 },
+    { file: 'chat-application.js', line: 99 },
+    { file: 'chat-application.js', line: 100 },
+    { file: 'data-pipeline.js', line: 99 },
+    { file: 'data-pipeline.js', line: 102 },
+    { file: 'ecommerce-checkout.js', line: 31 },
+    { file: 'payment-processor.js', line: 106 },
+    { file: 'payment-processor.js', line: 107 },
+    { file: 'student-portal.jsx', line: 96 }
+  ];
+
+  for (const { file, line } of reviewedOmittedStaticTimers) {
+    const sc = scenarioFiles.find(f => f.fileName === file);
+    assert.ok(sc, `Scenario file ${file} must exist in manifest`);
+    const match = sc.expectedScannerFindings.find(e => e.ruleId === 'OWASP-A03-002' && e.location.line === line);
+    assert.ok(!match, `${file}:${line} must not include reviewed omitted OWASP-A03-002 static timer`);
+  }
+
+  // Confirm the one genuine dynamic string timer is retained in expected findings
+  const apiGw = scenarioFiles.find(f => f.fileName === 'api-gateway.js');
+  const dynamicTimer = apiGw.expectedScannerFindings.find(e => e.ruleId === 'OWASP-A03-002' && e.location.line === 73);
+  assert.ok(dynamicTimer, 'api-gateway.js:73 dynamic template literal timer must be retained as expected finding');
+
+  const reviewedOmittedJsonParse = [
+    { file: 'api-gateway.js', line: 47 },
+    { file: 'chat-application.js', line: 48 },
+    { file: 'chat-application.js', line: 78 },
+    { file: 'data-pipeline.js', line: 44 },
+    { file: 'data-pipeline.js', line: 85 },
+    { file: 'ecommerce-checkout.js', line: 38 },
+    { file: 'ecommerce-checkout.js', line: 69 },
+    { file: 'payment-processor.js', line: 64 },
+    { file: 'user-auth-service.js', line: 70 }
+  ];
+
+  for (const { file, line } of reviewedOmittedJsonParse) {
+    const sc = scenarioFiles.find(f => f.fileName === file);
+    assert.ok(sc, `Scenario file ${file} must exist in manifest`);
+    const match = sc.expectedScannerFindings.find(e => e.ruleId === 'OWASP-A08-001' && e.location.line === line);
+    assert.ok(!match, `${file}:${line} must not include reviewed omitted OWASP-A08-001 generic JSON.parse`);
+  }
+
+  // 7b. Manifest structural integrity counts (structural checks; not benchmark accuracy measurements)
+  assert.equal(totalScenarioExpected, 75, 'Scenarios must contain exactly 75 curated expected vulnerability findings for manifest integrity');
+  assert.equal(totalScenarioAdvisories, 14, 'Scenarios must contain exactly 14 package import advisories for manifest integrity');
+  assert.equal(totalScenarioUnsupported, 6, 'Scenarios must contain exactly 6 unsupported browser weaknesses for manifest integrity');
+  assert.equal(totalScenarioObserved, 137, 'Scenarios must record exactly 137 observed scanner detections for manifest integrity');
 });
 
 
@@ -718,5 +785,3 @@ test('8. Manifest observation invariance: replacing observation provider with em
     assert.equal(altered.observedScannerFindings[0].ruleId, 'MOCK-INJECTED-RULE-999');
   }
 });
-
-

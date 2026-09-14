@@ -2106,7 +2106,7 @@ function buildManifest({ scanner = scanCode } = {}) {
       securityGroundTruth: {
         isVulnerable: true,
         flawType: 'Multiple (simulated browser multi-flaw application workload)',
-        rationale: 'Composite simulated application workload containing multiple authentic browser security vulnerabilities across OWASP categories, maintained separately from the controlled single-flaw confusion matrix.',
+        rationale: 'Composite simulated application workload containing multiple authentic browser security vulnerabilities across OWASP categories, maintained separately from the controlled V/C dataset confusion matrix.',
         sourceReferences: sc.refs
       },
       threatModelAndAssumptions: sc.threatModelAndAssumptions,
@@ -2115,7 +2115,7 @@ function buildManifest({ scanner = scanCode } = {}) {
       unsupportedWeaknesses: sc.unsupportedWeaknesses,
       observedScannerFindings: observedFindings,
       developmentUse: true,
-      developmentUseRationale: 'Simulated multi-flaw browser application workload adapted in Phase 04 Batch C from baseline regression suite; evaluated separately from controlled single-flaw V/C benchmark.',
+      developmentUseRationale: 'Simulated multi-flaw browser application workload adapted in Phase 04 Batch C from baseline regression suite; evaluated separately from the controlled V/C dataset benchmark.',
       reviewStatus: {
         coverage: 'scenario-reviewed',
         aiReviewer: 'Agy (Gemini 3.8 Flash High)',
