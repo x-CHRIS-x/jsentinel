@@ -120,14 +120,59 @@ Following manager inspection of commit `089b864`, bounded corrections were appli
 | `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
 | `npm run build` | Build Vite web application bundle | 0 | Built in 2.25s; 233 modules transformed. |
 
-## 6. Disclosed Unrun Checks (NOT RUN)
+## 7. Phase 04 Batch C: Scenario Adaptation, Decoupled Expectations, and Dataset Distribution
 
-1. Live browser DOM event execution and visual rendering: **NOT RUN**. Unit tests verify isolated VM execution and data transport to sink properties.
-2. Formal accuracy measurement or benchmark scoring: **NOT RUN**. Reserved for Phase 05 and Phase 07.
-3. Phase 05 evaluator execution: **NOT RUN**. Evaluator prototype scripts execute after dataset freeze.
-4. Eight simulated browser scenarios: **NOT RUN** / **NOT MODIFIED**. Preserved byte-identical pending Batch C.
-5. Push to remote or branch merge: **NOT RUN**. All branches remain local in AO workspace.
+Phase 04 Batch C completed the final segment of Phase 04 per `04-dataset-and-manifest.md`:
 
-## 7. Workflow Stopping Point
+1. **Simulated Application Scenarios Adapted to Browser Workloads:**
+   - Evaluated the 8 simulated scenarios in `test-samples/samples/`. Removed Express server imports, server listeners (`app.listen()`), and server CORS middleware.
+   - Adapted each file into a realistic browser module while preserving every intended client security flaw:
+     - `admin-dashboard.jsx`: React dashboard with DOM XSS, role checks, and open redirects.
+     - `api-gateway.js`: Browser API request router with JWT handling, regex DoS, and redirect hooks.
+     - `chat-application.js`: Browser WebSocket chat client with event markup rendering and script injection.
+     - `data-pipeline.js`: Client data analytics pipeline with batch worker dispatching and prototype pollution.
+     - `ecommerce-checkout.js`: Multi-step checkout workflow with synthetic client tokens and promo code `eval()`.
+     - `payment-processor.js`: Browser payment form SDK with iframe postMessage bridges and dynamic script tags.
+     - `student-portal.jsx`: React portal with grade rendering, unvalidated links, and role checks.
+     - `user-auth-service.js`: Browser authentication client managing password reset flows and tokens.
+   - Both AST scanner engines parse all 8 scenarios cleanly with zero syntax errors.
 
-This completes Phase 04 Batch B bounded corrections. All work stops here for manager review (Astra coordinator) before any scenario migration (Batch C) begins. No evaluator, freeze, accuracy benchmark, Chapter editing, or push was performed.
+2. **Independent Canonical Scenario Sources and Generator Synchronization:**
+   - Created `test-samples/scenario-definitions.cjs` defining templates, browser contexts, threat models, and expectations.
+   - Updated `test-samples/generate-samples.cjs` to produce all 116 files with Windows CRLF normalization.
+   - Verified that `node test-samples/generate-samples.cjs --check` reports 116 matches and 0 mismatches.
+
+3. **Curated Scenario Expectations in Manifest:**
+   - Curated 123 distinct expected vulnerability findings across all 8 scenarios with exact source coordinates and semantic descriptions.
+   - Curated 14 component-review advisories under `OWASP-A06-001`.
+   - Curated 10 unsupported browser weaknesses with explicit `ruleId: null` and `unsupported: true`.
+   - Scanner executions populate `observedScannerFindings` exclusively.
+
+4. **Manifest Observation Invariance Across All 116 Files:**
+   - Extended Test 8 in `validation/pilot-manifest.test.mjs` across all 116 files.
+   - Replacing the scanner observation provider with empty or noisy mock scanners leaves `expectedScannerFindings`, `expectedAdvisories`, `unsupportedWeaknesses`, `securityGroundTruth`, and `label` 100% invariant across all 116 files.
+
+5. **Dataset Distribution Table:**
+   - Created `test-samples/dataset-distribution.md` and `documents/research-phases/checks/04-dataset-distribution.md`.
+   - Reconciled 108 controlled files across 7 active vulnerability modules (54 V, 54 C), 0 controlled pairs in `knownVulns.js` (explained as an informational advisory module), 8 composite simulated browser scenarios, and 116 total files.
+
+6. **Controlled Sample Preservation:**
+   - All 108 controlled benchmark files remain 100% byte-identical to commit `c650be9`.
+   - Verified against `documents/research-phases/checks/04-batch-c-controlled-108-hashes.json`.
+
+## 8. Verification Commands and Exit Codes
+
+| Command Line | Purpose | Exit Code | Observed Result |
+| --- | --- | ---: | --- |
+| `node test-samples/generate-samples.cjs --check` | Verify disk samples match generator templates | 0 | Check Mode: 116 matches, 0 mismatches out of 116 checked. |
+| `node test-samples/build-dataset-manifest.cjs` | Rebuild manifest from explicit metadata | 0 | Generated 116 files (108 controlled reviewed, 8 scenarios reviewed, 0 pending). |
+| `node --test validation/pilot-manifest.test.mjs` | Run manifest, hash, VM, structural, and invariance tests | 0 | 8 of 8 tests passed (~922ms). |
+| `node --test validation/*.test.mjs validation/*.test.js validation/*.test.cjs` | Run full validation suite across repository | 0 | 48 of 48 tests passed (~4132ms, zero regressions). |
+| `npm run lint` | Run ESLint across web project | 0 | Clean pass; 0 errors, 0 warnings. |
+| `npm --prefix vscode-extension run lint` | Run ESLint across VS Code extension | 0 | Clean pass; 0 errors, 0 warnings. |
+| `npm run build` | Build Vite web application bundle | 0 | Built in 1.70s; 233 modules transformed. |
+
+## 9. Workflow Stopping Point
+
+This completes Phase 04 Batch C. All work stops here for manager review (Astra coordinator `jsentinel-4`). In accordance with research phase boundaries, no evaluator execution, dataset freeze, formal accuracy benchmark scoring, thesis chapter edits, or remote git push were performed.
+

@@ -122,4 +122,34 @@ Manifest entries, test suites, and documentation cite authoritative, stable web 
 - **A03-001 Column-Zero Coordinate Mismatch:** An unrelated `eval()` check at column zero reports column `'unknown'` in the web scanner versus column `0` in the VS Code extension. This discrepancy is inherited from Phase 01/02 and is carried forward without altering engine behavior.
 - **Client-Side Unit Test Scope:** Tests execute inside Node.js isolated VM contexts. Real browser DOM rendering, layout calculation, event loop dispatching (such as `onerror`), and live backend HTTP server enforcement were NOT RUN.
 - **Client Visibility Limitations:** Client-side JavaScript is publicly visible to end users. Simulated access controls (such as `PAIR-045` diagnostic data) demonstrate client logic flaws, but production security requires backend authorization.
-- **Scenario Migration (Batch C):** The 8 simulated browser application scenarios remain byte-identical to their baseline hashes. They are marked `pending-batch-c` with `isVulnerable: null` and are scheduled for review and migration in Phase 04 Batch C.
+
+## 7. Resolved: Phase 04 Batch C Scenario Adaptation, Decoupled Expectations, and Inventory
+
+Phase 04 Batch C resolved the remaining dataset and scenario requirements:
+
+1. **Browser Workload Scenario Adaptation:**
+   - The 8 baseline scenarios contained mixed server-side logic (Express server routing, `app.listen()`, server CORS middleware).
+   - In Batch C, all 8 scenarios were converted into authentic browser client modules (React admin dashboard, client API gateway router, WebSocket chat client, data pipeline processor, ecommerce checkout flow, browser payment SDK, React student portal, and client auth service).
+   - All server listeners and server CORS middleware were removed, while retaining all authentic client-side security weaknesses.
+   - Both AST scanner engines parse all 8 scenarios cleanly with zero syntax errors and 100% location and classification agreement.
+
+2. **Decoupled Curated Scenario Expectations:**
+   - The manifest builder now imports canonical scenario definitions from `test-samples/scenario-definitions.cjs`.
+   - Curated 123 distinct expected vulnerability findings across the 8 scenarios with canonical rule IDs, OWASP 2021 categories, severities, exact AST coordinates, and semantic weakness descriptions.
+   - Curated 14 component-review advisories for third-party client library imports under `OWASP-A06-001`.
+   - Curated 10 unsupported browser weaknesses with explicit `ruleId: null` and `unsupported: true`.
+   - Raw scanner outputs populate only `observedScannerFindings`.
+
+3. **Manifest Observation Invariance (Test 8):**
+   - Extended Test 8 to all 116 files in `dataset-manifest.json`.
+   - Confirmed that replacing the scanner observation provider with an empty or noisy mock scanner leaves `expectedScannerFindings`, `expectedAdvisories`, `unsupportedWeaknesses`, `securityGroundTruth`, and `label` 100% invariant across all 116 files.
+   - Mock scanner outputs appear exclusively in `observedScannerFindings`.
+
+4. **Preservation of 108 Controlled Files:**
+   - All 54 vulnerable and 54 clean benchmark files (108 files) were held byte-identical to starting commit `c650be9`.
+   - Hashes are verified against `04-batch-c-controlled-108-hashes.json`.
+
+5. **Dataset Distribution Table Reconciliation:**
+   - Derived the distribution table artifact (`test-samples/dataset-distribution.md` and `documents/research-phases/checks/04-dataset-distribution.md`).
+   - Reconciled 108 controlled files across 7 active vulnerability modules, 0 controlled pairs for the advisory-only `knownVulns.js` module, 8 composite simulated browser scenarios, and 116 total files.
+
