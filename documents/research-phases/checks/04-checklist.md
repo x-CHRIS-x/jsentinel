@@ -24,7 +24,7 @@ Manager: Astra coordinator. Verifier: Opus HOLD.
 | 13. Known `document.cookie`/HttpOnly issue inspected | **PASS** | Inspected and documented in `04-issues.md`; no scanner rule changes made in this batch. |
 | 14. Validation test suite verifies pilot and manifest | **PASS** | `validation/pilot-manifest.test.mjs` executes 5 test cases covering counts, hashes, manifest, parsing, and dual-scanner agreement. |
 | 15. Regression test suite passes with zero regressions | **PASS** | 45 test cases pass across all validation suites in `validation/`. |
-| 16. Two-stage commit discipline | **PENDING** | Implementation files staged and committed first, followed by evidence documentation commit. |
+| 16. Two-stage commit discipline | **PASS** | Implementation committed in `2026e50`, followed by evidence documentation committed in `fd5e278`. |
 
 ## 2. Execution Record and Exit Codes
 
