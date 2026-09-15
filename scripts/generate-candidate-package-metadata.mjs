@@ -230,6 +230,106 @@ export const loadActualRuleInventories = async (rootDir = defaultRootDir) => {
 };
 
 /**
+ * Validates scan completion, eligibility, and confusion matrix arithmetic
+ * without forcing 116 completed / 108 evaluated.
+ * Accepts honest partial and failed runs with accurate exclusions and pending status,
+ * while strictly rejecting contradictory counts.
+ *
+ * @param {string} engineName - 'web' | 'extension'
+ * @param {Object} report - Evaluation report object
+ * @param {Object} meta - Run metadata object
+ * @param {Object} [manifestCounts] - Expected manifest file counts
+ */
+export const validateEngineCounts = (
+  engineName,
+  report,
+  meta,
+  manifestCounts = { totalFiles: 116, controlledFiles: 108, scenarioFiles: 8 }
+) => {
+  const sc = report.scanCompletion || {};
+  const scen = sc.scenarioCompletion || {};
+  const ce = sc.controlledEligibility || {};
+  const eb = ce.exclusionBreakdown || {};
+  const cm = report.fileConfusionMatrix || {};
+
+  const totalFiles = manifestCounts.totalFiles || 116;
+  const controlledFiles = manifestCounts.controlledFiles || 108;
+  const scenarioFiles = manifestCounts.scenarioFiles || 8;
+
+  // 1. Overall completion arithmetic
+  if (sc.totalSamples !== totalFiles) {
+    throw new Error(`Engine "${engineName}" scanCompletion.totalSamples (${sc.totalSamples}) does not match manifest total (${totalFiles}).`);
+  }
+  if (sc.totalSamples !== (sc.attempted + sc.unattempted)) {
+    throw new Error(
+      `Engine "${engineName}" contradictory scan completion: totalSamples (${sc.totalSamples}) !== attempted (${sc.attempted}) + unattempted (${sc.unattempted}).`
+    );
+  }
+  if (sc.attempted !== (sc.completed + sc.partial + sc.failed)) {
+    throw new Error(
+      `Engine "${engineName}" contradictory attempted breakdown: attempted (${sc.attempted}) !== completed (${sc.completed}) + partial (${sc.partial}) + failed (${sc.failed}).`
+    );
+  }
+
+  // 2. Scenario completion arithmetic
+  if (scen.total !== scenarioFiles) {
+    throw new Error(`Engine "${engineName}" scenario total (${scen.total}) does not match expected (${scenarioFiles}).`);
+  }
+  if (scen.total !== (scen.attempted + scen.unattempted)) {
+    throw new Error(
+      `Engine "${engineName}" contradictory scenario total: total (${scen.total}) !== attempted (${scen.attempted}) + unattempted (${scen.unattempted}).`
+    );
+  }
+  if (scen.attempted !== (scen.completed + scen.partial + scen.failed)) {
+    throw new Error(
+      `Engine "${engineName}" contradictory scenario breakdown: attempted (${scen.attempted}) !== completed (${scen.completed}) + partial (${scen.partial}) + failed (${scen.failed}).`
+    );
+  }
+
+  // 3. Controlled eligibility arithmetic
+  if (ce.total !== controlledFiles) {
+    throw new Error(`Engine "${engineName}" controlled eligibility total (${ce.total}) does not match expected (${controlledFiles}).`);
+  }
+  if (ce.total !== (ce.eligible + ce.excluded)) {
+    throw new Error(
+      `Engine "${engineName}" contradictory controlled total: total (${ce.total}) !== eligible (${ce.eligible}) + excluded (${ce.excluded}).`
+    );
+  }
+  const breakdownSum = (eb.EXCLUDED_UNATTEMPTED || 0) +
+                       (eb.EXCLUDED_INCOMPLETE_PARTIAL || 0) +
+                       (eb.EXCLUDED_INCOMPLETE_FAILED || 0) +
+                       (eb.EXCLUDED_INVALID_LABEL || 0);
+  if (ce.excluded !== breakdownSum) {
+    throw new Error(
+      `Engine "${engineName}" contradictory exclusion breakdown: excluded (${ce.excluded}) !== breakdown sum (${breakdownSum}).`
+    );
+  }
+
+  // 4. File-level confusion matrix arithmetic and eligibility alignment
+  const matrixSum = (cm.TP || 0) + (cm.TN || 0) + (cm.FP || 0) + (cm.FN || 0);
+  if (cm.N !== matrixSum) {
+    throw new Error(
+      `Engine "${engineName}" contradictory confusion matrix: N (${cm.N}) !== TP + TN + FP + FN (${matrixSum}).`
+    );
+  }
+  if (cm.N !== ce.eligible) {
+    throw new Error(
+      `Engine "${engineName}" confusion matrix N (${cm.N}) does not match controlled eligible count (${ce.eligible}).`
+    );
+  }
+
+  // 5. Raw results and metadata files count
+  const rawCount = report.rawScanResults?.length;
+  const metaCount = meta.files?.length;
+  if (rawCount !== totalFiles) {
+    throw new Error(`Engine "${engineName}" rawScanResults count (${rawCount}) does not match expected (${totalFiles}).`);
+  }
+  if (metaCount !== totalFiles) {
+    throw new Error(`Engine "${engineName}" metadata files count (${metaCount}) does not match expected (${totalFiles}).`);
+  }
+};
+
+/**
  * Ingests, binds, and strictly validates benchmark run reports from disk.
  * Enforces provenance:
  * - Engine binding: rejects cross-engine artifacts.
@@ -299,40 +399,124 @@ export const ingestRunReports = (runDir, options = {}) => {
     }
   }
 
-  // 5. Sample hash verification if samplesDir provided
-  if (options.samplesDir && fs.existsSync(options.samplesDir)) {
-    for (const fileEntry of (webMeta.files || []).slice(0, 5)) {
-      const diskPath = path.join(options.samplesDir, fileEntry.fileName);
-      if (fs.existsSync(diskPath)) {
-        const diskHash = sha256(diskPath);
-        if (diskHash !== fileEntry.sha256) {
-          throw new Error(`Stale run: sample file "${fileEntry.fileName}" on disk hash ${diskHash} differs from run metadata hash ${fileEntry.sha256}.`);
-        }
-      }
+  // 4b. Manifest digest verification if manifest file path is available
+  if (options.manifestPath && fs.existsSync(options.manifestPath)) {
+    const expectedManifestDigest = sha256(options.manifestPath);
+    if (webMeta.manifestSha256 && webMeta.manifestSha256 !== expectedManifestDigest) {
+      throw new Error(
+        `Manifest digest mismatch: web run metadata has "${webMeta.manifestSha256}", expected "${expectedManifestDigest}".`
+      );
+    }
+    if (extMeta.manifestSha256 && extMeta.manifestSha256 !== expectedManifestDigest) {
+      throw new Error(
+        `Manifest digest mismatch: extension run metadata has "${extMeta.manifestSha256}", expected "${expectedManifestDigest}".`
+      );
     }
   }
 
-  // 6. Metric count consistency: 116 attempted, 116 completed, 108 evaluated
-  const validateEngineCounts = (engineName, report, meta) => {
-    const attempted = report.scanCompletion?.attempted ?? report.scanCompletion?.totalAttempted;
-    const completed = report.scanCompletion?.completed;
-    const evaluated = report.fileConfusionMatrix?.N ?? report.fileConfusionMatrix?.totalEvaluated;
-    const rawCount = report.rawScanResults?.length;
-    const metaCount = meta.files?.length;
+  // 4c. Report runId to run_metadata runId consistency check
+  if (webReport.metadata?.runId && webMeta.runId && webReport.metadata.runId !== webMeta.runId) {
+    throw new Error(`Run ID mismatch in web run: report has "${webReport.metadata.runId}", metadata has "${webMeta.runId}".`);
+  }
+  if (extReport.metadata?.runId && extMeta.runId && extReport.metadata.runId !== extMeta.runId) {
+    throw new Error(`Run ID mismatch in extension run: report has "${extReport.metadata.runId}", metadata has "${extMeta.runId}".`);
+  }
 
-    if (attempted !== 116 || completed !== 116) {
-      throw new Error(`Engine "${engineName}" incomplete scan counts: attempted=${attempted}, completed=${completed} (expected 116).`);
+  // 5. Complete 116 sample verification across BOTH engines against manifest and disk
+  const manifestFiles = options.manifest?.files || [];
+  const expectedTotalFiles = manifestFiles.length > 0 ? manifestFiles.length : 116;
+
+  const validateEngineFiles = (engineName, meta) => {
+    const files = meta.files || [];
+    if (files.length !== expectedTotalFiles) {
+      throw new Error(
+        `Engine "${engineName}" sample files count mismatch: expected ${expectedTotalFiles}, found ${files.length}.`
+      );
     }
-    if (evaluated !== 108) {
-      throw new Error(`Engine "${engineName}" invalid controlled evaluated count: ${evaluated} (expected 108).`);
+
+    const seenSampleIds = new Set();
+    const seenFileNames = new Set();
+
+    for (let idx = 0; idx < files.length; idx++) {
+      const fileEntry = files[idx];
+      if (!fileEntry.fileName || !fileEntry.sampleId) {
+        throw new Error(`Engine "${engineName}" file entry at index ${idx} missing fileName or sampleId.`);
+      }
+      if (seenSampleIds.has(fileEntry.sampleId)) {
+        throw new Error(`Engine "${engineName}" duplicate sampleId detected: "${fileEntry.sampleId}".`);
+      }
+      seenSampleIds.add(fileEntry.sampleId);
+
+      if (seenFileNames.has(fileEntry.fileName)) {
+        throw new Error(`Engine "${engineName}" duplicate fileName detected: "${fileEntry.fileName}".`);
+      }
+      seenFileNames.add(fileEntry.fileName);
+
+      // Verify against manifest if manifestFiles are provided
+      if (manifestFiles.length > 0) {
+        const manifestEntry = manifestFiles.find(m => m.fileName === fileEntry.fileName);
+        if (!manifestEntry) {
+          throw new Error(`Engine "${engineName}" contains unexpected sample not in manifest: "${fileEntry.fileName}".`);
+        }
+        if (manifestEntry.sampleId !== fileEntry.sampleId) {
+          throw new Error(
+            `Engine "${engineName}" sampleId mismatch for "${fileEntry.fileName}": ` +
+            `metadata has "${fileEntry.sampleId}", manifest has "${manifestEntry.sampleId}".`
+          );
+        }
+      }
+
+      // Verify against disk if samplesDir is provided
+      if (options.samplesDir && fs.existsSync(options.samplesDir)) {
+        const diskPath = path.join(options.samplesDir, fileEntry.fileName);
+        if (!fs.existsSync(diskPath)) {
+          throw new Error(`Engine "${engineName}" sample file "${fileEntry.fileName}" not found on disk: ${diskPath}`);
+        }
+        const diskHash = sha256(diskPath);
+        if (diskHash !== fileEntry.sha256) {
+          throw new Error(
+            `Engine "${engineName}" sample hash mismatch for "${fileEntry.fileName}" (index ${idx}): ` +
+            `disk hash ${diskHash} differs from metadata hash ${fileEntry.sha256}.`
+          );
+        }
+      }
     }
-    if (rawCount !== 116 || metaCount !== 116) {
-      throw new Error(`Engine "${engineName}" raw scan count mismatch: rawScanResults=${rawCount}, metaFiles=${metaCount} (expected 116).`);
+
+    // Verify no manifest files were missed
+    if (manifestFiles.length > 0) {
+      for (const mEntry of manifestFiles) {
+        if (!seenFileNames.has(mEntry.fileName)) {
+          throw new Error(`Engine "${engineName}" missing expected manifest sample: "${mEntry.fileName}".`);
+        }
+      }
     }
   };
 
-  validateEngineCounts('web', webReport, webMeta);
-  validateEngineCounts('extension', extReport, extMeta);
+  validateEngineFiles('web', webMeta);
+  validateEngineFiles('extension', extMeta);
+
+  // 5b. Cross-engine sample hash agreement: web and extension must observe identical file hashes
+  const extFilesMap = new Map((extMeta.files || []).map(f => [f.fileName, f.sha256]));
+  for (const wFile of webMeta.files || []) {
+    const extHash = extFilesMap.get(wFile.fileName);
+    if (extHash && extHash !== wFile.sha256) {
+      throw new Error(
+        `Cross-engine sample hash mismatch for "${wFile.fileName}": web="${wFile.sha256}", extension="${extHash}".`
+      );
+    }
+  }
+
+  // 6. Dynamic metric count and arithmetic validation
+  const manifestCounts = options.manifest
+    ? {
+        totalFiles: expectedTotalFiles,
+        controlledFiles: manifestFiles.filter(f => f.label !== 'scenario').length,
+        scenarioFiles: manifestFiles.filter(f => f.label === 'scenario').length
+      }
+    : { totalFiles: 116, controlledFiles: 108, scenarioFiles: 8 };
+
+  validateEngineCounts('web', webReport, webMeta, manifestCounts);
+  validateEngineCounts('extension', extReport, extMeta, manifestCounts);
 
   // 7. Verify CSV artifacts exist and are non-empty
   const csvFiles = ['metrics_summary.csv', 'file_results.csv', 'findings_details.csv'];
@@ -416,7 +600,9 @@ export const buildCandidatePackageMetadata = async (options = {}) => {
   let runDir = options.runDir;
   if (!runDir) {
     const runsBase = path.join(rootDir, 'validation', 'evaluator', 'runs');
-    if (fs.existsSync(path.join(runsBase, 'phase05-batch-b-corr1', 'web'))) {
+    if (fs.existsSync(path.join(runsBase, 'phase05-batch-b-corr2', 'web'))) {
+      runDir = path.join(runsBase, 'phase05-batch-b-corr2');
+    } else if (fs.existsSync(path.join(runsBase, 'phase05-batch-b-corr1', 'web'))) {
       runDir = path.join(runsBase, 'phase05-batch-b-corr1');
     } else if (fs.existsSync(path.join(runsBase, 'phase05-batch-b', 'web'))) {
       runDir = path.join(runsBase, 'phase05-batch-b');
@@ -511,7 +697,7 @@ export const buildCandidatePackageMetadata = async (options = {}) => {
   }
 
   // 7. Ingest and validate actual run reports
-  const runs = ingestRunReports(runDir, { manifest, samplesDir, rootDir });
+  const runs = ingestRunReports(runDir, { manifest, manifestPath, samplesDir, rootDir });
 
   // 8. Assemble package metadata with explicit distinct commit provenance
   const packageMetadata = {

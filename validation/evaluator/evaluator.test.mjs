@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
 
 import {
   JSentinelEvaluator,
@@ -25,6 +28,7 @@ import {
   validateAndDigestManifest,
   buildCandidatePackageMetadata,
   ingestRunReports,
+  validateEngineCounts,
   loadActualRuleInventories
 } from '../../scripts/generate-candidate-package-metadata.mjs';
 
@@ -811,7 +815,7 @@ test('31. Finding Adjudication Document Validation: rejects duplicate, unknown, 
 
 test('32. Adjudication Template Roundtrip and Scoping', () => {
   const evalResult = {
-    metadata: { scannerEngine: 'web', evaluatorVersion: '1.0.0', datasetManifestVersion: '1.0.0' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-32', evaluatorVersion: '1.0.0', datasetManifestVersion: '1.0.0' },
     fileResults: [
       // 1. Controlled completed with matched target
       {
@@ -1578,6 +1582,297 @@ test('46. Duplicate Policy Enum Validation: rejects invalid duplicate eligibilit
   const valRes = validateAdjudicationDocument(template, evalResult);
   assert.equal(valRes.valid, false);
   assert.ok(valRes.errors.some(e => e.includes('invalid duplicateEligibility')));
+});
+
+test('47. Sample Provenance Verification Beyond Index 5 and Extension-Only Mismatch', () => {
+  const manifest = JSON.parse(fs.readFileSync('test-samples/dataset-manifest.json', 'utf8'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jsentinel-prov-test-'));
+
+  try {
+    const baseRun = 'validation/evaluator/runs/phase05-batch-b';
+    fs.mkdirSync(path.join(tempDir, 'web'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'extension'), { recursive: true });
+    for (const f of ['evaluation_report.json', 'run_metadata.json', 'metrics_summary.csv', 'file_results.csv', 'findings_details.csv']) {
+      fs.copyFileSync(path.join(baseRun, 'web', f), path.join(tempDir, 'web', f));
+      fs.copyFileSync(path.join(baseRun, 'extension', f), path.join(tempDir, 'extension', f));
+    }
+
+    // Case A: Mutate sample hash at index 50 in web metadata
+    const webMeta = JSON.parse(fs.readFileSync(path.join(tempDir, 'web', 'run_metadata.json'), 'utf8'));
+    assert.ok(webMeta.files.length > 50, 'Must have > 50 files to test beyond index 5');
+    const originalHash = webMeta.files[50].sha256;
+    webMeta.files[50].sha256 = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    fs.writeFileSync(path.join(tempDir, 'web', 'run_metadata.json'), JSON.stringify(webMeta, null, 2), 'utf8');
+
+    assert.throws(
+      () => ingestRunReports(tempDir, { manifest, samplesDir: 'test-samples/samples' }),
+      /Engine "web" sample hash mismatch for ".*" \(index 50\)|Cross-engine sample hash mismatch/
+    );
+
+    // Restore web hash
+    webMeta.files[50].sha256 = originalHash;
+    fs.writeFileSync(path.join(tempDir, 'web', 'run_metadata.json'), JSON.stringify(webMeta, null, 2), 'utf8');
+
+    // Case B: Extension-only mismatch at index 12 (web intact)
+    const extMeta = JSON.parse(fs.readFileSync(path.join(tempDir, 'extension', 'run_metadata.json'), 'utf8'));
+    extMeta.files[12].sha256 = 'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210';
+    fs.writeFileSync(path.join(tempDir, 'extension', 'run_metadata.json'), JSON.stringify(extMeta, null, 2), 'utf8');
+
+    assert.throws(
+      () => ingestRunReports(tempDir, { manifest, samplesDir: 'test-samples/samples' }),
+      /Engine "extension" sample hash mismatch for ".*" \(index 12\)|Cross-engine sample hash mismatch/
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('48. Legacy Unbound Evaluation Result Rejection: missing metadata.runId strictly rejected', () => {
+  const unboundResult = {
+    metadata: { scannerEngine: 'web', runId: null, datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'V-A1-001',
+        fileName: 'V-A1-001.js',
+        label: 'vulnerable',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [{ expected: { ruleId: 'OWASP-A01-001' }, actualFinding: { ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 } } }],
+          unmatched: [],
+          duplicates: []
+        }
+      }
+    ],
+    findingPrecisionMetrics: { matchedFindings: 1, unmatchedFindings: 0, duplicateFindings: 0 }
+  };
+
+  // 1. generateAdjudicationTemplate throws
+  assert.throws(
+    () => generateAdjudicationTemplate(unboundResult),
+    /evaluationResult lacks required non-empty "metadata.runId"/
+  );
+
+  // 2. validateAdjudicationDocument returns valid: false with descriptive error
+  const dummyDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    scannerEngine: 'web',
+    evaluationRunId: 'run-legacy',
+    evaluationResultDigest: 'abc123',
+    adjudications: []
+  };
+  const valRes = validateAdjudicationDocument(dummyDoc, unboundResult);
+  assert.equal(valRes.valid, false);
+  assert.ok(valRes.errors.some(e => e.includes('missing required non-empty "metadata.runId"')));
+
+  // 3. applyAdjudicationToEvaluation throws
+  assert.throws(
+    () => applyAdjudicationToEvaluation(unboundResult, dummyDoc),
+    /evaluationResult lacks required non-empty "metadata.runId"/
+  );
+});
+
+test('49. Identical Findings in Distinct Runs Rejected via Public API', () => {
+  const fileResultFixture = [
+    {
+      sampleId: 'C-A1-001',
+      fileName: 'C-A1-001.js',
+      label: 'clean',
+      scanStatus: 'completed',
+      hasScanError: false,
+      vulnerabilities: {
+        matched: [],
+        unmatched: [{ actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 }, severity: 'HIGH', description: 'Eval with argument' } }],
+        duplicates: []
+      }
+    }
+  ];
+
+  const run1 = {
+    metadata: { scannerEngine: 'web', runId: 'run-alpha-001', evaluatorVersion: '1.0.0', datasetManifestVersion: '1.0.0' },
+    fileResults: fileResultFixture,
+    findingPrecisionMetrics: { matchedFindings: 0, unmatchedFindings: 1, duplicateFindings: 0 }
+  };
+
+  const run2 = {
+    metadata: { scannerEngine: 'web', runId: 'run-beta-002', evaluatorVersion: '1.0.0', datasetManifestVersion: '1.0.0' },
+    fileResults: fileResultFixture, // Exactly identical findings!
+    findingPrecisionMetrics: { matchedFindings: 0, unmatchedFindings: 1, duplicateFindings: 0 }
+  };
+
+  // Generate template for Run 1
+  const template1 = generateAdjudicationTemplate(run1);
+  assert.equal(template1.evaluationRunId, 'run-alpha-001');
+
+  // Attempting to validate or apply template1 against run2 via public API must fail
+  const validation = validateAdjudicationDocument(template1, run2);
+  assert.equal(validation.valid, false);
+  assert.ok(
+    validation.errors.some(e => e.includes('Evaluation run ID mismatch') || e.includes('Evaluation result digest mismatch')),
+    'Must report run ID mismatch or digest mismatch'
+  );
+
+  assert.throws(
+    () => applyAdjudicationToEvaluation(run2, template1),
+    /Evaluation run ID mismatch|Evaluation result digest mismatch/
+  );
+});
+
+test('50. Partial and Failed Fixture Provenance: accepted with accurate arithmetic, exclusions, and N', () => {
+  const honestPartialReport = {
+    scanCompletion: {
+      totalSamples: 116,
+      attempted: 116,
+      unattempted: 0,
+      completed: 113,
+      partial: 2,
+      failed: 1,
+      scenarioCompletion: {
+        total: 8,
+        attempted: 8,
+        unattempted: 0,
+        completed: 7,
+        partial: 1,
+        failed: 0
+      },
+      controlledEligibility: {
+        total: 108,
+        eligible: 106,
+        excluded: 2,
+        exclusionBreakdown: {
+          EXCLUDED_SCENARIO: 8,
+          EXCLUDED_UNATTEMPTED: 0,
+          EXCLUDED_INCOMPLETE_PARTIAL: 1,
+          EXCLUDED_INCOMPLETE_FAILED: 1,
+          EXCLUDED_INVALID_LABEL: 0
+        }
+      }
+    },
+    fileConfusionMatrix: {
+      TP: 53,
+      TN: 53,
+      FP: 0,
+      FN: 0,
+      N: 106
+    },
+    rawScanResults: new Array(116).fill({ status: 'completed' })
+  };
+
+  const honestMeta = {
+    files: new Array(116).fill({ fileName: 'test.js', sampleId: 'T-1', sha256: 'hash' })
+  };
+
+  // Must not throw!
+  assert.doesNotThrow(() => {
+    validateEngineCounts('web', honestPartialReport, honestMeta, {
+      totalFiles: 116,
+      controlledFiles: 108,
+      scenarioFiles: 8
+    });
+  });
+});
+
+test('51. Contradictory Count Rejection: validateEngineCounts rejects arithmetic inconsistencies', () => {
+  const baseValidReport = {
+    scanCompletion: {
+      totalSamples: 116,
+      attempted: 116,
+      unattempted: 0,
+      completed: 116,
+      partial: 0,
+      failed: 0,
+      scenarioCompletion: { total: 8, attempted: 8, unattempted: 0, completed: 8, partial: 0, failed: 0 },
+      controlledEligibility: {
+        total: 108,
+        eligible: 108,
+        excluded: 0,
+        exclusionBreakdown: { EXCLUDED_UNATTEMPTED: 0, EXCLUDED_INCOMPLETE_PARTIAL: 0, EXCLUDED_INCOMPLETE_FAILED: 0, EXCLUDED_INVALID_LABEL: 0 }
+      }
+    },
+    fileConfusionMatrix: { TP: 54, TN: 54, FP: 0, FN: 0, N: 108 },
+    rawScanResults: new Array(116).fill({})
+  };
+  const baseMeta = { files: new Array(116).fill({}) };
+
+  // A. Contradictory completion arithmetic: attempted != completed + partial + failed
+  const badCompletion = structuredClone(baseValidReport);
+  badCompletion.scanCompletion.completed = 110;
+  assert.throws(
+    () => validateEngineCounts('web', badCompletion, baseMeta),
+    /contradictory attempted breakdown/
+  );
+
+  // B. Contradictory matrix sum: N != TP + TN + FP + FN
+  const badMatrixSum = structuredClone(baseValidReport);
+  badMatrixSum.fileConfusionMatrix.N = 100;
+  assert.throws(
+    () => validateEngineCounts('web', badMatrixSum, baseMeta),
+    /contradictory confusion matrix: N/
+  );
+
+  // C. Contradictory eligibility alignment: matrix N != controlled eligible
+  const badEligibleAlign = structuredClone(baseValidReport);
+  badEligibleAlign.scanCompletion.controlledEligibility.eligible = 105;
+  badEligibleAlign.scanCompletion.controlledEligibility.excluded = 3;
+  badEligibleAlign.scanCompletion.controlledEligibility.exclusionBreakdown.EXCLUDED_INCOMPLETE_FAILED = 3;
+  assert.throws(
+    () => validateEngineCounts('web', badEligibleAlign, baseMeta),
+    /confusion matrix N .* does not match controlled eligible count/
+  );
+
+  // D. Contradictory controlled total: total != eligible + excluded
+  const badControlledTotal = structuredClone(baseValidReport);
+  badControlledTotal.scanCompletion.controlledEligibility.eligible = 100;
+  badControlledTotal.scanCompletion.controlledEligibility.excluded = 0;
+  badControlledTotal.fileConfusionMatrix.N = 100; // avoid triggering matrix N mismatch
+  badControlledTotal.fileConfusionMatrix.TP = 50;
+  badControlledTotal.fileConfusionMatrix.TN = 50;
+  assert.throws(
+    () => validateEngineCounts('web', badControlledTotal, baseMeta),
+    /contradictory controlled total/
+  );
+});
+
+test('52. Complete 116 Sample Duplicate and Missing Detection Across Engines', () => {
+  const manifest = JSON.parse(fs.readFileSync('test-samples/dataset-manifest.json', 'utf8'));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jsentinel-dup-test-'));
+
+  try {
+    const baseRun = 'validation/evaluator/runs/phase05-batch-b';
+    fs.mkdirSync(path.join(tempDir, 'web'), { recursive: true });
+    fs.mkdirSync(path.join(tempDir, 'extension'), { recursive: true });
+    for (const f of ['evaluation_report.json', 'run_metadata.json', 'metrics_summary.csv', 'file_results.csv', 'findings_details.csv']) {
+      fs.copyFileSync(path.join(baseRun, 'web', f), path.join(tempDir, 'web', f));
+      fs.copyFileSync(path.join(baseRun, 'extension', f), path.join(tempDir, 'extension', f));
+    }
+
+    // A. Duplicate sampleId in web
+    const webMeta = JSON.parse(fs.readFileSync(path.join(tempDir, 'web', 'run_metadata.json'), 'utf8'));
+    const originalSampleId = webMeta.files[1].sampleId;
+    webMeta.files[1].sampleId = webMeta.files[0].sampleId;
+    fs.writeFileSync(path.join(tempDir, 'web', 'run_metadata.json'), JSON.stringify(webMeta, null, 2), 'utf8');
+
+    assert.throws(
+      () => ingestRunReports(tempDir, { manifest }),
+      /duplicate sampleId detected/
+    );
+
+    // Restore web sampleId
+    webMeta.files[1].sampleId = originalSampleId;
+    fs.writeFileSync(path.join(tempDir, 'web', 'run_metadata.json'), JSON.stringify(webMeta, null, 2), 'utf8');
+
+    // B. Missing sample in extension (115 files instead of 116)
+    const extMeta = JSON.parse(fs.readFileSync(path.join(tempDir, 'extension', 'run_metadata.json'), 'utf8'));
+    extMeta.files = extMeta.files.slice(0, 115);
+    fs.writeFileSync(path.join(tempDir, 'extension', 'run_metadata.json'), JSON.stringify(extMeta, null, 2), 'utf8');
+
+    assert.throws(
+      () => ingestRunReports(tempDir, { manifest }),
+      /Engine "extension" sample files count mismatch: expected 116, found 115/
+    );
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
 });
 
 

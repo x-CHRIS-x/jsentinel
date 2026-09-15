@@ -21,6 +21,7 @@ export class JSentinelEvaluator {
     this.matchingPolicy = { ...DEFAULT_MATCHING_POLICY, ...options.matchingPolicy };
     validateMatchingPolicy(this.matchingPolicy);
     this.scannerEngine = options.scannerEngine || 'supplied';
+    this.runId = options.runId || null;
     this.version = EVALUATOR_VERSION;
   }
 
@@ -48,7 +49,7 @@ export class JSentinelEvaluator {
    * @param {string} [params.datasetManifestVersion='1.0.0']
    * @returns {Object} Complete evaluation report conforming to schema.
    */
-  evaluateSuite({ manifestFiles = [], scanResultsMap = {}, datasetManifestVersion = '1.0.0' }) {
+  evaluateSuite({ manifestFiles = [], scanResultsMap = {}, datasetManifestVersion = '1.0.0', runId = null }) {
     const resultsMap = scanResultsMap instanceof Map
       ? scanResultsMap
       : new Map(Object.entries(scanResultsMap));
@@ -125,6 +126,7 @@ export class JSentinelEvaluator {
         evaluatorVersion: this.version,
         timestamp: new Date().toISOString(),
         scannerEngine: this.scannerEngine,
+        runId: runId || this.runId || null,
         datasetManifestVersion,
         matchingPolicy: this.matchingPolicy
       },

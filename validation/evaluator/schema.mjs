@@ -36,6 +36,7 @@ export const RESULT_SCHEMA_DEFINITION = {
         evaluatorVersion: { type: 'string' },
         timestamp: { type: 'string' },
         scannerEngine: { type: 'string' },
+        runId: { type: ['string', 'null'] },
         datasetManifestVersion: { type: 'string' },
         matchingPolicy: {
           type: 'object',

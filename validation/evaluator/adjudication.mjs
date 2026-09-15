@@ -31,22 +31,35 @@ export const computeEvaluationDigest = (evaluationResult) => {
   if (!evaluationResult || typeof evaluationResult !== 'object') {
     throw new Error('evaluationResult must be a non-null object.');
   }
-  const engine = evaluationResult.metadata?.scannerEngine || 'unknown';
-  const manifestVer = evaluationResult.metadata?.datasetManifestVersion || 'unknown';
+  const meta = evaluationResult.metadata || {};
+  const runId = meta.runId || 'unbound';
+  const engine = meta.scannerEngine || 'unknown';
+  const manifestVer = meta.datasetManifestVersion || 'unknown';
+  const evalVer = meta.evaluatorVersion || 'unknown';
+  const matchingPolicy = meta.matchingPolicy
+    ? `${meta.matchingPolicy.locationTolerance}:${meta.matchingPolicy.matchColumn}:${(meta.matchingPolicy.advisoryRulePrefixes || []).join(',')}`
+    : 'default';
+
   const fileSummaries = (evaluationResult.fileResults || []).map(f => {
-    const matchedKeys = (f.vulnerabilities?.matched || []).map(m =>
-      `${m.actualFinding?.ruleId}:${m.actualFinding?.location?.line}:${m.actualFinding?.location?.column}`
-    ).join('|');
-    const unmatchedKeys = (f.vulnerabilities?.unmatched || []).map(u =>
-      `${u.actualFinding?.ruleId}:${u.actualFinding?.location?.line}:${u.actualFinding?.location?.column}`
-    ).join('|');
-    const duplicateKeys = (f.vulnerabilities?.duplicates || []).map(d =>
-      `${d.actualFinding?.ruleId}:${d.actualFinding?.location?.line}:${d.actualFinding?.location?.column}`
-    ).join('|');
+    const serializeFinding = (af) => {
+      if (!af) return 'none';
+      const rule = af.ruleId || 'unknown';
+      const line = af.location?.line ?? 'none';
+      const col = af.location?.column ?? 'none';
+      const sev = af.severity ?? 'none';
+      const desc = af.description ?? '';
+      const cat = af.category ?? 'none';
+      return `${rule}:${line}:${col}:${sev}:${desc}:${cat}`;
+    };
+
+    const matchedKeys = (f.vulnerabilities?.matched || []).map(m => serializeFinding(m.actualFinding)).join('|');
+    const unmatchedKeys = (f.vulnerabilities?.unmatched || []).map(u => serializeFinding(u.actualFinding)).join('|');
+    const duplicateKeys = (f.vulnerabilities?.duplicates || []).map(d => serializeFinding(d.actualFinding)).join('|');
     return `${f.sampleId}:${f.fileName}:${f.scanStatus}:${f.hasScanError}:${matchedKeys}:${unmatchedKeys}:${duplicateKeys}`;
   }).join(';');
 
-  return crypto.createHash('sha256').update(`${engine}:${manifestVer}:${fileSummaries}`).digest('hex');
+  const canonicalPayload = `${runId}:${engine}:${manifestVer}:${evalVer}:${matchingPolicy}:${fileSummaries}`;
+  return crypto.createHash('sha256').update(canonicalPayload).digest('hex');
 };
 
 /**
@@ -238,6 +251,18 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
 
   let knownFindingsMap = null;
   if (evaluationResult) {
+    if (!evaluationResult.metadata?.runId || typeof evaluationResult.metadata.runId !== 'string') {
+      errors.push(
+        'Evaluation result missing required non-empty "metadata.runId". ' +
+        'Legacy unbound evaluation results are rejected; runId is required.'
+      );
+    } else if (doc.evaluationRunId && doc.evaluationRunId !== evaluationResult.metadata.runId) {
+      errors.push(
+        `Evaluation run ID mismatch: document specifies run ID "${doc.evaluationRunId}" ` +
+        `but evaluation result has run ID "${evaluationResult.metadata.runId}". Cross-run adjudication documents are rejected.`
+      );
+    }
+
     const expectedEngine = evaluationResult.metadata?.scannerEngine;
     if (expectedEngine && doc.scannerEngine !== expectedEngine) {
       errors.push(`Scanner engine mismatch: document specifies "${doc.scannerEngine}" but evaluation result is for "${expectedEngine}".`);
@@ -248,13 +273,6 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
       errors.push(
         `Evaluation result digest mismatch: document specifies digest "${doc.evaluationResultDigest}" ` +
         `but evaluation result digest is "${expectedDigest}". Cross-run adjudication documents are rejected.`
-      );
-    }
-
-    if (evaluationResult.metadata?.runId && doc.evaluationRunId && doc.evaluationRunId !== evaluationResult.metadata.runId) {
-      errors.push(
-        `Evaluation run ID mismatch: document specifies run ID "${doc.evaluationRunId}" ` +
-        `but evaluation result has run ID "${evaluationResult.metadata.runId}".`
       );
     }
 
@@ -391,10 +409,19 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
  * @returns {Object} Ready-to-edit adjudication template object.
  */
 export const generateAdjudicationTemplate = (evaluationResult, options = {}) => {
+  if (!evaluationResult || typeof evaluationResult !== 'object') {
+    throw new Error('evaluationResult must be a non-null object.');
+  }
+  const runId = evaluationResult.metadata?.runId;
+  if (!runId || typeof runId !== 'string') {
+    throw new Error(
+      'Cannot generate adjudication template: evaluationResult lacks required non-empty "metadata.runId". ' +
+      'Legacy unbound evaluation results must be rerun or explicitly assigned a runId.'
+    );
+  }
   const reviewerName = options.reviewerName || null;
   const engine = evaluationResult.metadata?.scannerEngine || 'web';
   const resultDigest = computeEvaluationDigest(evaluationResult);
-  const runId = evaluationResult.metadata?.runId || `eval-run-${engine}-${resultDigest.slice(0, 12)}`;
 
   const findingsMap = extractEvaluationFindingsMap(evaluationResult);
   const adjudications = [];
@@ -531,6 +558,16 @@ export const applyAdjudicationToEvaluation = (
   adjudicationDoc,
   options = {}
 ) => {
+  if (!evaluationResult || typeof evaluationResult !== 'object') {
+    throw new Error('evaluationResult must be a non-null object.');
+  }
+  if (!evaluationResult.metadata?.runId || typeof evaluationResult.metadata.runId !== 'string') {
+    throw new Error(
+      'Cannot apply adjudication: evaluationResult lacks required non-empty "metadata.runId". ' +
+      'Legacy unbound evaluation results are rejected; runId is required.'
+    );
+  }
+
   const duplicatePolicy = options.duplicateEligibility || 'EXCLUDE_FROM_PRECISION';
   const validDuplicatePolicies = ['EXCLUDE_FROM_PRECISION', 'COUNT_AS_FP'];
 

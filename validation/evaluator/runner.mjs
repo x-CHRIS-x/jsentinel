@@ -102,7 +102,9 @@ export const runEngineBenchmark = async ({
   manifest,
   samplesDir,
   outputDir,
-  provenance = null
+  provenance = null,
+  runId: customRunId = null,
+  manifestSha256 = null
 }) => {
   // Refuse to overwrite if directory exists and contains files
   if (fs.existsSync(outputDir)) {
@@ -178,15 +180,19 @@ export const runEngineBenchmark = async ({
   const endTime = new Date().toISOString();
   const totalDurationMs = Number((endPerf - startPerf).toFixed(3));
 
+  const runId = customRunId || `run-${engineType}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+
   // Run suite evaluation
   const evaluator = new JSentinelEvaluator({
-    scannerEngine: engineType
+    scannerEngine: engineType,
+    runId
   });
 
   const evaluationResult = evaluator.evaluateSuite({
     manifestFiles,
     scanResultsMap,
-    datasetManifestVersion: manifest.manifestVersion || '1.0.0'
+    datasetManifestVersion: manifest.manifestVersion || '1.0.0',
+    runId
   });
 
   // Generate exports
@@ -195,7 +201,7 @@ export const runEngineBenchmark = async ({
 
   // Run metadata and provenance
   const runMetadata = {
-    runId: `run-${engineType}-${Date.now()}`,
+    runId,
     engine: engineType,
     evaluatorVersion: EVALUATOR_VERSION,
     evaluatorCommit: gitProv.fullCommit,
@@ -206,6 +212,7 @@ export const runEngineBenchmark = async ({
     packageVersion: depVersions.packageVersion,
     datasetManifestVersion: manifest.manifestVersion || '1.0.0',
     datasetBaseCommit: manifest.baseCommit || 'unknown',
+    manifestSha256: manifestSha256 || null,
     startTime,
     endTime,
     totalDurationMs,
@@ -267,7 +274,7 @@ export const runBothEngineBenchmarks = async (options = {}) => {
   const samplesDir = options.samplesDir || path.join(rootDir, 'test-samples', 'samples');
   
   // Default to a distinct versioned run directory to prevent overwriting prior evidence
-  const runId = options.runId || 'phase05-batch-b-corr1';
+  const runId = options.runId || 'phase05-batch-b-corr2';
   const baseOutputDir = options.baseOutputDir || path.join(rootDir, 'validation', 'evaluator', 'runs', runId);
   const gitProv = options.provenance || getGitProvenance();
 
@@ -275,7 +282,9 @@ export const runBothEngineBenchmarks = async (options = {}) => {
     throw new Error(`Manifest not found at path: ${manifestPath}`);
   }
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const manifestRaw = fs.readFileSync(manifestPath, 'utf8');
+  const manifestSha256 = sha256(manifestRaw);
+  const manifest = JSON.parse(manifestRaw);
 
   const webOutputDir = path.join(baseOutputDir, 'web');
   const extOutputDir = path.join(baseOutputDir, 'extension');
@@ -287,6 +296,7 @@ export const runBothEngineBenchmarks = async (options = {}) => {
   const webResult = await runEngineBenchmark({
     engineType: 'web',
     manifest,
+    manifestSha256,
     samplesDir,
     outputDir: webOutputDir,
     provenance: gitProv
@@ -297,6 +307,7 @@ export const runBothEngineBenchmarks = async (options = {}) => {
   const extResult = await runEngineBenchmark({
     engineType: 'extension',
     manifest,
+    manifestSha256,
     samplesDir,
     outputDir: extOutputDir,
     provenance: gitProv
@@ -321,7 +332,7 @@ export const parseCliArgs = (args) => {
   const options = {};
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === '--output-dir' && i + 1 < args.length) {
+    if ((arg === '--output-dir' || arg === '--out-dir') && i + 1 < args.length) {
       options.baseOutputDir = path.resolve(args[++i]);
     } else if (arg === '--run-id' && i + 1 < args.length) {
       options.runId = args[++i];
