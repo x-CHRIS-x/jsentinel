@@ -24,7 +24,8 @@ export const RESULT_SCHEMA_DEFINITION = {
     'advisoryMetrics',
     'metadataChecksSummary',
     'scenarioObservations',
-    'fileResults'
+    'fileResults',
+    'rawScanResults'
   ],
   properties: {
     schemaVersion: { type: 'string', const: SCHEMA_VERSION },
@@ -41,29 +42,52 @@ export const RESULT_SCHEMA_DEFINITION = {
           required: [
             'locationTolerance',
             'matchColumn',
-            'advisoryRulePrefixes',
-            'unsupportedRulePolicy',
-            'findingAdjudicationPolicy'
+            'advisoryRulePrefixes'
           ],
           properties: {
             locationTolerance: { type: 'integer', minimum: 0 },
             matchColumn: { type: 'boolean' },
-            advisoryRulePrefixes: { type: 'array', items: { type: 'string' } },
-            unsupportedRulePolicy: { type: 'string' },
-            findingAdjudicationPolicy: { type: 'string' }
+            advisoryRulePrefixes: { type: 'array', items: { type: 'string' } }
           }
         }
       }
     },
     scanCompletion: {
       type: 'object',
-      required: ['attempted', 'completed', 'partial', 'failed', 'excluded'],
+      required: [
+        'totalSamples', 'attempted', 'unattempted',
+        'completed', 'partial', 'failed',
+        'scenarioCompletion', 'controlledEligibility'
+      ],
       properties: {
+        totalSamples: { type: 'integer', minimum: 0 },
         attempted: { type: 'integer', minimum: 0 },
+        unattempted: { type: 'integer', minimum: 0 },
         completed: { type: 'integer', minimum: 0 },
         partial: { type: 'integer', minimum: 0 },
         failed: { type: 'integer', minimum: 0 },
-        excluded: { type: 'integer', minimum: 0 }
+        scenarioCompletion: {
+          type: 'object',
+          required: ['total', 'attempted', 'unattempted', 'completed', 'partial', 'failed'],
+          properties: {
+            total: { type: 'integer', minimum: 0 },
+            attempted: { type: 'integer', minimum: 0 },
+            unattempted: { type: 'integer', minimum: 0 },
+            completed: { type: 'integer', minimum: 0 },
+            partial: { type: 'integer', minimum: 0 },
+            failed: { type: 'integer', minimum: 0 }
+          }
+        },
+        controlledEligibility: {
+          type: 'object',
+          required: ['total', 'eligible', 'excluded', 'exclusionBreakdown'],
+          properties: {
+            total: { type: 'integer', minimum: 0 },
+            eligible: { type: 'integer', minimum: 0 },
+            excluded: { type: 'integer', minimum: 0 },
+            exclusionBreakdown: { type: 'object' }
+          }
+        }
       }
     },
     fileConfusionMatrix: {
@@ -129,18 +153,28 @@ export const RESULT_SCHEMA_DEFINITION = {
         'matchedFindings',
         'duplicateFindings',
         'unmatchedFindings',
+        'targetMatchFraction',
+        'targetMatchFractionPercentage',
+        'targetMatchFractionFormula',
+        'adjudicatedPrecision',
+        'adjudicatedPrecisionPercentage',
         'adjudicationStatus',
-        'provisionalPrecision',
-        'provisionalPrecisionPercentage'
+        'pendingGroundTruthReviewCount',
+        'pendingSemanticDescriptionReviewCount'
       ],
       properties: {
         totalActualFindings: { type: 'integer', minimum: 0 },
         matchedFindings: { type: 'integer', minimum: 0 },
         duplicateFindings: { type: 'integer', minimum: 0 },
         unmatchedFindings: { type: 'integer', minimum: 0 },
+        targetMatchFraction: { type: ['number', 'null'] },
+        targetMatchFractionPercentage: { type: 'string' },
+        targetMatchFractionFormula: { type: 'string' },
+        adjudicatedPrecision: { type: ['number', 'null'] },
+        adjudicatedPrecisionPercentage: { type: 'string' },
         adjudicationStatus: { type: 'string' },
-        provisionalPrecision: { type: ['number', 'null'] },
-        provisionalPrecisionPercentage: { type: 'string' }
+        pendingGroundTruthReviewCount: { type: 'integer', minimum: 0 },
+        pendingSemanticDescriptionReviewCount: { type: 'integer', minimum: 0 }
       }
     },
     advisoryMetrics: {
@@ -168,10 +202,13 @@ export const RESULT_SCHEMA_DEFINITION = {
         'severityMismatches',
         'locationMatches',
         'locationMismatches',
+        'structuralMetadataMatches',
         'categoryAccuracyPercentage',
         'severityAccuracyPercentage',
         'locationAccuracyPercentage',
-        'semanticDescriptionStatus'
+        'structuralMetadataAccuracyPercentage',
+        'semanticDescriptionStatus',
+        'adjudicatedMetadataAccuracyPercentage'
       ]
     },
     scenarioObservations: {
@@ -179,6 +216,10 @@ export const RESULT_SCHEMA_DEFINITION = {
       items: { type: 'object' }
     },
     fileResults: {
+      type: 'array',
+      items: { type: 'object' }
+    },
+    rawScanResults: {
       type: 'array',
       items: { type: 'object' }
     }
@@ -210,7 +251,8 @@ export const validateEvaluationResult = (result) => {
     'advisoryMetrics',
     'metadataChecksSummary',
     'scenarioObservations',
-    'fileResults'
+    'fileResults',
+    'rawScanResults'
   ];
 
   for (const section of requiredSections) {
@@ -233,7 +275,7 @@ export const validateEvaluationResult = (result) => {
 
   if (result.scanCompletion) {
     const sc = result.scanCompletion;
-    for (const key of ['attempted', 'completed', 'partial', 'failed', 'excluded']) {
+    for (const key of ['totalSamples', 'attempted', 'unattempted', 'completed', 'partial', 'failed']) {
       if (typeof sc[key] !== 'number' || sc[key] < 0) {
         errors.push(`scanCompletion.${key} must be a non-negative number.`);
       }

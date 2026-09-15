@@ -6,16 +6,18 @@
  * 
  * Normalizes findings into a consistent structure retaining:
  * - rule ID
- * - category (mapped to OWASP Top 10 2021)
- * - location ({ line, column })
- * - guidance ID
- * - severity
+ * - category (mapped to OWASP Top 10 2021 and raw category preserved)
+ * - location ({ line, column }) with strict coordinate parsing
+ * - guidance ID (never invented from rule ID)
+ * - severity (never invented as fallback)
  * - description / message
  * - parse and rule-execution errors
- * - completion status (attempted, completed, partial, failed)
+ * - completion status (unattempted, attempted, completed, partial, failed)
  * 
- * Strict safety rule: Empty findings on error scans must NEVER be inferred as
- * completed success or clean negatives.
+ * Strict safety rules:
+ * - Empty findings on error scans must NEVER be inferred as completed success or clean negatives.
+ * - Contradictory or missing completion evidence fails closed.
+ * - Objects without valid file content are rejected as malformed descriptors.
  */
 
 import { createRequire } from 'node:module';
@@ -44,53 +46,73 @@ export const OWASP_2021_CATEGORIES = {
  * Maps a rule ID (e.g. 'OWASP-A03-001') to standard OWASP 2021 category name.
  * 
  * @param {string} ruleId 
- * @returns {string}
+ * @returns {string|null}
  */
 export const mapRuleIdToCategory = (ruleId) => {
   if (!ruleId || typeof ruleId !== 'string') {
-    return 'Unknown';
+    return null;
   }
   const match = ruleId.match(/OWASP-(A\d{2})-/);
   if (match && OWASP_2021_CATEGORIES[match[1]]) {
     return OWASP_2021_CATEGORIES[match[1]];
   }
-  return 'Uncategorized';
+  return null;
 };
 
 /**
  * Normalizes an individual raw issue into the standard evaluator finding shape.
+ * Preserves missing metadata explicitly as null without inventing fake fallbacks.
  * 
  * @param {Object} issue - Raw issue object from scanner.
- * @returns {Object} Normalized finding.
+ * @returns {Object|null} Normalized finding.
  */
 export const normalizeFinding = (issue) => {
   if (!issue || typeof issue !== 'object') {
     return null;
   }
 
-  const ruleId = issue.id || issue.ruleId || 'UNKNOWN_RULE';
-  const category = issue.owasp2021Category || issue.category || mapRuleIdToCategory(ruleId);
-  const isA06 = ruleId.startsWith('OWASP-A06-') || issue.findingType === 'advisory';
+  const ruleId = issue.id || issue.ruleId || null;
+  const isA06 = (ruleId && ruleId.startsWith('OWASP-A06-')) || issue.findingType === 'advisory';
 
-  const rawLine = issue.line !== undefined ? issue.line : (issue.location?.line);
-  const rawCol = issue.column !== undefined ? issue.column : (issue.location?.column);
+  const rawLine = issue.line !== undefined ? issue.line : issue.location?.line;
+  const rawCol = issue.column !== undefined ? issue.column : issue.location?.column;
 
-  const lineNum = typeof rawLine === 'number' ? rawLine : parseInt(rawLine, 10);
-  const colNum = typeof rawCol === 'number' ? rawCol : parseInt(rawCol, 10);
+  let parsedLine = null;
+  if (typeof rawLine === 'number' && Number.isFinite(rawLine) && rawLine > 0) {
+    parsedLine = rawLine;
+  } else if (typeof rawLine === 'string' && /^\d+$/.test(rawLine.trim())) {
+    const num = parseInt(rawLine.trim(), 10);
+    if (num > 0) parsedLine = num;
+  }
+
+  let parsedCol = null;
+  if (typeof rawCol === 'number' && Number.isFinite(rawCol) && rawCol >= 0) {
+    parsedCol = rawCol;
+  } else if (typeof rawCol === 'string' && /^\d+$/.test(rawCol.trim())) {
+    parsedCol = parseInt(rawCol.trim(), 10);
+  }
+
+  // Preserve raw metadata without inventing defaults
+  const rawCategory = issue.owasp2021Category || issue.category || null;
+  const mappedCategory = rawCategory || (ruleId ? mapRuleIdToCategory(ruleId) : null);
+  const severity = issue.severity ? String(issue.severity).toUpperCase() : (isA06 ? 'INFORMATIONAL' : null);
+  const guidanceId = issue.guidanceId ? String(issue.guidanceId) : null;
+  const description = issue.message || issue.description || issue.weaknessDescription || null;
 
   return {
     id: ruleId,
     ruleId,
-    category,
-    severity: (issue.severity || (isA06 ? 'INFORMATIONAL' : 'MEDIUM')).toUpperCase(),
+    category: mappedCategory,
+    rawCategory,
+    severity,
     findingType: isA06 ? 'advisory' : (issue.findingType || 'vulnerability'),
     location: {
-      line: Number.isNaN(lineNum) ? 0 : lineNum,
-      column: Number.isNaN(colNum) ? null : colNum
+      line: parsedLine,
+      column: parsedCol
     },
-    guidanceId: issue.guidanceId || ruleId,
-    description: issue.message || issue.description || issue.weaknessDescription || '',
-    sourceLine: issue.sourceLine || '',
+    guidanceId,
+    description,
+    sourceLine: issue.sourceLine || null,
     confidence: issue.confidence || null,
     rawFinding: issue
   };
@@ -98,6 +120,7 @@ export const normalizeFinding = (issue) => {
 
 /**
  * Normalizes a scanner engine result into a standardized RawScanResult.
+ * Fails closed on missing or contradictory completion evidence.
  * 
  * @param {Object} params
  * @param {string} params.engine - 'web' | 'extension' | 'supplied'
@@ -111,58 +134,117 @@ export const normalizeScanResult = ({ engine, fileName, rawResult, thrownError =
     return {
       engine,
       fileName,
+      scannerVersion: 'unknown',
       status: 'failed',
       attempted: true,
       completed: false,
       isPartial: false,
       isFailed: true,
+      isUnattempted: false,
       hasError: true,
       error: thrownError.message || String(thrownError),
       parseError: null,
+      ruleErrors: [],
       findings: [],
       rawOutput: null
     };
   }
 
+  // Fail closed if rawResult is missing or not a non-null object
   if (!rawResult || typeof rawResult !== 'object') {
     return {
       engine,
       fileName,
+      scannerVersion: 'unknown',
       status: 'failed',
       attempted: true,
       completed: false,
       isPartial: false,
       isFailed: true,
+      isUnattempted: false,
       hasError: true,
       error: 'Empty or invalid scanner engine response received.',
       parseError: null,
+      ruleErrors: [],
       findings: [],
       rawOutput: rawResult
     };
   }
 
-  const rawIssues = Array.isArray(rawResult.issues) ? rawResult.issues : [];
-  const normalizedFindings = rawIssues.map(normalizeFinding).filter(Boolean);
-
-  let status = 'completed';
-  if (rawResult.success === false || rawResult.error) {
-    status = 'failed';
-  } else if (rawResult.hasError) {
-    status = 'partial';
+  // Fail closed if issues is missing or not an array
+  if (!Array.isArray(rawResult.issues)) {
+    return {
+      engine,
+      fileName: rawResult.fileName || fileName,
+      scannerVersion: rawResult.scannerVersion || 'unknown',
+      status: 'failed',
+      attempted: true,
+      completed: false,
+      isPartial: false,
+      isFailed: true,
+      isUnattempted: false,
+      hasError: true,
+      error: rawResult.error || 'Malformed scanner response: issues array missing or invalid.',
+      parseError: rawResult.parseError || null,
+      ruleErrors: Array.isArray(rawResult.ruleErrors) ? rawResult.ruleErrors : [],
+      findings: [],
+      rawOutput: rawResult
+    };
   }
+
+  // Preserve all errors
+  const ruleErrors = Array.isArray(rawResult.ruleErrors) ? rawResult.ruleErrors : [];
+  const rawError = rawResult.error || null;
+  const parseError = rawResult.parseError || (rawError && rawError.toLowerCase().includes('parse') ? rawError : null);
+
+  // Status resolution honoring engine contracts and explicit flags
+  let status = 'completed';
+
+  if (rawResult.status === 'unattempted') {
+    status = 'unattempted';
+  } else if (
+    rawResult.status === 'failed' ||
+    rawResult.completed === false ||
+    rawResult.success === false ||
+    parseError ||
+    (rawError && rawResult.success !== true)
+  ) {
+    status = 'failed';
+  } else if (
+    rawResult.status === 'partial' ||
+    rawResult.hasError === true ||
+    ruleErrors.length > 0 ||
+    (rawError && rawResult.success === true)
+  ) {
+    // Contradictory or partial scan: success=true with error, or explicit hasError/ruleErrors
+    status = 'partial';
+  } else if (rawResult.success === undefined && rawResult.status === undefined) {
+    // Unrecognized raw descriptor without explicit success or status contract
+    status = 'failed';
+  }
+
+  const normalizedFindings = rawResult.issues.map(normalizeFinding).filter(Boolean);
+
+  const attempted = status !== 'unattempted';
+  const completed = status === 'completed';
+  const isPartial = status === 'partial';
+  const isFailed = status === 'failed';
+  const isUnattempted = status === 'unattempted';
 
   return {
     engine,
     fileName: rawResult.fileName || fileName,
     scannerVersion: rawResult.scannerVersion || 'unknown',
     status,
-    attempted: true,
-    completed: status === 'completed',
-    isPartial: status === 'partial',
-    isFailed: status === 'failed',
-    hasError: Boolean(rawResult.hasError || rawResult.error || status === 'failed'),
-    error: rawResult.error || null,
-    parseError: rawResult.error && rawResult.error.toLowerCase().includes('parse') ? rawResult.error : null,
+    attempted,
+    completed,
+    isPartial,
+    isFailed,
+    isUnattempted,
+    hasError: Boolean(rawResult.hasError || rawError || parseError || ruleErrors.length > 0 || isFailed || isPartial),
+    error: rawError,
+    parseError,
+    ruleErrors,
     findings: normalizedFindings,
     rawOutput: rawResult
   };
@@ -214,46 +296,59 @@ export const loadExtensionScanner = () => {
 
 /**
  * Adapter to execute the actual web scanner on code or a file-like object.
+ * Rejects malformed input descriptors without valid file content.
  * 
- * @param {string|{name: string, content: string}} fileInput - File content or descriptor.
+ * @param {string|{name: string, content?: string, code?: string, text?: Function}} fileInput
  * @param {string} [fileName='sample.js'] - File name.
  * @param {Object} [customEngine] - Optional mocked/injected engine for tests.
  * @returns {Promise<Object>} Normalized scan result.
  */
 export const scanWithWebAdapter = async (fileInput, fileName = 'sample.js', customEngine = null) => {
+  let resolvedName = fileName;
   try {
-    let name = fileName;
-    let code = '';
+    if (!fileInput) {
+      throw new Error('Malformed input descriptor: fileInput is null or undefined.');
+    }
 
-    if (fileInput && typeof fileInput === 'object') {
-      name = fileInput.name || fileName;
+    let code = null;
+
+    if (typeof fileInput === 'object') {
+      resolvedName = fileInput.name || fileName;
       if (typeof fileInput.text === 'function') {
         code = await fileInput.text();
       } else if (typeof fileInput.content === 'string') {
         code = fileInput.content;
+      } else if (typeof fileInput.code === 'string') {
+        code = fileInput.code;
+      } else {
+        throw new Error('Malformed file input descriptor: missing valid text() function, content string, or code string.');
       }
     } else if (typeof fileInput === 'string') {
       code = fileInput;
     } else {
-      throw new Error('Invalid file input provided to web scanner adapter.');
+      throw new Error('Invalid file input type: must be a string or descriptor object with code/content/text.');
+    }
+
+    if (typeof code !== 'string') {
+      throw new Error('Resolved file code is not a string.');
     }
 
     const engine = customEngine || (await loadWebScanner());
     const fileLike = {
-      name,
+      name: resolvedName,
       text: async () => code
     };
 
     const rawResult = await engine.scanFile(fileLike, engine.rules);
     return normalizeScanResult({
       engine: 'web',
-      fileName: name,
+      fileName: resolvedName,
       rawResult
     });
   } catch (err) {
     return normalizeScanResult({
       engine: 'web',
-      fileName: typeof fileInput === 'object' ? (fileInput?.name || fileName) : fileName,
+      fileName: resolvedName,
       rawResult: null,
       thrownError: err
     });
@@ -262,42 +357,61 @@ export const scanWithWebAdapter = async (fileInput, fileName = 'sample.js', cust
 
 /**
  * Adapter to execute the actual VS Code extension scanner on code.
+ * Rejects malformed input descriptors without valid file content.
  * 
- * @param {string|{name: string, content: string}} fileInput - File content or descriptor.
+ * @param {string|{name: string, content?: string, code?: string, text?: Function}} fileInput
  * @param {string} [fileName='sample.js'] - File name.
  * @param {Object} [customEngine] - Optional mocked/injected engine for tests.
  * @returns {Object} Normalized scan result.
  */
 export const scanWithExtensionAdapter = (fileInput, fileName = 'sample.js', customEngine = null) => {
+  let resolvedName = fileName;
   try {
-    let name = fileName;
-    let code = '';
+    if (!fileInput) {
+      throw new Error('Malformed input descriptor: fileInput is null or undefined.');
+    }
 
-    if (fileInput && typeof fileInput === 'object') {
-      name = fileInput.name || fileName;
+    let code = null;
+
+    if (typeof fileInput === 'object') {
+      resolvedName = fileInput.name || fileName;
       if (typeof fileInput.content === 'string') {
         code = fileInput.content;
       } else if (typeof fileInput.code === 'string') {
         code = fileInput.code;
+      } else if (typeof fileInput.text === 'function') {
+        // Synchronous wrapper if text() returned immediate string
+        const textRes = fileInput.text();
+        if (typeof textRes === 'string') {
+          code = textRes;
+        } else {
+          throw new Error('Asynchronous text() function not supported in synchronous extension scanner adapter.');
+        }
+      } else {
+        throw new Error('Malformed file input descriptor: missing valid content or code string.');
       }
     } else if (typeof fileInput === 'string') {
       code = fileInput;
     } else {
-      throw new Error('Invalid file input provided to extension scanner adapter.');
+      throw new Error('Invalid file input type: must be a string or descriptor object with code/content.');
+    }
+
+    if (typeof code !== 'string') {
+      throw new Error('Resolved file code is not a string.');
     }
 
     const engine = customEngine || loadExtensionScanner();
-    const rawResult = engine.scanCode(code, name, engine.rules);
+    const rawResult = engine.scanCode(code, resolvedName, engine.rules);
 
     return normalizeScanResult({
       engine: 'extension',
-      fileName: name,
+      fileName: resolvedName,
       rawResult
     });
   } catch (err) {
     return normalizeScanResult({
       engine: 'extension',
-      fileName: typeof fileInput === 'object' ? (fileInput?.name || fileName) : fileName,
+      fileName: resolvedName,
       rawResult: null,
       thrownError: err
     });

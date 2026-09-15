@@ -18,6 +18,10 @@
  * 14. metadata-error-separate-from-detection: matching detection with severity/category error.
  * 15. scenario-exclusion: scenario workloads segregated from controlled V/C matrix.
  * 16. unsupported-null-rule: expectation with null ruleId; explicit unresolved policy.
+ * 17. same-line-distinct-columns: distinct findings on same line with different columns are not duplicates.
+ * 18. identical-duplicate-actuals: identical duplicate findings cannot satisfy multiple expectations.
+ * 19. missing-location: missing or undefined coordinates are rejected and never match.
+ * 20. invalid-label: unrecognized label excluded explicitly from controlled matrix.
  */
 
 // 1. Correct Match Fixture
@@ -293,6 +297,7 @@ export const FIXTURE_PARTIAL = {
     status: 'partial',
     hasError: true,
     error: null,
+    ruleErrors: [{ ruleName: 'dynamic-timer', error: 'Visitor traversal aborted' }],
     findings: []
   }
 };
@@ -435,7 +440,7 @@ export const FIXTURE_METADATA_ERROR = {
   }
 };
 
-// 14. Scenario Exclusion Fixture
+// 14. Scenario Exclusion Fixture (with unsupportedWeaknesses)
 export const FIXTURE_SCENARIO = {
   manifest: {
     sampleId: 'SCENARIO-SYNTH-001',
@@ -454,6 +459,12 @@ export const FIXTURE_SCENARIO = {
       {
         ruleId: 'OWASP-A06-001',
         location: { line: 2, column: 0 }
+      }
+    ],
+    unsupportedWeaknesses: [
+      {
+        category: 'A01:2021-Broken Access Control',
+        description: 'Server-side RBAC enforcement not observable in static AST analysis.'
       }
     ]
   },
@@ -514,5 +525,123 @@ export const FIXTURE_UNSUPPORTED_NULL_RULE = {
         description: 'eval detected'
       }
     ]
+  }
+};
+
+// 16. Same-Line Distinct Columns Fixture
+export const FIXTURE_SAME_LINE_DISTINCT_COLUMNS = {
+  manifest: {
+    sampleId: 'V-SYNTH-016',
+    fileName: 'same-line-distinct.js',
+    label: 'vulnerable',
+    expectedScannerFindings: [
+      {
+        ruleId: 'OWASP-A03-001',
+        location: { line: 20, column: 4 },
+        severity: 'CRITICAL'
+      }
+    ]
+  },
+  scanResult: {
+    engine: 'supplied',
+    fileName: 'same-line-distinct.js',
+    status: 'completed',
+    hasError: false,
+    findings: [
+      {
+        id: 'OWASP-A03-001',
+        ruleId: 'OWASP-A03-001',
+        severity: 'CRITICAL',
+        location: { line: 20, column: 4 }
+      },
+      {
+        id: 'OWASP-A03-001',
+        ruleId: 'OWASP-A03-001',
+        severity: 'CRITICAL',
+        location: { line: 20, column: 35 } // Distinct column: NOT a duplicate!
+      }
+    ]
+  }
+};
+
+// 17. Identical Duplicate Actuals Cannot Satisfy Multiple Expectations Fixture
+export const FIXTURE_IDENTICAL_DUPLICATE_ACTUALS = {
+  manifest: {
+    sampleId: 'V-SYNTH-017',
+    fileName: 'two-targets-duplicate-actuals.js',
+    label: 'vulnerable',
+    expectedScannerFindings: [
+      {
+        ruleId: 'OWASP-A03-001',
+        location: { line: 20, column: 4 }
+      },
+      {
+        ruleId: 'OWASP-A03-001',
+        location: { line: 20, column: 4 }
+      }
+    ]
+  },
+  scanResult: {
+    engine: 'supplied',
+    fileName: 'two-targets-duplicate-actuals.js',
+    status: 'completed',
+    hasError: false,
+    findings: [
+      {
+        id: 'OWASP-A03-001',
+        ruleId: 'OWASP-A03-001',
+        location: { line: 20, column: 4 }
+      },
+      {
+        id: 'OWASP-A03-001',
+        ruleId: 'OWASP-A03-001',
+        location: { line: 20, column: 4 } // Identical duplicate: cannot satisfy Target 2
+      }
+    ]
+  }
+};
+
+// 18. Missing / Invalid Location Fixture
+export const FIXTURE_MISSING_LOCATION = {
+  manifest: {
+    sampleId: 'V-SYNTH-018',
+    fileName: 'missing-location.js',
+    label: 'vulnerable',
+    expectedScannerFindings: [
+      {
+        ruleId: 'OWASP-A03-001',
+        location: { line: 10, column: 2 }
+      }
+    ]
+  },
+  scanResult: {
+    engine: 'supplied',
+    fileName: 'missing-location.js',
+    status: 'completed',
+    hasError: false,
+    findings: [
+      {
+        id: 'OWASP-A03-001',
+        ruleId: 'OWASP-A03-001',
+        location: { line: undefined, column: undefined } // Invalid location
+      }
+    ]
+  }
+};
+
+// 19. Invalid Label Fixture
+export const FIXTURE_INVALID_LABEL = {
+  manifest: {
+    sampleId: 'UNKNOWN-019',
+    fileName: 'invalid-label.js',
+    label: 'arbitrary_invalid_label',
+    expectedScannerFindings: []
+  },
+  scanResult: {
+    engine: 'supplied',
+    fileName: 'invalid-label.js',
+    status: 'completed',
+    hasError: false,
+    findings: []
   }
 };

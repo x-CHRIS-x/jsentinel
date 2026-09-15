@@ -20,6 +20,7 @@ export {
 export {
   matchSampleFindings,
   DEFAULT_MATCHING_POLICY,
+  validateMatchingPolicy,
   isAdvisoryRule,
   extractCategoryCode
 } from './matching.mjs';

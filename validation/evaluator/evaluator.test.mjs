@@ -7,12 +7,11 @@ import {
   scanWithWebAdapter,
   scanWithExtensionAdapter,
   adaptSuppliedOutput,
-  loadWebScanner,
-  loadExtensionScanner,
-  matchSampleFindings,
-  calculateEvaluationMetrics,
-  validateEvaluationResult,
-  SCHEMA_VERSION
+  normalizeScanResult,
+  normalizeFinding,
+  validateMatchingPolicy,
+  SCHEMA_VERSION,
+  validateEvaluationResult
 } from './index.mjs';
 
 import {
@@ -30,7 +29,11 @@ import {
   FIXTURE_ADVISORY_ONLY,
   FIXTURE_METADATA_ERROR,
   FIXTURE_SCENARIO,
-  FIXTURE_UNSUPPORTED_NULL_RULE
+  FIXTURE_UNSUPPORTED_NULL_RULE,
+  FIXTURE_SAME_LINE_DISTINCT_COLUMNS,
+  FIXTURE_IDENTICAL_DUPLICATE_ACTUALS,
+  FIXTURE_MISSING_LOCATION,
+  FIXTURE_INVALID_LABEL
 } from './fixtures/synthetic-cases.mjs';
 
 test('1. Correct Match: matches expected rule and location one-to-one (TP)', () => {
@@ -49,7 +52,8 @@ test('1. Correct Match: matches expected rule and location one-to-one (TP)', () 
   assert.equal(m.metadataChecks.categoryMatch, true);
   assert.equal(m.metadataChecks.severityMatch, true);
   assert.equal(m.metadataChecks.locationMatch, true);
-  assert.equal(m.metadataChecks.metadataValid, true);
+  assert.equal(m.metadataChecks.structuralMetadataMatch, true);
+  assert.equal(m.metadataChecks.semanticDescriptionStatus, 'PENDING_MANUAL_SEMANTIC_REVIEW');
 });
 
 test('2. Missing Finding: expected vulnerability without scanner finding recorded as missed (FN)', () => {
@@ -116,7 +120,6 @@ test('7. Parse Failure: empty findings on parse error must NOT be inferred as cl
   assert.equal(match.scanStatus, 'failed');
   assert.equal(match.hasScanError, true);
 
-  // When evaluating a suite, parse failure must be excluded from completed matrix N
   const suiteResult = evaluator.evaluateSuite({
     manifestFiles: [FIXTURE_PARSE_FAILURE.manifest],
     scanResultsMap: { [FIXTURE_PARSE_FAILURE.manifest.fileName]: FIXTURE_PARSE_FAILURE.scanResult }
@@ -140,6 +143,7 @@ test('8. Partial Scan: rule execution error excluded from completed matrix N', (
   assert.equal(suiteResult.scanCompletion.completed, 0);
   assert.equal(suiteResult.fileConfusionMatrix.N, 0);
   assert.equal(suiteResult.fileConfusionMatrix.TN, 0, 'Must not count as TN clean negative');
+  assert.equal(suiteResult.rawScanResults[0].ruleErrors.length, 1, 'Preserves ruleErrors');
 });
 
 test('9. Failed Scan: unhandled engine error excluded from completed matrix N', () => {
@@ -191,13 +195,11 @@ test('12. Advisory A06 Policy: A06 alert excluded from vulnerability metrics and
     scanResultsMap: { [FIXTURE_ADVISORY_ONLY.manifest.fileName]: FIXTURE_ADVISORY_ONLY.scanResult }
   });
 
-  // Clean file with ONLY advisory finding remains TN in vulnerability matrix
   assert.equal(suiteResult.fileConfusionMatrix.TN, 1, 'Clean file with advisory is TN');
   assert.equal(suiteResult.fileConfusionMatrix.FP, 0, 'Advisory does not cause FP');
   assert.equal(suiteResult.fileConfusionMatrix.TP, 0);
   assert.equal(suiteResult.fileConfusionMatrix.FN, 0);
 
-  // Advisory metrics retained separately
   assert.equal(suiteResult.advisoryMetrics.totalExpectedAdvisories, 1);
   assert.equal(suiteResult.advisoryMetrics.detectedAdvisories, 1);
   assert.equal(suiteResult.advisoryMetrics.matchedAdvisories, 1);
@@ -207,7 +209,6 @@ test('12. Advisory A06 Policy: A06 alert excluded from vulnerability metrics and
 
 test('13. Zero Denominator Protection: returns null and N/A without NaN or throwing', () => {
   const evaluator = new JSentinelEvaluator();
-  // Evaluate empty suite
   const emptyResult = evaluator.evaluateSuite({
     manifestFiles: [],
     scanResultsMap: {}
@@ -246,12 +247,13 @@ test('14. Metadata Error Separate from Detection: detection matches while metada
   assert.equal(m.metadataChecks.locationMatch, true);
   assert.equal(m.metadataChecks.categoryMatch, false, 'Category mismatch detected');
   assert.equal(m.metadataChecks.severityMatch, false, 'Severity mismatch detected');
-  assert.equal(m.metadataChecks.metadataValid, false);
-  assert.equal(m.metadataChecks.metadataErrors.length, 2);
+  assert.equal(m.metadataChecks.structuralMetadataMatch, false);
   assert.equal(m.metadataChecks.semanticDescriptionStatus, 'PENDING_MANUAL_SEMANTIC_REVIEW');
+  assert.equal(m.metadataChecks.adjudicatedMetadataStatus, 'PENDING_MANUAL_REVIEW');
+  assert.equal(m.metadataChecks.metadataErrors.length, 2);
 });
 
-test('15. Scenario Segregation: scenarios excluded from controlled matrix and reported separately', () => {
+test('15. Scenario Segregation: scenarios excluded from controlled matrix and unsupportedWeaknesses retained', () => {
   const evaluator = new JSentinelEvaluator();
   const suiteResult = evaluator.evaluateSuite({
     manifestFiles: [FIXTURE_CORRECT.manifest, FIXTURE_SCENARIO.manifest],
@@ -261,13 +263,14 @@ test('15. Scenario Segregation: scenarios excluded from controlled matrix and re
     }
   });
 
-  assert.equal(suiteResult.scanCompletion.excluded, 1, 'Scenario counted in excluded');
-  assert.equal(suiteResult.scanCompletion.completed, 1, 'Only controlled sample in completed');
+  assert.equal(suiteResult.scanCompletion.scenarioCompletion.total, 1);
+  assert.equal(suiteResult.scanCompletion.scenarioCompletion.completed, 1);
   assert.equal(suiteResult.fileConfusionMatrix.N, 1, 'Matrix sample size includes only controlled sample');
   assert.equal(suiteResult.scenarioObservations.length, 1, 'Scenario observation retained separately');
   assert.equal(suiteResult.scenarioObservations[0].scenarioId, 'SCENARIO-SYNTH-001');
   assert.equal(suiteResult.scenarioObservations[0].vulnerabilities.matchedCount, 1);
   assert.equal(suiteResult.scenarioObservations[0].advisories.matchedCount, 1);
+  assert.equal(suiteResult.scenarioObservations[0].unsupportedWeaknesses.length, 1, 'Retains unsupportedWeaknesses');
 });
 
 test('16. Unsupported Null-Rule Policy: null ruleId cannot be detected or matched', () => {
@@ -283,7 +286,7 @@ test('16. Unsupported Null-Rule Policy: null ruleId cannot be detected or matche
   assert.equal(match.vulnerabilities.unmatchedCount, 1, 'Actual alert remains unmatched');
 });
 
-test('17. Web Adapter Live Execution and Error Handling', async () => {
+test('17. Web Adapter Live Execution and Error Handling with Malformed Descriptor Rejection', async () => {
   // A. Valid code scanning
   const validCode = 'eval("var x = " + location.search);';
   const validResult = await scanWithWebAdapter(validCode, 'test-eval.js');
@@ -294,16 +297,19 @@ test('17. Web Adapter Live Execution and Error Handling', async () => {
   assert.equal(validResult.findings[0].ruleId, 'OWASP-A03-001');
   assert.equal(validResult.findings[0].location.line, 1);
 
-  // B. Parse failure handling (error recovery enabled in babel standalone, but severe broken tokens)
-  const invalidInput = null;
-  const errorResult = await scanWithWebAdapter(invalidInput, 'null.js');
+  // B. Null/undefined input rejection
+  const nullResult = await scanWithWebAdapter(null, 'null.js');
+  assert.equal(nullResult.status, 'failed');
+  assert.equal(nullResult.hasError, true);
+  assert.ok(nullResult.error.includes('null or undefined'));
 
-  assert.equal(errorResult.status, 'failed');
-  assert.equal(errorResult.hasError, true);
-  assert.ok(errorResult.error.length > 0);
-  assert.equal(errorResult.findings.length, 0);
+  // C. Malformed descriptor rejection (object without valid text, content, or code)
+  const emptyObjectResult = await scanWithWebAdapter({ name: 'empty.js' }, 'empty.js');
+  assert.equal(emptyObjectResult.status, 'failed');
+  assert.equal(emptyObjectResult.hasError, true);
+  assert.ok(emptyObjectResult.error.includes('Malformed file input descriptor'));
 
-  // C. Injected throwing scanner test
+  // D. Throwing scanner engine handling
   const throwingEngine = {
     scanFile: async () => { throw new Error('Simulated engine explosion'); },
     rules: []
@@ -314,7 +320,7 @@ test('17. Web Adapter Live Execution and Error Handling', async () => {
   assert.equal(crashedResult.error, 'Simulated engine explosion');
 });
 
-test('18. Extension Adapter Live Execution and Error Handling', () => {
+test('18. Extension Adapter Live Execution and Error Handling with Malformed Descriptor Rejection', () => {
   // A. Valid code scanning
   const validCode = 'eval("var x = " + location.search);';
   const validResult = scanWithExtensionAdapter(validCode, 'test-eval.js');
@@ -332,7 +338,13 @@ test('18. Extension Adapter Live Execution and Error Handling', () => {
   assert.equal(parseFailResult.hasError, true);
   assert.ok(parseFailResult.error.includes('Unexpected token'));
 
-  // C. Injected throwing scanner test
+  // C. Malformed descriptor rejection
+  const malformedResult = scanWithExtensionAdapter({ name: 'malformed.js' }, 'malformed.js');
+  assert.equal(malformedResult.status, 'failed');
+  assert.equal(malformedResult.hasError, true);
+  assert.ok(malformedResult.error.includes('Malformed file input descriptor'));
+
+  // D. Throwing scanner engine handling
   const throwingEngine = {
     scanCode: () => { throw new Error('Simulated extension error'); },
     rules: []
@@ -343,9 +355,207 @@ test('18. Extension Adapter Live Execution and Error Handling', () => {
   assert.equal(crashedResult.error, 'Simulated extension error');
 });
 
-test('19. Schema Validation and CSV/JSON Export Pipeline', () => {
-  const evaluator = new JSentinelEvaluator();
+test('19. Fail-Closed Scan Result Normalization and Preserved Errors', () => {
+  // A. Empty object fails closed
+  const emptyRes = normalizeScanResult({ engine: 'supplied', fileName: 'empty.js', rawResult: {} });
+  assert.equal(emptyRes.status, 'failed');
+  assert.equal(emptyRes.completed, false);
+  assert.equal(emptyRes.hasError, true);
 
+  // B. Missing issues array fails closed
+  const missingIssues = normalizeScanResult({ engine: 'supplied', fileName: 'test.js', rawResult: { success: true } });
+  assert.equal(missingIssues.status, 'failed');
+  assert.equal(missingIssues.completed, false);
+  assert.ok(missingIssues.error.includes('issues array missing'));
+
+  // C. Explicit status partial and ruleErrors
+  const partialRes = normalizeScanResult({
+    engine: 'supplied',
+    fileName: 'test.js',
+    rawResult: {
+      status: 'partial',
+      issues: [],
+      ruleErrors: [{ ruleName: 'dynamic-timer', error: 'Visitor failed' }]
+    }
+  });
+  assert.equal(partialRes.status, 'partial');
+  assert.equal(partialRes.completed, false);
+  assert.equal(partialRes.ruleErrors.length, 1);
+
+  // D. Contradictory success: true with non-empty error
+  const contradictoryRes = normalizeScanResult({
+    engine: 'supplied',
+    fileName: 'test.js',
+    rawResult: {
+      success: true,
+      error: 'Rule execution aborted on AST node',
+      issues: []
+    }
+  });
+  assert.equal(contradictoryRes.status, 'partial');
+  assert.equal(contradictoryRes.completed, false);
+  assert.equal(contradictoryRes.hasError, true);
+});
+
+test('20. Finite Valid Coordinates: missing or invalid location rejected and cannot match', () => {
+  const evaluator = new JSentinelEvaluator();
+  const match = evaluator.evaluateSample(
+    FIXTURE_MISSING_LOCATION.manifest,
+    FIXTURE_MISSING_LOCATION.scanResult
+  );
+
+  // Math.abs(undefined - expLine) => NaN; NaN > tolerance false must NOT match
+  assert.equal(match.vulnerabilities.matchedCount, 0, 'Undefined coordinates must never match');
+  assert.equal(match.vulnerabilities.missedCount, 1, 'Target with valid line remains missed');
+  assert.equal(match.vulnerabilities.unmatchedCount, 1, 'Actual finding with missing coordinates is unmatched');
+
+  // matchColumn: true requires finite coordinates on both sides
+  const columnEvaluator = new JSentinelEvaluator({ matchingPolicy: { matchColumn: true } });
+  const noColActual = {
+    engine: 'supplied',
+    fileName: 'test.js',
+    status: 'completed',
+    hasError: false,
+    findings: [{ ruleId: 'OWASP-A03-001', location: { line: 10, column: null } }]
+  };
+  const colExpected = {
+    fileName: 'test.js',
+    label: 'vulnerable',
+    expectedScannerFindings: [{ ruleId: 'OWASP-A03-001', location: { line: 10, column: 4 } }]
+  };
+  const colMatch = columnEvaluator.evaluateSample(colExpected, noColActual);
+  assert.equal(colMatch.vulnerabilities.matchedCount, 0, 'Cannot match under matchColumn when column is null');
+});
+
+test('21. Distinct Same-Line Locations: different columns are NOT duplicates', () => {
+  const evaluator = new JSentinelEvaluator();
+  const match = evaluator.evaluateSample(
+    FIXTURE_SAME_LINE_DISTINCT_COLUMNS.manifest,
+    FIXTURE_SAME_LINE_DISTINCT_COLUMNS.scanResult
+  );
+
+  assert.equal(match.vulnerabilities.matchedCount, 1, 'First finding matched target at line 20 col 4');
+  assert.equal(match.vulnerabilities.duplicateCount, 0, 'Second finding at column 35 is NOT a duplicate');
+  assert.equal(match.vulnerabilities.unmatchedCount, 1, 'Second finding at distinct column is unmatched');
+  assert.equal(match.vulnerabilities.unmatched[0].actualFinding.location.column, 35);
+});
+
+test('22. Identical Duplicate Actuals Cannot Satisfy Multiple Expectations', () => {
+  const evaluator = new JSentinelEvaluator();
+  const match = evaluator.evaluateSample(
+    FIXTURE_IDENTICAL_DUPLICATE_ACTUALS.manifest,
+    FIXTURE_IDENTICAL_DUPLICATE_ACTUALS.scanResult
+  );
+
+  assert.equal(match.vulnerabilities.expectedCount, 2);
+  assert.equal(match.vulnerabilities.matchedCount, 1, 'Only first target matched');
+  assert.equal(match.vulnerabilities.ambiguousCount, 1, 'Second target flagged with coordinate ambiguity');
+  assert.equal(match.vulnerabilities.missedCount, 1, 'Second target marked missed due to duplicate actual');
+  assert.equal(match.vulnerabilities.duplicateCount, 1, 'Duplicate actual finding recorded');
+});
+
+test('23. Policy Validation: rejects invalid parameters', () => {
+  assert.throws(() => validateMatchingPolicy(null), /Matching policy must be a non-null object/);
+  assert.throws(() => validateMatchingPolicy({ locationTolerance: -1 }), /Invalid locationTolerance/);
+  assert.throws(() => validateMatchingPolicy({ locationTolerance: 0, matchColumn: 'yes' }), /Invalid matchColumn/);
+  assert.throws(() => validateMatchingPolicy({ locationTolerance: 0, matchColumn: false, advisoryRulePrefixes: 'A06' }), /Invalid advisoryRulePrefixes/);
+});
+
+test('24. Unattempted Scans: missing scan recorded as unattempted rather than fabricated attempted', () => {
+  const evaluator = new JSentinelEvaluator();
+  const suiteResult = evaluator.evaluateSuite({
+    manifestFiles: [FIXTURE_CORRECT.manifest, FIXTURE_MISSING.manifest],
+    scanResultsMap: {
+      [FIXTURE_CORRECT.manifest.fileName]: FIXTURE_CORRECT.scanResult
+      // FIXTURE_MISSING.manifest is omitted from scanResultsMap
+    }
+  });
+
+  assert.equal(suiteResult.scanCompletion.totalSamples, 2);
+  assert.equal(suiteResult.scanCompletion.attempted, 1, 'Only one scan attempted');
+  assert.equal(suiteResult.scanCompletion.unattempted, 1, 'Missing scan is unattempted');
+  assert.equal(suiteResult.scanCompletion.controlledEligibility.exclusionBreakdown.EXCLUDED_UNATTEMPTED, 1);
+  assert.equal(suiteResult.fileConfusionMatrix.N, 1, 'Unattempted scan excluded from matrix N');
+});
+
+test('25. Mixed Suite: comprehensive completion breakdown and controlled eligibility', () => {
+  const evaluator = new JSentinelEvaluator();
+  const manifestFiles = [
+    FIXTURE_CORRECT.manifest,              // completed eligible (TP)
+    FIXTURE_CLEAN_NEGATIVE.manifest,       // completed eligible (TN)
+    FIXTURE_PARTIAL.manifest,              // partial (excluded)
+    FIXTURE_FAILED.manifest,               // failed (excluded)
+    FIXTURE_MISSING.manifest,              // unattempted (omitted from scanResultsMap)
+    FIXTURE_SCENARIO.manifest,             // scenario (excluded from controlled)
+    FIXTURE_INVALID_LABEL.manifest         // invalid label (excluded)
+  ];
+
+  const scanResultsMap = {
+    [FIXTURE_CORRECT.manifest.fileName]: FIXTURE_CORRECT.scanResult,
+    [FIXTURE_CLEAN_NEGATIVE.manifest.fileName]: FIXTURE_CLEAN_NEGATIVE.scanResult,
+    [FIXTURE_PARTIAL.manifest.fileName]: FIXTURE_PARTIAL.scanResult,
+    [FIXTURE_FAILED.manifest.fileName]: FIXTURE_FAILED.scanResult,
+    // FIXTURE_MISSING omitted (unattempted)
+    [FIXTURE_SCENARIO.manifest.fileName]: FIXTURE_SCENARIO.scanResult,
+    [FIXTURE_INVALID_LABEL.manifest.fileName]: FIXTURE_INVALID_LABEL.scanResult
+  };
+
+  const suiteResult = evaluator.evaluateSuite({ manifestFiles, scanResultsMap });
+
+  const sc = suiteResult.scanCompletion;
+  assert.equal(sc.totalSamples, 7);
+  assert.equal(sc.attempted, 6);
+  assert.equal(sc.unattempted, 1);
+  assert.equal(sc.completed, 4); // correct, clean, scenario, invalid-label
+  assert.equal(sc.partial, 1);
+  assert.equal(sc.failed, 1);
+
+  // Scenario completion
+  assert.equal(sc.scenarioCompletion.total, 1);
+  assert.equal(sc.scenarioCompletion.completed, 1);
+
+  // Controlled eligibility
+  const ce = sc.controlledEligibility;
+  assert.equal(ce.total, 6); // 7 - 1 scenario
+  assert.equal(ce.eligible, 2); // correct + clean
+  assert.equal(ce.excluded, 4);
+  assert.equal(ce.exclusionBreakdown.EXCLUDED_SCENARIO, 1);
+  assert.equal(ce.exclusionBreakdown.EXCLUDED_UNATTEMPTED, 1);
+  assert.equal(ce.exclusionBreakdown.EXCLUDED_INCOMPLETE_PARTIAL, 1);
+  assert.equal(ce.exclusionBreakdown.EXCLUDED_INCOMPLETE_FAILED, 1);
+  assert.equal(ce.exclusionBreakdown.EXCLUDED_INVALID_LABEL, 1);
+
+  // Matrix N must equal eligible
+  assert.equal(suiteResult.fileConfusionMatrix.N, 2);
+  assert.equal(suiteResult.fileConfusionMatrix.TP, 1);
+  assert.equal(suiteResult.fileConfusionMatrix.TN, 1);
+});
+
+test('26. Finding Precision Metrics: targetMatchFraction reported, precision kept N/A pending adjudication', () => {
+  const evaluator = new JSentinelEvaluator();
+  const manifestFiles = [FIXTURE_CORRECT.manifest, FIXTURE_CLEAN_FALSE_POSITIVE.manifest];
+  const scanResultsMap = {
+    [FIXTURE_CORRECT.manifest.fileName]: FIXTURE_CORRECT.scanResult,
+    [FIXTURE_CLEAN_FALSE_POSITIVE.manifest.fileName]: FIXTURE_CLEAN_FALSE_POSITIVE.scanResult
+  };
+
+  const suiteResult = evaluator.evaluateSuite({ manifestFiles, scanResultsMap });
+  const prec = suiteResult.findingPrecisionMetrics;
+
+  assert.equal(prec.totalActualFindings, 2);
+  assert.equal(prec.matchedFindings, 1);
+  assert.equal(prec.unmatchedFindings, 1);
+  assert.equal(prec.targetMatchFraction, 0.5);
+  assert.equal(prec.targetMatchFractionPercentage, '50.00%');
+  assert.equal(prec.adjudicatedPrecision, null, 'Final precision must remain null pending adjudication');
+  assert.equal(prec.adjudicatedPrecisionPercentage, 'N/A');
+  assert.equal(prec.adjudicationStatus, 'PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION');
+  assert.equal(prec.pendingGroundTruthReviewCount, 1);
+  assert.equal(prec.pendingSemanticDescriptionReviewCount, 1);
+});
+
+test('27. Schema Validation, Retained Outputs, and CSV Pipeline', () => {
+  const evaluator = new JSentinelEvaluator();
   const manifestFiles = [
     FIXTURE_CORRECT.manifest,
     FIXTURE_MISSING.manifest,
@@ -366,25 +576,22 @@ test('19. Schema Validation and CSV/JSON Export Pipeline', () => {
 
   const suiteResult = evaluator.evaluateSuite({ manifestFiles, scanResultsMap });
 
-  // Validate output against schema
+  // Schema validation
   const validation = validateEvaluationResult(suiteResult);
-  assert.equal(validation.valid, true, `Result should validate against schema: ${validation.errors.join(', ')}`);
+  assert.equal(validation.valid, true, `Result must be valid: ${validation.errors.join(', ')}`);
 
-  // Verify JSON export
+  // JSON export contains rawScanResults and versioned schema
   const jsonExport = evaluator.exportJSON(suiteResult);
-  assert.ok(typeof jsonExport === 'string' && jsonExport.length > 0);
   const parsed = JSON.parse(jsonExport);
   assert.equal(parsed.schemaVersion, SCHEMA_VERSION);
-  assert.equal(parsed.fileConfusionMatrix.TP, 1);
-  assert.equal(parsed.fileConfusionMatrix.FN, 1);
-  assert.equal(parsed.fileConfusionMatrix.TN, 2); // Clean negative + Advisory only
-  assert.equal(parsed.fileConfusionMatrix.FP, 1); // Clean false positive
-  assert.equal(parsed.fileConfusionMatrix.N, 5);
+  assert.ok(Array.isArray(parsed.rawScanResults), 'Retains rawScanResults in export');
+  assert.equal(parsed.rawScanResults.length, 6);
+  assert.equal(parsed.scenarioObservations[0].unsupportedWeaknesses.length, 1);
 
-  // Verify CSV exports
+  // CSV export
   const { metricsSummaryCsv, fileResultsCsv, findingsDetailsCsv } = evaluator.exportCSV(suiteResult);
-  assert.ok(metricsSummaryCsv.includes('True Positives (TP)'));
-  assert.ok(metricsSummaryCsv.includes('Completed Sample Size (N)'));
+  assert.ok(metricsSummaryCsv.includes('Target-Match Fraction'));
+  assert.ok(metricsSummaryCsv.includes('Controlled Eligible (N)'));
   assert.ok(fileResultsCsv.includes('correct-eval.js'));
   assert.ok(findingsDetailsCsv.includes('OWASP-A03-001'));
 });

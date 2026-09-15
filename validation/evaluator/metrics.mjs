@@ -1,13 +1,13 @@
 /**
  * JSentinel Metrics Calculator
  * 
- * Computes separate measurements in accordance with Phase 05:
- * 1. File-level confusion matrix (TP, TN, FP, FN, Accuracy, Precision, Recall, Specificity, FPR, FNR).
- * 2. Expected-rule recall (one-to-one matched target vulnerabilities).
- * 3. Finding precision (with unmatched findings marked PENDING manual ground-truth adjudication).
- * 4. Metadata check accuracies (category, severity, location, semantic description).
- * 5. Advisory A06 tracking (retained separately, excluded from vulnerability metrics).
- * 6. Scan completion counts (attempted, completed, partial, failed, excluded).
+ * Computes distinct measurements in accordance with Phase 05:
+ * 1. Scan completion totals: overall, scenario, and controlled eligibility/exclusions.
+ * 2. Controlled file-level confusion matrix (TP, TN, FP, FN, Accuracy, Precision, Recall, Specificity, FPR, FNR).
+ * 3. Expected-rule recall (one-to-one matched target vulnerabilities).
+ * 4. Finding precision and target-match fraction (keeping final precision N/A pending manual adjudication).
+ * 5. Metadata check accuracies (category, severity, location, semantic description).
+ * 6. Advisory A06 tracking (retained separately, excluded from vulnerability metrics).
  * 
  * Strict zero-denominator rule: Any division with a zero denominator yields null / "N/A".
  */
@@ -36,26 +36,90 @@ export const safeRatio = (numerator, denominator) => {
  * @returns {Object} Full structured metrics report matching result schema.
  */
 export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = []) => {
-  // 1. Scan Completion Counts
-  let attempted = sampleMatches.length;
-  let completed = 0;
-  let partial = 0;
-  let failed = 0;
-  let excluded = 0;
+  // 1. Scan Completion and Eligibility Breakdown
+  let totalSamples = sampleMatches.length;
+  let overallAttempted = 0;
+  let overallUnattempted = 0;
+  let overallCompleted = 0;
+  let overallPartial = 0;
+  let overallFailed = 0;
+
+  // Scenario specific counts
+  let scenarioTotal = 0;
+  let scenarioAttempted = 0;
+  let scenarioUnattempted = 0;
+  let scenarioCompleted = 0;
+  let scenarioPartial = 0;
+  let scenarioFailed = 0;
+
+  // Controlled specific counts
+  let controlledTotal = 0;
+  let controlledEligible = 0;
+  let controlledExcluded = 0;
+
+  const exclusionBreakdown = {
+    EXCLUDED_SCENARIO: 0,
+    EXCLUDED_UNATTEMPTED: 0,
+    EXCLUDED_INCOMPLETE_PARTIAL: 0,
+    EXCLUDED_INCOMPLETE_FAILED: 0,
+    EXCLUDED_INVALID_LABEL: 0
+  };
 
   for (const item of sampleMatches) {
-    if (item.label === 'scenario') {
-      excluded++;
+    const isScenario = item.label === 'scenario';
+    const isUnattempted = item.scanStatus === 'unattempted';
+    const isFailed = item.scanStatus === 'failed';
+    const isPartial = item.scanStatus === 'partial' || (!isFailed && item.hasScanError);
+    const isCompleted = item.scanStatus === 'completed' && !item.hasScanError;
+
+    // Overall tracking
+    if (isUnattempted) {
+      overallUnattempted++;
+    } else {
+      overallAttempted++;
+    }
+
+    if (isFailed) {
+      overallFailed++;
+    } else if (isPartial) {
+      overallPartial++;
+    } else if (isCompleted) {
+      overallCompleted++;
+    }
+
+    // Scenario tracking
+    if (isScenario) {
+      scenarioTotal++;
+      exclusionBreakdown.EXCLUDED_SCENARIO++;
+      if (isUnattempted) scenarioUnattempted++; else scenarioAttempted++;
+      if (isFailed) scenarioFailed++;
+      else if (isPartial) scenarioPartial++;
+      else if (isCompleted) scenarioCompleted++;
       continue;
     }
-    if (item.scanStatus === 'failed') {
-      failed++;
-    } else if (item.scanStatus === 'partial' || item.hasScanError) {
-      partial++;
-    } else if (item.scanStatus === 'completed') {
-      completed++;
-    } else {
-      failed++;
+
+    // Controlled tracking
+    controlledTotal++;
+
+    // Check for valid ground truth labels
+    const isValidLabel = item.label === 'vulnerable' || item.label === 'clean';
+    if (!isValidLabel) {
+      controlledExcluded++;
+      exclusionBreakdown.EXCLUDED_INVALID_LABEL++;
+      continue;
+    }
+
+    if (isUnattempted) {
+      controlledExcluded++;
+      exclusionBreakdown.EXCLUDED_UNATTEMPTED++;
+    } else if (isFailed) {
+      controlledExcluded++;
+      exclusionBreakdown.EXCLUDED_INCOMPLETE_FAILED++;
+    } else if (isPartial) {
+      controlledExcluded++;
+      exclusionBreakdown.EXCLUDED_INCOMPLETE_PARTIAL++;
+    } else if (isCompleted) {
+      controlledEligible++;
     }
   }
 
@@ -69,21 +133,15 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
   const evaluatedControlledFiles = [];
 
   for (const item of sampleMatches) {
-    // Exclude scenarios from controlled matrix
-    if (item.label === 'scenario') {
-      continue;
-    }
-
-    // Incomplete or failed scans are NOT clean negatives; excluded from matrix N
-    if (item.scanStatus !== 'completed' || item.hasScanError) {
-      continue;
-    }
+    if (item.label === 'scenario') continue;
+    if (item.label !== 'vulnerable' && item.label !== 'clean') continue;
+    if (item.scanStatus !== 'completed' || item.hasScanError) continue;
 
     const isVulnerableExpected = item.label === 'vulnerable';
     const isCleanExpected = item.label === 'clean';
 
     // File is positive if it has at least one eligible in-scope vulnerability alert
-    // (A06 advisories are excluded by matching engine)
+    // (A06 advisories are excluded from vulnerability alert count)
     const hasVulnAlert = item.vulnerabilities.actualCount > 0;
 
     let classification = '';
@@ -155,6 +213,7 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
 
   for (const item of sampleMatches) {
     if (item.label === 'scenario') continue;
+    if (item.label !== 'vulnerable' && item.label !== 'clean') continue;
     if (item.scanStatus !== 'completed' || item.hasScanError) continue;
 
     totalExpected += item.vulnerabilities.expectedCount;
@@ -174,7 +233,7 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
     expectedRuleRecallPercentage: expectedRuleRecallRatio.percentage
   };
 
-  // 4. Finding-Level Precision Metrics
+  // 4. Finding-Level Target-Match Fraction and Provisional Precision
   let totalActualFindings = 0;
   let matchedFindings = 0;
   let duplicateFindings = 0;
@@ -182,6 +241,7 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
 
   for (const item of sampleMatches) {
     if (item.label === 'scenario') continue;
+    if (item.label !== 'vulnerable' && item.label !== 'clean') continue;
     if (item.scanStatus !== 'completed' || item.hasScanError) continue;
 
     totalActualFindings += item.vulnerabilities.actualCount;
@@ -190,16 +250,21 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
     unmatchedFindings += item.vulnerabilities.unmatchedCount;
   }
 
-  const provPrecRatio = safeRatio(matchedFindings, totalActualFindings);
+  const targetMatchRatio = safeRatio(matchedFindings, totalActualFindings);
 
   const findingPrecisionMetrics = {
     totalActualFindings,
     matchedFindings,
     duplicateFindings,
     unmatchedFindings,
-    adjudicationStatus: 'PENDING manual ground-truth adjudication',
-    provisionalPrecision: provPrecRatio.value,
-    provisionalPrecisionPercentage: provPrecRatio.percentage
+    targetMatchFraction: targetMatchRatio.value,
+    targetMatchFractionPercentage: targetMatchRatio.percentage,
+    targetMatchFractionFormula: 'matchedFindings / totalActualFindings',
+    adjudicatedPrecision: null,
+    adjudicatedPrecisionPercentage: 'N/A',
+    adjudicationStatus: 'PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION',
+    pendingGroundTruthReviewCount: unmatchedFindings,
+    pendingSemanticDescriptionReviewCount: 0 // Updated below
   };
 
   // 5. Advisory A06 Metrics (Retained separately)
@@ -209,6 +274,7 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
 
   for (const item of sampleMatches) {
     if (item.label === 'scenario') continue;
+    if (item.label !== 'vulnerable' && item.label !== 'clean') continue;
     if (item.scanStatus !== 'completed' || item.hasScanError) continue;
 
     totalExpectedAdvisories += item.advisories.expectedCount;
@@ -235,9 +301,11 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
   let severityMismatches = 0;
   let locationMatches = 0;
   let locationMismatches = 0;
+  let structuralMetadataMatches = 0;
 
   for (const item of sampleMatches) {
     if (item.label === 'scenario') continue;
+    if (item.label !== 'vulnerable' && item.label !== 'clean') continue;
     if (item.scanStatus !== 'completed' || item.hasScanError) continue;
 
     for (const match of item.vulnerabilities.matched) {
@@ -246,12 +314,16 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
       if (checks.categoryMatch) categoryMatches++; else categoryMismatches++;
       if (checks.severityMatch) severityMatches++; else severityMismatches++;
       if (checks.locationMatch) locationMatches++; else locationMismatches++;
+      if (checks.structuralMetadataMatch) structuralMetadataMatches++;
     }
   }
+
+  findingPrecisionMetrics.pendingSemanticDescriptionReviewCount = totalChecked;
 
   const catAcc = safeRatio(categoryMatches, totalChecked);
   const sevAcc = safeRatio(severityMatches, totalChecked);
   const locAcc = safeRatio(locationMatches, totalChecked);
+  const structAcc = safeRatio(structuralMetadataMatches, totalChecked);
 
   const metadataChecksSummary = {
     totalChecked,
@@ -261,19 +333,37 @@ export const calculateEvaluationMetrics = (sampleMatches = [], rawScanResults = 
     severityMismatches,
     locationMatches,
     locationMismatches,
+    structuralMetadataMatches,
     categoryAccuracyPercentage: catAcc.percentage,
     severityAccuracyPercentage: sevAcc.percentage,
     locationAccuracyPercentage: locAcc.percentage,
-    semanticDescriptionStatus: 'PENDING_MANUAL_SEMANTIC_REVIEW'
+    structuralMetadataAccuracyPercentage: structAcc.percentage,
+    semanticDescriptionStatus: 'PENDING_MANUAL_SEMANTIC_REVIEW',
+    adjudicatedMetadataAccuracyPercentage: 'N/A'
   };
 
   return {
     scanCompletion: {
-      attempted,
-      completed,
-      partial,
-      failed,
-      excluded
+      totalSamples,
+      attempted: overallAttempted,
+      unattempted: overallUnattempted,
+      completed: overallCompleted,
+      partial: overallPartial,
+      failed: overallFailed,
+      scenarioCompletion: {
+        total: scenarioTotal,
+        attempted: scenarioAttempted,
+        unattempted: scenarioUnattempted,
+        completed: scenarioCompleted,
+        partial: scenarioPartial,
+        failed: scenarioFailed
+      },
+      controlledEligibility: {
+        total: controlledTotal,
+        eligible: controlledEligible,
+        excluded: controlledExcluded,
+        exclusionBreakdown
+      }
     },
     fileConfusionMatrix,
     expectedRuleMetrics,

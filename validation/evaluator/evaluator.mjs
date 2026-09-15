@@ -6,12 +6,7 @@
  */
 
 import { SCHEMA_VERSION, validateEvaluationResult } from './schema.mjs';
-import {
-  scanWithWebAdapter,
-  scanWithExtensionAdapter,
-  adaptSuppliedOutput
-} from './adapters.mjs';
-import { matchSampleFindings, DEFAULT_MATCHING_POLICY } from './matching.mjs';
+import { matchSampleFindings, DEFAULT_MATCHING_POLICY, validateMatchingPolicy } from './matching.mjs';
 import { calculateEvaluationMetrics } from './metrics.mjs';
 
 export const EVALUATOR_VERSION = '1.0.0-phase05-batch-a';
@@ -24,6 +19,7 @@ export class JSentinelEvaluator {
    */
   constructor(options = {}) {
     this.matchingPolicy = { ...DEFAULT_MATCHING_POLICY, ...options.matchingPolicy };
+    validateMatchingPolicy(this.matchingPolicy);
     this.scannerEngine = options.scannerEngine || 'supplied';
     this.version = EVALUATOR_VERSION;
   }
@@ -66,17 +62,21 @@ export class JSentinelEvaluator {
       let scanResult = resultsMap.get(fileName);
 
       if (!scanResult) {
-        // Unscanned file recorded as failed/unattempted
+        // Missing scan is explicitly unattempted (do not fabricate attempted: true)
         scanResult = {
           engine: this.scannerEngine,
           fileName,
-          status: 'failed',
-          attempted: true,
+          scannerVersion: 'unknown',
+          status: 'unattempted',
+          attempted: false,
           completed: false,
           isPartial: false,
-          isFailed: true,
-          hasError: true,
+          isFailed: false,
+          isUnattempted: true,
+          hasError: false,
           error: `No scan output provided for file: ${fileName}`,
+          parseError: null,
+          ruleErrors: [],
           findings: [],
           rawOutput: null
         };
@@ -109,7 +109,10 @@ export class JSentinelEvaluator {
             expectedCount: match.advisories.expectedCount,
             actualCount: match.advisories.actualCount,
             matchedCount: match.advisories.matchedCount
-          }
+          },
+          unsupportedWeaknesses: Array.isArray(fileManifest.unsupportedWeaknesses)
+            ? fileManifest.unsupportedWeaknesses
+            : []
         });
       }
     }
@@ -132,7 +135,8 @@ export class JSentinelEvaluator {
       advisoryMetrics: calculated.advisoryMetrics,
       metadataChecksSummary: calculated.metadataChecksSummary,
       scenarioObservations,
-      fileResults: sampleMatches
+      fileResults: sampleMatches,
+      rawScanResults: rawResultsList
     };
 
     const validation = validateEvaluationResult(evaluationResult);
@@ -169,16 +173,17 @@ export class JSentinelEvaluator {
 
     const summaryRows = [
       ['Metric', 'Category', 'Value', 'Percentage', 'Formula', 'Notes'],
-      ['Attempted Scans', 'Completion', sc.attempted, 'N/A', 'Total files attempted', ''],
-      ['Completed Scans', 'Completion', sc.completed, 'N/A', 'Scans with status=completed and hasError=false', 'Eligible for matrix'],
-      ['Partial Scans', 'Completion', sc.partial, 'N/A', 'Scans with rule execution errors', 'Excluded from matrix'],
-      ['Failed Scans', 'Completion', sc.failed, 'N/A', 'Scans with fatal error or parse failure', 'Excluded from matrix'],
-      ['Excluded Scans', 'Completion', sc.excluded, 'N/A', 'Simulated scenarios segregated', 'Reported separately'],
+      ['Total Samples', 'Completion', sc.totalSamples, 'N/A', 'Total files in evaluation suite', ''],
+      ['Attempted Scans', 'Completion', sc.attempted, 'N/A', 'Files with scan attempt recorded', ''],
+      ['Unattempted Scans', 'Completion', sc.unattempted, 'N/A', 'Files missing scan output', 'Excluded from matrix'],
+      ['Completed Scans (All)', 'Completion', sc.completed, 'N/A', 'status=completed and hasError=false', 'Includes eligible and scenarios'],
+      ['Partial Scans (All)', 'Completion', sc.partial, 'N/A', 'Scans with rule execution errors', 'Excluded from matrix'],
+      ['Failed Scans (All)', 'Completion', sc.failed, 'N/A', 'Scans with fatal error or parse failure', 'Excluded from matrix'],
+      ['Controlled Eligible (N)', 'Controlled Matrix', cm.N, 'N/A', 'TP + TN + FP + FN', 'Completed controlled scans only'],
       ['True Positives (TP)', 'Controlled Matrix', cm.TP, 'N/A', 'Vulnerable file with >=1 vuln alert', ''],
       ['True Negatives (TN)', 'Controlled Matrix', cm.TN, 'N/A', 'Clean file with 0 vuln alerts', 'Advisory A06 excluded'],
       ['False Positives (FP)', 'Controlled Matrix', cm.FP, 'N/A', 'Clean file with >=1 vuln alert', ''],
       ['False Negatives (FN)', 'Controlled Matrix', cm.FN, 'N/A', 'Vulnerable file with 0 vuln alerts', ''],
-      ['Completed Sample Size (N)', 'Controlled Matrix', cm.N, 'N/A', 'TP + TN + FP + FN', 'Completed controlled scans only'],
       ['Accuracy', 'Controlled Matrix', cm.accuracy !== null ? cm.accuracy.toFixed(4) : 'N/A', cm.percentages.accuracy, '(TP + TN) / N', 'Zero denominator N/A'],
       ['Precision', 'Controlled Matrix', cm.precision !== null ? cm.precision.toFixed(4) : 'N/A', cm.percentages.precision, 'TP / (TP + FP)', 'Zero denominator N/A'],
       ['Recall (TPR)', 'Controlled Matrix', cm.recall !== null ? cm.recall.toFixed(4) : 'N/A', cm.percentages.recall, 'TP / (TP + FN)', 'Zero denominator N/A'],
@@ -193,7 +198,8 @@ export class JSentinelEvaluator {
       ['Matched Findings', 'Finding-Precision', prec.matchedFindings, 'N/A', 'Findings matched to ground-truth targets', ''],
       ['Duplicate Findings', 'Finding-Precision', prec.duplicateFindings, 'N/A', 'Duplicates of target; cannot inflate match', ''],
       ['Unmatched Findings', 'Finding-Precision', prec.unmatchedFindings, 'N/A', 'Unmatched alerts', 'PENDING manual ground-truth adjudication'],
-      ['Provisional Precision', 'Finding-Precision', prec.provisionalPrecision !== null ? prec.provisionalPrecision.toFixed(4) : 'N/A', prec.provisionalPrecisionPercentage, 'matched / totalActual', 'Subject to manual adjudication'],
+      ['Target-Match Fraction', 'Finding-Precision', prec.targetMatchFraction !== null ? prec.targetMatchFraction.toFixed(4) : 'N/A', prec.targetMatchFractionPercentage, prec.targetMatchFractionFormula, 'Fraction of findings matching targets'],
+      ['Adjudicated Precision', 'Finding-Precision', 'N/A', 'N/A', 'N/A', 'PENDING manual ground-truth adjudication'],
       ['Expected Advisories (A06)', 'Advisory A06', adv.totalExpectedAdvisories, 'N/A', 'Informational component reviews', 'Excluded from vulnerability metrics'],
       ['Detected Advisories (A06)', 'Advisory A06', adv.detectedAdvisories, 'N/A', 'A06 findings captured', 'Excluded from vulnerability metrics'],
       ['Matched Advisories (A06)', 'Advisory A06', adv.matchedAdvisories, 'N/A', 'A06 findings matched', 'Excluded from vulnerability metrics']
@@ -212,12 +218,14 @@ export class JSentinelEvaluator {
       if (f.label === 'scenario') continue;
       const isPositive = f.vulnerabilities.actualCount > 0;
       let classification = 'EXCLUDED_INCOMPLETE';
-      if (f.scanStatus === 'completed' && !f.hasScanError) {
+      if (f.scanStatus === 'completed' && !f.hasScanError && (f.label === 'vulnerable' || f.label === 'clean')) {
         if (f.label === 'vulnerable') {
           classification = isPositive ? 'TP' : 'FN';
         } else if (f.label === 'clean') {
           classification = isPositive ? 'FP' : 'TN';
         }
+      } else if (f.scanStatus === 'unattempted') {
+        classification = 'EXCLUDED_UNATTEMPTED';
       }
 
       fileRows.push([
