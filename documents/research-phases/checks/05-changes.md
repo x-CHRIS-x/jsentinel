@@ -250,5 +250,19 @@ Following independent verification and pre-freeze audit by Claude Opus 4.6 (sess
    - Documented comprehensive evidence-retention requirements (raw outputs, evaluator reports, timing data, environment specifications, screenshots, error logs, and commit/digest identifiers).
    - Reaffirmed the research stage boundary: Phase 05 benchmark observations remain local development data and are not presented as Phase 07 AU laboratory results.
 
+---
+
+## 7. Pre-Freeze Provenance Reconciliation
+
+Following the documentation-only manifest refinement in commit `fc6395c`, historical run provenance was reviewed and explicitly reconciled:
+
+1. **Historical Run Evidence Preservation:**
+   - Restored the execution-time manifest SHA-256 (`ac9f72499b242d8d580cf617e841766d40d12d7935d65e3381d3d58841ea9199`) in `validation/evaluator/runs/phase05-batch-b-corr2/web/run_metadata.json` and `extension/run_metadata.json`.
+   - Preserved historical evidence integrity by not retroactively rewriting run evidence files when a downstream documentation-only manifest hash changes.
+
+2. **Package Metadata and Semantic Review Provenance:**
+   - Candidate package metadata (`05-candidate-package-metadata.json`) identifies current package manifest SHA-256 (`85a2b536fe00571e2442542d99f7eae200b1593b8ee9995e7ce4c0755ccd0770`) while linking to the underlying corr2 run evidence.
+   - Semantic description review header in `05-semantic-description-review-2026-09-15.md` explicitly documents the dual-hash provenance (originally evaluated against baseline `ac9f72499...` and revalidated against current documentation-refined `85a2b536...`).
+
 
 

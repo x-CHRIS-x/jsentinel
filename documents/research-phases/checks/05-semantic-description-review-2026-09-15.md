@@ -4,7 +4,8 @@
 - **Status:** Evidence-only technical review (Pending final human capstone group sign-off)
 - **Review Scope:** All 51 matched vulnerability targets across completed controlled scans (N = 108)
 - **Evaluator Run ID:** `run-web-1789452760973-72439942` / `run-extension-1789452761648-5bd1c8fb`
-- **Dataset Manifest:** `test-samples/dataset-manifest.json` (SHA-256: `85a2b536fe00571e2442542d99f7eae200b1593b8ee9995e7ce4c0755ccd0770`)
+- **Dataset Manifest (Current):** `test-samples/dataset-manifest.json` (SHA-256: `85a2b536fe00571e2442542d99f7eae200b1593b8ee9995e7ce4c0755ccd0770`)
+- **Review Provenance:** Originally conducted against baseline manifest SHA-256 `ac9f72499b242d8d580cf617e841766d40d12d7935d65e3381d3d58841ea9199` from run `run-web-1789452760973-72439942` / `run-extension-1789452761648-5bd1c8fb`. Revalidated following documentation-only C-A1-001 rationale wording refinement in commit `fc6395c`. All 51 reviewed expectations, rule IDs, file locations, and actual findings are identical and unchanged.
 
 ---
 
