@@ -198,28 +198,28 @@ export const normalizeScanResult = ({ engine, fileName, rawResult, thrownError =
   const parseError = rawResult.parseError || (rawError && rawError.toLowerCase().includes('parse') ? rawError : null);
 
   // Status resolution honoring engine contracts and explicit flags
-  let status = 'completed';
+  let status = 'failed';
 
   if (rawResult.status === 'unattempted') {
     status = 'unattempted';
   } else if (
     rawResult.status === 'failed' ||
-    rawResult.completed === false ||
     rawResult.success === false ||
-    parseError ||
-    (rawError && rawResult.success !== true)
+    parseError
   ) {
     status = 'failed';
-  } else if (
-    rawResult.status === 'partial' ||
-    rawResult.hasError === true ||
-    ruleErrors.length > 0 ||
-    (rawError && rawResult.success === true)
-  ) {
-    // Contradictory or partial scan: success=true with error, or explicit hasError/ruleErrors
+  } else if (rawResult.status === 'partial') {
     status = 'partial';
-  } else if (rawResult.success === undefined && rawResult.status === undefined) {
-    // Unrecognized raw descriptor without explicit success or status contract
+  } else if (rawResult.completed === false) {
+    status = (rawResult.hasError || ruleErrors.length > 0) ? 'partial' : 'failed';
+  } else if (rawResult.status === 'completed' || rawResult.success === true) {
+    if (rawError || rawResult.hasError || ruleErrors.length > 0) {
+      status = 'partial';
+    } else {
+      status = 'completed';
+    }
+  } else {
+    // Unrecognized status string (e.g. 'unknown', 'weird') or missing explicit contract
     status = 'failed';
   }
 
@@ -306,7 +306,7 @@ export const loadExtensionScanner = () => {
 export const scanWithWebAdapter = async (fileInput, fileName = 'sample.js', customEngine = null) => {
   let resolvedName = fileName;
   try {
-    if (!fileInput) {
+    if (fileInput === null || fileInput === undefined) {
       throw new Error('Malformed input descriptor: fileInput is null or undefined.');
     }
 
@@ -367,7 +367,7 @@ export const scanWithWebAdapter = async (fileInput, fileName = 'sample.js', cust
 export const scanWithExtensionAdapter = (fileInput, fileName = 'sample.js', customEngine = null) => {
   let resolvedName = fileName;
   try {
-    if (!fileInput) {
+    if (fileInput === null || fileInput === undefined) {
       throw new Error('Malformed input descriptor: fileInput is null or undefined.');
     }
 

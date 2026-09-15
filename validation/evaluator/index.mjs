@@ -33,3 +33,15 @@ export {
   RESULT_SCHEMA_DEFINITION,
   validateEvaluationResult
 } from './schema.mjs';
+export {
+  ADJUDICATION_SCHEMA_VERSION,
+  makeFindingKey,
+  validateAdjudicationDocument,
+  applyAdjudicationToMetrics,
+  generateAdjudicationTemplate
+} from './adjudication.mjs';
+export {
+  runEngineBenchmark,
+  runBothEngineBenchmarks,
+  sha256
+} from './runner.mjs';

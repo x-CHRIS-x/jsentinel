@@ -11,7 +11,12 @@ import {
   normalizeFinding,
   validateMatchingPolicy,
   SCHEMA_VERSION,
-  validateEvaluationResult
+  validateEvaluationResult,
+  ADJUDICATION_SCHEMA_VERSION,
+  makeFindingKey,
+  validateAdjudicationDocument,
+  applyAdjudicationToMetrics,
+  generateAdjudicationTemplate
 } from './index.mjs';
 
 import {
@@ -595,3 +600,199 @@ test('27. Schema Validation, Retained Outputs, and CSV Pipeline', () => {
   assert.ok(fileResultsCsv.includes('correct-eval.js'));
   assert.ok(findingsDetailsCsv.includes('OWASP-A03-001'));
 });
+
+test('28. Valid Empty-String Source: scans normally as clean completed file in both adapters', async () => {
+  // Web adapter on empty string
+  const webEmpty = await scanWithWebAdapter('', 'empty.js');
+  assert.equal(webEmpty.status, 'completed');
+  assert.equal(webEmpty.completed, true);
+  assert.equal(webEmpty.findings.length, 0);
+  assert.equal(webEmpty.hasError, false);
+
+  // Web adapter on object with content: ''
+  const webObjEmpty = await scanWithWebAdapter({ name: 'empty.js', content: '' });
+  assert.equal(webObjEmpty.status, 'completed');
+  assert.equal(webObjEmpty.completed, true);
+
+  // Extension adapter on empty string
+  const extEmpty = scanWithExtensionAdapter('', 'empty.js');
+  assert.equal(extEmpty.status, 'completed');
+  assert.equal(extEmpty.completed, true);
+  assert.equal(extEmpty.findings.length, 0);
+
+  // Extension adapter on object with content: ''
+  const extObjEmpty = scanWithExtensionAdapter({ name: 'empty.js', content: '' });
+  assert.equal(extObjEmpty.status, 'completed');
+  assert.equal(extObjEmpty.completed, true);
+});
+
+test('29. Malformed Input Descriptors: fail closed in both adapters', async () => {
+  // Object lacking content, code, and text()
+  const webMalformed = await scanWithWebAdapter({ name: 'no-code.js' });
+  assert.equal(webMalformed.status, 'failed');
+  assert.equal(webMalformed.completed, false);
+  assert.equal(webMalformed.hasError, true);
+  assert.ok(webMalformed.error.includes('Malformed file input descriptor'));
+
+  const extMalformed = scanWithExtensionAdapter({ name: 'no-code.js' });
+  assert.equal(extMalformed.status, 'failed');
+  assert.equal(extMalformed.completed, false);
+  assert.equal(extMalformed.hasError, true);
+  assert.ok(extMalformed.error.includes('Malformed file input descriptor'));
+});
+
+test('30. Normalization of Unknown Status and Explicit Partial/Failed Flags', () => {
+  // Unknown status with issues[] must not default to completed
+  const unknownStatus = normalizeScanResult({
+    engine: 'supplied',
+    fileName: 'test.js',
+    rawResult: { status: 'unrecognized_status', issues: [] }
+  });
+  assert.equal(unknownStatus.status, 'failed', 'Unrecognized status must fail closed');
+  assert.equal(unknownStatus.completed, false);
+
+  // Explicit status: 'partial' with completed: false preserves partial
+  const partialExplicit = normalizeScanResult({
+    engine: 'supplied',
+    fileName: 'test.js',
+    rawResult: { status: 'partial', completed: false, issues: [] }
+  });
+  assert.equal(partialExplicit.status, 'partial', 'Explicit status partial must be preserved');
+  assert.equal(partialExplicit.isPartial, true);
+  assert.equal(partialExplicit.completed, false);
+
+  // Explicit status: 'failed' with completed: false preserves failed
+  const failedExplicit = normalizeScanResult({
+    engine: 'supplied',
+    fileName: 'test.js',
+    rawResult: { status: 'failed', completed: false, issues: [] }
+  });
+  assert.equal(failedExplicit.status, 'failed', 'Explicit status failed must be preserved');
+  assert.equal(failedExplicit.isFailed, true);
+});
+
+test('31. Finding Adjudication Document Validation: rejects duplicate and unknown keys', () => {
+  const knownKeys = ['app.js:OWASP-A03-001:10:4', 'app.js:OWASP-A07-001:25:2'];
+
+  // Valid document
+  const validDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      {
+        findingKey: 'app.js:OWASP-A03-001:10:4',
+        fileName: 'app.js',
+        ruleId: 'OWASP-A03-001',
+        disposition: 'TRUE_POSITIVE',
+        rationale: 'Confirmed valid injection flow.',
+        reviewer: 'Chris Ledama',
+        semanticDescriptionOutcome: 'CONFIRMED_ACCURATE'
+      }
+    ]
+  };
+  const valRes = validateAdjudicationDocument(validDoc, knownKeys);
+  assert.equal(valRes.valid, true);
+
+  // Duplicate key rejection
+  const dupDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      { findingKey: 'app.js:OWASP-A03-001:10:4', disposition: 'TRUE_POSITIVE' },
+      { findingKey: 'app.js:OWASP-A03-001:10:4', disposition: 'FALSE_POSITIVE' }
+    ]
+  };
+  const dupRes = validateAdjudicationDocument(dupDoc, knownKeys);
+  assert.equal(dupRes.valid, false);
+  assert.ok(dupRes.errors[0].includes('Duplicate adjudication identifier'));
+
+  // Unknown key rejection
+  const unknownDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      { findingKey: 'unknown-file.js:OWASP-A01-001:99:0', disposition: 'TRUE_POSITIVE' }
+    ]
+  };
+  const unknownRes = validateAdjudicationDocument(unknownDoc, knownKeys);
+  assert.equal(unknownRes.valid, false);
+  assert.ok(unknownRes.errors[0].includes('Unknown adjudication identifier'));
+});
+
+test('32. Adjudication Metrics Consumption: applies reviewed decisions and computes precision', () => {
+  const initialFindingsMetrics = {
+    totalActualFindings: 3,
+    matchedFindings: 1,
+    duplicateFindings: 0,
+    unmatchedFindings: 2,
+    targetMatchFraction: 1 / 3,
+    targetMatchFractionPercentage: '33.33%',
+    adjudicatedPrecision: null,
+    adjudicatedPrecisionPercentage: 'N/A',
+    adjudicationStatus: 'PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION'
+  };
+  const initialMetadataSummary = {
+    totalChecked: 1,
+    structuralMetadataMatches: 1
+  };
+
+  // Case A: Partially reviewed (1 TP, 1 PENDING) -> Precision remains N/A
+  const partialDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      { findingKey: 'f1', disposition: 'TRUE_POSITIVE', semanticDescriptionOutcome: 'CONFIRMED_ACCURATE' },
+      { findingKey: 'f2', disposition: 'PENDING', semanticDescriptionOutcome: 'PENDING' }
+    ]
+  };
+  const partRes = applyAdjudicationToMetrics(initialFindingsMetrics, initialMetadataSummary, partialDoc);
+  assert.equal(partRes.findingPrecisionMetrics.adjudicatedPrecision, null, 'Precision must remain null when pending');
+  assert.equal(partRes.findingPrecisionMetrics.adjudicatedPrecisionPercentage, 'N/A');
+  assert.equal(partRes.findingPrecisionMetrics.adjudicationStatus, 'PARTIALLY_ADJUDICATED');
+
+  // Case B: Fully reviewed (1 TP, 1 FP, 0 PENDING) -> Precision computed: (1 matched + 1 TP) / (1 matched + 1 TP + 1 FP) = 2/3 = 66.67%
+  const completeDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      { findingKey: 'f1', disposition: 'TRUE_POSITIVE', semanticDescriptionOutcome: 'CONFIRMED_ACCURATE' },
+      { findingKey: 'f2', disposition: 'FALSE_POSITIVE', semanticDescriptionOutcome: 'INACCURATE' }
+    ]
+  };
+  const compRes = applyAdjudicationToMetrics(initialFindingsMetrics, initialMetadataSummary, completeDoc);
+  assert.equal(compRes.findingPrecisionMetrics.adjudicatedTruePositives, 1);
+  assert.equal(compRes.findingPrecisionMetrics.adjudicatedFalsePositives, 1);
+  assert.equal(compRes.findingPrecisionMetrics.adjudicationStatus, 'ADJUDICATION_COMPLETE');
+  assert.equal(compRes.findingPrecisionMetrics.adjudicatedPrecision, 2 / 3);
+  assert.equal(compRes.findingPrecisionMetrics.adjudicatedPrecisionPercentage, '66.67%');
+  assert.equal(compRes.metadataChecksSummary.semanticDescriptionConfirmedAccurate, 1);
+  assert.equal(compRes.metadataChecksSummary.semanticDescriptionStatus, 'REVIEW_COMPLETE');
+});
+
+test('33. Duplicate Precision Eligibility Policy in Adjudication', () => {
+  const metricsWithDuplicates = {
+    totalActualFindings: 3,
+    matchedFindings: 1,
+    duplicateFindings: 1,
+    unmatchedFindings: 1,
+    targetMatchFraction: 1 / 3,
+    adjudicatedPrecision: null
+  };
+  const meta = { totalChecked: 1 };
+  const reviewedDoc = {
+    schemaVersion: ADJUDICATION_SCHEMA_VERSION,
+    adjudications: [
+      { findingKey: 'f1', disposition: 'TRUE_POSITIVE' }
+    ]
+  };
+
+  // Policy 1: EXCLUDE_FROM_PRECISION (default) -> (1 + 1) / (1 + 1) = 1.0 (100%)
+  const resExclude = applyAdjudicationToMetrics(metricsWithDuplicates, meta, reviewedDoc, {
+    duplicateEligibility: 'EXCLUDE_FROM_PRECISION'
+  });
+  assert.equal(resExclude.findingPrecisionMetrics.adjudicatedPrecision, 1.0);
+  assert.equal(resExclude.findingPrecisionMetrics.adjudicatedPrecisionPercentage, '100.00%');
+
+  // Policy 2: COUNT_AS_FP -> (1 + 1) / (1 + 1 + 1 duplicate) = 2/3 = 66.67%
+  const resCountFP = applyAdjudicationToMetrics(metricsWithDuplicates, meta, reviewedDoc, {
+    duplicateEligibility: 'COUNT_AS_FP'
+  });
+  assert.equal(resCountFP.findingPrecisionMetrics.adjudicatedPrecision, 2 / 3);
+  assert.equal(resCountFP.findingPrecisionMetrics.adjudicatedPrecisionPercentage, '66.67%');
+});
+
