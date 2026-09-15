@@ -1,5 +1,5 @@
 /**
- * JSentinel Reproducible Local Benchmark Runner (Phase 05 Batch B)
+ * JSentinel Reproducible Local Benchmark Runner (Phase 05 Batch B & C)
  * 
  * Executes both actual scanner engines (Web and Extension) against the accepted
  * 116-file benchmark dataset (108 controlled files + 8 scenarios).
@@ -7,10 +7,11 @@
  * Strict research guarantees:
  * - Reads from accepted manifest test-samples/dataset-manifest.json without modification.
  * - Does not modify dataset files, scanner engines, or detection rules.
- * - Records full raw outputs, normalized results, JSON/CSV summaries, and errors.
- * - Calculates source hashes, records exact commit, environment/tool versions,
- *   and records timing boundary labeled "Node development only".
- * - Isolates runs into versioned directories; never overwrites previous run evidence.
+ * - Refuses to overwrite existing populated run directories; requires a new versioned path or runId.
+ * - Records full raw outputs, normalized results, JSON/CSV summaries, and raw errors.
+ * - Records exact full commit SHA, working tree cleanliness, and dependency versions.
+ * - Records timing boundary explicitly labeled "Node development only".
+ * - Supports CLI arguments for reproduction and pipeline integration.
  * - Evaluates 232 total scan attempts (116 per engine: 108 controlled, 8 scenarios).
  */
 
@@ -40,16 +41,49 @@ export const sha256 = (content) => {
 };
 
 /**
- * Gets the current git commit hash if available.
+ * Gets git provenance information.
  * 
- * @returns {string} Short git commit hash or 'unknown'.
+ * @returns {{ fullCommit: string, shortCommit: string, isClean: boolean, branch: string }}
  */
-export const getGitCommitHash = () => {
+export const getGitProvenance = () => {
+  let fullCommit = 'unknown';
+  let shortCommit = 'unknown';
+  let isClean = false;
+  let branch = 'unknown';
+
   try {
-    return execSync('git rev-parse --short HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    fullCommit = execSync('git rev-parse HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    shortCommit = execSync('git rev-parse --short HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: rootDir, encoding: 'utf8' }).trim();
+    const porcelain = execSync('git status --porcelain', { cwd: rootDir, encoding: 'utf8' }).trim();
+    isClean = porcelain.length === 0;
   } catch {
-    return 'unknown';
+    // git command not available
   }
+
+  return { fullCommit, shortCommit, isClean, branch };
+};
+
+/**
+ * Reads dependency versions from package.json.
+ * 
+ * @returns {Object} Dependency inventory.
+ */
+export const getDependencyVersions = () => {
+  try {
+    const pkgPath = path.join(rootDir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      return {
+        packageVersion: pkg.version || 'unknown',
+        dependencies: pkg.dependencies || {},
+        devDependencies: pkg.devDependencies || {}
+      };
+    }
+  } catch {
+    // ignore
+  }
+  return { packageVersion: 'unknown', dependencies: {}, devDependencies: {} };
 };
 
 /**
@@ -60,7 +94,7 @@ export const getGitCommitHash = () => {
  * @param {Object} params.manifest - Loaded dataset manifest object.
  * @param {string} params.samplesDir - Path to test-samples/samples directory.
  * @param {string} params.outputDir - Output directory for run artifacts.
- * @param {string} params.commitHash - Git commit hash of evaluator state.
+ * @param {Object} [params.provenance] - Git and environment provenance.
  * @returns {Promise<Object>} Run summary.
  */
 export const runEngineBenchmark = async ({
@@ -68,9 +102,23 @@ export const runEngineBenchmark = async ({
   manifest,
   samplesDir,
   outputDir,
-  commitHash = getGitCommitHash()
+  provenance = null
 }) => {
-  fs.mkdirSync(outputDir, { recursive: true });
+  // Refuse to overwrite if directory exists and contains files
+  if (fs.existsSync(outputDir)) {
+    const existingFiles = fs.readdirSync(outputDir);
+    if (existingFiles.length > 0) {
+      throw new Error(
+        `Output directory "${outputDir}" already exists and is populated (${existingFiles.length} files). ` +
+        `Refusing to overwrite existing evidence. Specify a new directory or runId.`
+      );
+    }
+  } else {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const gitProv = provenance || getGitProvenance();
+  const depVersions = getDependencyVersions();
 
   const startTime = new Date().toISOString();
   const startPerf = performance.now();
@@ -150,8 +198,12 @@ export const runEngineBenchmark = async ({
     runId: `run-${engineType}-${Date.now()}`,
     engine: engineType,
     evaluatorVersion: EVALUATOR_VERSION,
-    evaluatorCommit: commitHash,
+    evaluatorCommit: gitProv.fullCommit,
+    evaluatorShortCommit: gitProv.shortCommit,
+    isWorkingTreeClean: gitProv.isClean,
+    branch: gitProv.branch,
     schemaVersion: SCHEMA_VERSION,
+    packageVersion: depVersions.packageVersion,
     datasetManifestVersion: manifest.manifestVersion || '1.0.0',
     datasetBaseCommit: manifest.baseCommit || 'unknown',
     startTime,
@@ -163,6 +215,8 @@ export const runEngineBenchmark = async ({
       arch: process.arch,
       v8Version: process.versions.v8
     },
+    dependencies: depVersions.dependencies,
+    devDependencies: depVersions.devDependencies,
     timingBoundary: {
       scope: 'Node development environment only',
       disclaimer: 'Execution timings reflect Node.js AST traversal and do not establish live web-browser DOM or VS Code extension performance on physical AU laboratory computers.'
@@ -204,14 +258,18 @@ export const runEngineBenchmark = async ({
  * @param {string} [options.manifestPath]
  * @param {string} [options.samplesDir]
  * @param {string} [options.baseOutputDir]
- * @param {string} [options.commitHash]
+ * @param {string} [options.runId]
+ * @param {Object} [options.provenance]
  * @returns {Promise<{ web: Object, extension: Object }>}
  */
 export const runBothEngineBenchmarks = async (options = {}) => {
   const manifestPath = options.manifestPath || path.join(rootDir, 'test-samples', 'dataset-manifest.json');
   const samplesDir = options.samplesDir || path.join(rootDir, 'test-samples', 'samples');
-  const baseOutputDir = options.baseOutputDir || path.join(rootDir, 'validation', 'evaluator', 'runs', 'phase05-batch-b');
-  const commitHash = options.commitHash || getGitCommitHash();
+  
+  // Default to a distinct versioned run directory to prevent overwriting prior evidence
+  const runId = options.runId || 'phase05-batch-b-corr1';
+  const baseOutputDir = options.baseOutputDir || path.join(rootDir, 'validation', 'evaluator', 'runs', runId);
+  const gitProv = options.provenance || getGitProvenance();
 
   if (!fs.existsSync(manifestPath)) {
     throw new Error(`Manifest not found at path: ${manifestPath}`);
@@ -222,7 +280,8 @@ export const runBothEngineBenchmarks = async (options = {}) => {
   const webOutputDir = path.join(baseOutputDir, 'web');
   const extOutputDir = path.join(baseOutputDir, 'extension');
 
-  console.log(`Starting Phase 05 Batch B benchmark runs over 116 files...`);
+  console.log(`Starting Phase 05 benchmark run [${runId}] over 116 files...`);
+  console.log(`Base output directory: ${baseOutputDir}`);
 
   console.log(`Executing Web Scanner Engine...`);
   const webResult = await runEngineBenchmark({
@@ -230,7 +289,7 @@ export const runBothEngineBenchmarks = async (options = {}) => {
     manifest,
     samplesDir,
     outputDir: webOutputDir,
-    commitHash
+    provenance: gitProv
   });
   console.log(`Web Scanner Engine completed in ${webResult.runMetadata.totalDurationMs}ms.`);
 
@@ -240,27 +299,54 @@ export const runBothEngineBenchmarks = async (options = {}) => {
     manifest,
     samplesDir,
     outputDir: extOutputDir,
-    commitHash
+    provenance: gitProv
   });
   console.log(`Extension Scanner Engine completed in ${extResult.runMetadata.totalDurationMs}ms.`);
 
   return {
+    runId,
+    baseOutputDir,
     web: webResult,
     extension: extResult
   };
 };
 
+/**
+ * Parses CLI arguments.
+ * 
+ * @param {string[]} args 
+ * @returns {Object} Parsed options.
+ */
+export const parseCliArgs = (args) => {
+  const options = {};
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--output-dir' && i + 1 < args.length) {
+      options.baseOutputDir = path.resolve(args[++i]);
+    } else if (arg === '--run-id' && i + 1 < args.length) {
+      options.runId = args[++i];
+    } else if (arg === '--manifest' && i + 1 < args.length) {
+      options.manifestPath = path.resolve(args[++i]);
+    } else if (arg === '--samples-dir' && i + 1 < args.length) {
+      options.samplesDir = path.resolve(args[++i]);
+    }
+  }
+  return options;
+};
+
 // Execute if run directly from CLI
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runBothEngineBenchmarks()
-    .then(({ web, extension }) => {
-      console.log('--- Phase 05 Batch B Benchmark Runs Complete ---');
+  const cliOptions = parseCliArgs(process.argv.slice(2));
+  runBothEngineBenchmarks(cliOptions)
+    .then(({ runId, baseOutputDir, web, extension }) => {
+      console.log(`--- Benchmark Run [${runId}] Complete ---`);
+      console.log(`Outputs: ${baseOutputDir}`);
       console.log(`Web: ${web.totalAttempts} attempts (${web.controlledCount} controlled, ${web.scenarioCount} scenarios)`);
       console.log(`Extension: ${extension.totalAttempts} attempts (${extension.controlledCount} controlled, ${extension.scenarioCount} scenarios)`);
       console.log(`Total scan attempts: ${web.totalAttempts + extension.totalAttempts}`);
     })
     .catch(err => {
-      console.error('Benchmark execution error:', err);
+      console.error('Benchmark execution error:', err.message);
       process.exit(1);
     });
 }

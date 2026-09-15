@@ -37,8 +37,9 @@ export {
   ADJUDICATION_SCHEMA_VERSION,
   makeFindingKey,
   validateAdjudicationDocument,
-  applyAdjudicationToMetrics,
-  generateAdjudicationTemplate
+  applyAdjudicationToEvaluation,
+  generateAdjudicationTemplate,
+  extractEvaluationFindingsMap
 } from './adjudication.mjs';
 export {
   runEngineBenchmark,
