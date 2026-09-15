@@ -142,4 +142,27 @@ Following coordinator inspection, five technical review deficiencies were resolv
 - Prior draft claimed Chris authored the AI draft, asserted that protocols were agreed/locked down, omitted the file-size protocol, and misstated the transfer timing as Pass B / Phase 08.
 - Resolved by updating `05-pass-a-technical-method-draft.md` to clearly state it is an AI draft for group review, establishing that the agreed method must be transferred to the shared Google Doc during Pass A before Phase 07, defining the file-size measurement protocol, and sourcing survey details directly to `documents/MD/Final-Grp13-IT225-Chapters123-Aug25-2026.md`.
 
+---
+
+## 6. Resolved Coordinator Deficiencies (Review of Commits 0631380 and 9804964)
+
+Following coordinator inspection of commits `0631380` and `9804964`, four technical deficiencies were resolved:
+
+### Deficiency 1: Registry Inventory vs Hardcoded List
+- **Observation:** `generate-candidate-package-metadata.mjs` retained a hardcoded 24-rule array with incorrect descriptions (misdescribing redirect, cookie, and template literal rules).
+- **Resolution:** Removed the hardcoded list. Implemented `loadActualRuleInventories()`, which dynamically imports all 8 web rule modules and `vscode-extension/src/scanner/rules.js`. Validates 1-to-1 rule ID agreement, matching severities, and identical finding types. Metadata descriptions and categories are extracted directly from accepted scanner objects. Added unit test 41.
+
+### Deficiency 2: Provenance Validation in IngestRunReports and Separated Base Commits
+- **Observation:** `ingestRunReports` parsed JSON without verifying engine binding, commit consistency, or sample digests. Additionally, `datasetBaseCommit` (`ca15477`) was mislabeled as the evidence base commit.
+- **Resolution:** Enhanced `ingestRunReports` to reject cross-engine files, verify commit consistency across engines, check dataset manifest binding, and verify sample file hashes against disk files. Separated `datasetBaseCommit` (`ca15477`), `acceptedPhase04EvidenceCommit` (`0a76a2f`), and `evaluatorSourceCommit`. Reproduction commands now direct to a new directory (`phase05-benchmark-repro`). Preserved prior metadata at `05-candidate-package-metadata-2026-09-15-corr1.json`.
+
+### Deficiency 3: Adjudication Key Multiplicity, Binding, and Tampering
+- **Observation:** Adjudication keys collapsed repeated identical alerts at the same coordinates, reducing denominator counts. Adjudication documents lacked cryptographic run/digest binding, permitting cross-run tampering. Completed semantic reviews did not enforce genuine human reviewer credentials.
+- **Resolution:** Added `occurrenceIndex` to `makeFindingKey` and `extractEvaluationFindingsMap` so repeated identical findings retain distinct keys and count fully toward denominators. Bound adjudication documents to `scannerEngine`, `evaluationRunId`, and `evaluationResultDigest` using `computeEvaluationDigest()`. Validator compares entries against ground truth, rejecting tampered fields. Completed dispositions and completed semantic reviews require a non-empty human reviewer, valid ISO date, and non-empty rationale (rejecting `AUTOMATED_EVALUATOR`). Duplicate policy enum is strictly validated. Added unit tests 42, 43, 44, 45, and 46.
+
+### Deficiency 4: Missing Phase 05 Checklist
+- **Observation:** `documents/research-phases/checks/05-checklist.md` was missing from the repository.
+- **Resolution:** Created `05-checklist.md` itemizing all 21 acceptance criteria, execution commands, exit codes, and explicit research limits (Node development timing boundaries, AST limitations, and pending group adoption gates). Unit tests expanded to 46 passing tests.
+
+
 

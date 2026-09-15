@@ -175,4 +175,39 @@ Following coordinator review of commits `5239da9` and `ab37e50`, six specific de
 ### Defect 6: Expanded Evaluator Test Suite
 - **Correction:** Expanded `evaluator.test.mjs` from 33 to 40 targeted tests covering template roundtrip, duplicate/unknown key rejection, incomplete disposition rejection, scenario segregation, semantic review scoping, runner immutability, and dynamic package metadata ingestion.
 
+---
+
+## 7. Manager Review Corrections (Commits 0631380 and 9804964 Follow-Up)
+
+Following coordinator review of commits `0631380` and `9804964`, four remaining bounded blockers were resolved:
+
+### Defect 1: Dynamic Rule Inventory Extraction from Scanner Registries
+- **Problem:** The package metadata generator previously hardcoded a 24-rule array containing incorrect descriptions (for example, describing `OWASP-A01-001` as storage access rather than open redirect, `OWASP-A02-002` as SHA-1 rather than cookie manipulation, and `OWASP-A03-004` as Function constructor rather than template literal HTML injection).
+- **Correction:** Replaced the hardcoded inventory with `loadActualRuleInventories()`. The function dynamically loads the extension registry from `vscode-extension/src/scanner/rules.js` and all 8 web rule modules from `src/scanner/rules/`. It verifies 1-to-1 rule ID agreement, matching severity levels, and identical rule types between both engines. Descriptions and categories are extracted directly from accepted scanner rule objects (`webRule.message`, `webRule.owasp`). Counts are derived dynamically (24 total: 23 vulnerability, 1 advisory, 7 categories). Added test 41 comparing the derived inventory against the active registries.
+
+### Defect 2: IngestRunReports Provenance Binding and Distinct Base Commits
+- **Problem:** `ingestRunReports` only parsed JSON files without validating scanner engine binding, dataset integrity, or commit consistency. Additionally, the dataset manifest base commit (`ca15477`) was mislabeled as the accepted evidence base commit.
+- **Correction:** Enhanced `ingestRunReports` with strict provenance checks:
+  1. Rejects cross-engine contamination (verifies `engine === 'web'` in web runs and `engine === 'extension'` in extension runs).
+  2. Verifies evaluator commit consistency across both scanner engines.
+  3. Binds run metadata against the dataset manifest (`datasetBaseCommit` and `datasetManifestVersion`).
+  4. Verifies sample file SHA-256 hashes against disk files.
+  5. Validates completion and confusion matrix counts (116 attempted, 116 completed, 108 evaluated).
+  6. In package metadata, cleanly separates three distinct commit references: `datasetBaseCommit` (`ca15477`), `acceptedPhase04EvidenceCommit` (`0a76a2f`), and `evaluatorSourceCommit` (live Git HEAD).
+  7. Reproduction command updated to target a new output directory (`phase05-benchmark-repro`), respecting runner immutability.
+  8. Preserved the previous metadata artifact at `05-candidate-package-metadata-2026-09-15-corr1.json` before writing version 1.1.0 to `05-candidate-package-metadata.json`.
+
+### Defect 3: Adjudication Multiplicity, Binding, and Tampering Rejection
+- **Problem:** Adjudication keys collapsed repeated identical unmatched findings at the same line and column, reducing the evaluation denominator. Furthermore, adjudication documents contained no run ID or result digest binding, allowing cross-run tampering. Completed semantic reviews did not enforce genuine human review.
+- **Correction:** 
+  1. Multiplicity: `makeFindingKey` and `extractEvaluationFindingsMap` incorporate an `occurrenceIndex`. Two identical alerts in the same file at the same coordinates receive distinct keys (index 0 and index 1). Both are preserved in templates and counted in precision denominators without loss.
+  2. Cross-Run Digest Binding: Exported `computeEvaluationDigest(evaluationResult)` calculating a deterministic SHA-256 digest of findings and metadata. Adjudication documents require `scannerEngine`, `evaluationRunId`, and `evaluationResultDigest`. Mismatches trigger cross-run rejection.
+  3. Canonical Field Tampering: Validator compares entries against ground truth. Modifying `scope`, `kind`, `sampleId`, `fileName`, `ruleId`, or location coordinates fails validation.
+  4. Human Reviewer Requirement: Completed dispositions and completed semantic reviews require a non-empty human reviewer name, valid ISO review date, and non-empty rationale. `AUTOMATED_EVALUATOR` is rejected for completed reviews.
+  5. Duplicate Policy Validation: Validates the `duplicateEligibility` policy enum (`EXCLUDE_FROM_PRECISION` vs `COUNT_AS_FP`), rejecting invalid options.
+
+### Defect 4: Phase 05 Checklist Creation
+- **Correction:** Created `documents/research-phases/checks/05-checklist.md` itemizing all 21 acceptance criteria, execution records, exit codes, and explicit research limits (Node development timing boundaries, AST limits, and pending group adoption gates). Expanded unit tests from 40 to 46 passing tests.
+
+
 

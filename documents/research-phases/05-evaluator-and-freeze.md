@@ -38,7 +38,7 @@ A measured 100% result on the frozen constructed cases can be reported with its 
 
 ## Done and stop
 
-- [x] Known evaluator cases produce the correct matches, errors, and denominators (Batch A & B corrected; 40 unit/integration tests pass).
+- [x] Known evaluator cases produce the correct matches, errors, and denominators (Batch A & B corrected; 46 unit/integration tests pass).
 - [x] Both implementations have local results with raw evidence retained (Batch B & B-corr1 complete; 232 scan attempts per run across Web and Extension engines in versioned folders).
 - [x] No duplicate, unrelated alert, or failed scan can create a false target-detection pass (Batch A verified in tests 1-9 and 19-22).
 - [x] Category, severity, location, and description checks cover the claims made in Chapter III (Batch B schema 1.0.0 and exports).
