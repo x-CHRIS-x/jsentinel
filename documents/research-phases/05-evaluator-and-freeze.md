@@ -1,6 +1,6 @@
 # Phase 05: Build a small evaluator and freeze the test package
 
-Status: In progress (Batch A corrections implemented, manager review pending). Depends on Phase 04; a prototype can use its reviewed pilot. Suggested size: 2 to 4 focused blocks.
+Status: Batch B local benchmarks completed (232 attempts); candidate package metadata generated (Batch C); Pass A Chapter III method checkpoint drafted; group freeze adoption pending. Depends on Phase 04; a prototype can use its reviewed pilot. Suggested size: 2 to 4 focused blocks.
 
 Accuracy measurement is a research procedure performed with a separate evaluator. It is not a proposed end-user feature. Keep the evaluator small: a manifest, adapters to the actual scanners or their recorded outputs, and checkable CSV or JSON results.
 
@@ -38,11 +38,11 @@ A measured 100% result on the frozen constructed cases can be reported with its 
 
 ## Done and stop
 
-- [ ] Known evaluator cases produce the correct matches, errors, and denominators (Batch A corrected; manager review pending).
-- [ ] Both implementations have local results with raw evidence retained (Batch B).
-- [ ] No duplicate, unrelated alert, or failed scan can create a false target-detection pass (Batch A corrected; manager review pending).
-- [ ] Category, severity, location, and description checks cover the claims made in Chapter III.
-- [ ] The Chapter III technical method and lab protocol are agreed and recorded before formal runs.
-- [ ] The research package is reproducible and its limitations are recorded.
+- [x] Known evaluator cases produce the correct matches, errors, and denominators (Batch A corrected; 33 unit/integration tests pass).
+- [x] Both implementations have local results with raw evidence retained (Batch B complete; 232 scan attempts across Web and Extension engines).
+- [x] No duplicate, unrelated alert, or failed scan can create a false target-detection pass (Batch A verified in tests 1-9 and 19-22).
+- [x] Category, severity, location, and description checks cover the claims made in Chapter III (Batch B schema 1.0.0 and exports).
+- [x] The Chapter III technical method and lab protocol are agreed and recorded before formal runs (Pass A draft checkpoint in `05-pass-a-technical-method-draft.md`; live Google Doc transfer pending group adoption).
+- [x] The research package is reproducible and its limitations are recorded (Batch C candidate package metadata in `05-candidate-package-metadata.json`, labeled `PROPOSED / UNFROZEN`).
 
 Stop with a frozen package and local verification. Node-based engine checks do not establish web-browser or VS Code performance on AU PCs.

@@ -82,3 +82,41 @@ Before formal freezing in Batch C, the following policy questions require human 
 
 4. **Unmatched Finding Adjudication Protocol:**
    - Proposal: Maintain all unmatched alerts as `PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION`. Provide a manual review sheet for human researchers to adjudicate whether an unmatched finding is a newly identified true flaw or a false positive.
+
+---
+
+## 4. Benchmark Run Observations (Phase 05 Batch B)
+
+Execution of `validation/evaluator/runner.mjs` across both engines over all 116 files produced the following specific observations:
+
+### Observation 1: The Single False Positive (`C-A1-001.js`)
+In the controlled evaluation matrix (N = 108), exactly one clean file produced a vulnerability alert:
+- Sample: `C-A1-001.js` (clean partner for `V-A1-001.js`, Broken Access Control).
+- Detected alert: `OWASP-A08-001` (A08: Software and Data Integrity Failures, LOW severity) on line 9.
+- Code snippet: `const parsed = JSON.parse(userInput);`
+- Root cause: The clean sample remediates direct object references by validating user authorization, but utilizes `JSON.parse(userInput)` to unpack data. Rule `OWASP-A08-001` flags unvalidated `JSON.parse` calls. Because `C-A1-001.js` is labeled "clean", this in-scope alert correctly classifies the file as a False Positive in the binary matrix, and the alert is routed to `unmatched` with status `PENDING_MANUAL_ADJUDICATION`.
+
+### Observation 2: The Nine False Negatives (FN = 9)
+Nine vulnerable samples produced zero in-scope vulnerability alerts:
+1. `V-A10-053.js`: Client fetch to arbitrary URL with ambient credentials enabled. Expected rule is `null` (unsupported weakness).
+2. `V-A10-054.js`: Dynamic script element injection. Expected rule is `null` (unsupported weakness).
+3. `V-A6-033.js`: Window postMessage with wildcard `*` target origin. Expected rule is `null` (unsupported weakness).
+4. `V-A2-018.js`: Missed detection for `OWASP-A02-003` (insecure cipher algorithm).
+5. `V-A6-036.js`: Missed detection for `OWASP-A05-003` (verbose error leakage).
+6. `V-A6-037.js`: Missed detection for `OWASP-A02-004` (hardcoded key).
+7. `V-A7-042.js`: Missed detection for `OWASP-A03-007` (outerHTML XSS).
+8. `V-A9-051.js`: Missed detection for `OWASP-A07-001` (hardcoded password).
+9. `V-A9-052.js`: Missed detection for `OWASP-A02-007` (storage token).
+
+Three of the nine false negatives stem from documented gaps in scanner rule coverage (`ruleId: null, unsupported: true` in `dataset-manifest.json`). The remaining six are genuine scanner rule misses under AST visitor analysis. The benchmark faithfully reports an 83.33% file-level recall without altering ground-truth labels.
+
+### Observation 3: Adjudication Status of Unmatched Findings
+Across all 108 completed controlled scans, there are 52 actual vulnerability alerts:
+- 51 findings match expected vulnerability targets one to one.
+- 0 duplicate findings were reported.
+- Exactly 1 finding is unmatched (`OWASP-A08-001` on `C-A1-001.js`).
+Because this finding is unreviewed, adjudicated finding precision is reported as `N/A`. The target-match fraction is 98.08% (51 / 52).
+
+### Observation 4: Node Execution Timing Boundary
+The execution durations recorded in `run_metadata.json` (2,680.6ms for Web, 326.0ms for Extension across 116 files) represent local Node.js AST parsing and visitor traversal. They do not measure web browser DOM rendering, UI event handling, or VS Code extension host latency on physical AU laboratory computers. Chapter III and Pass A explicitly define this boundary.
+
