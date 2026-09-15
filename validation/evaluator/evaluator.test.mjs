@@ -13,6 +13,7 @@ import {
   SCHEMA_VERSION,
   validateEvaluationResult,
   ADJUDICATION_SCHEMA_VERSION,
+  computeEvaluationDigest,
   makeFindingKey,
   validateAdjudicationDocument,
   applyAdjudicationToEvaluation,
@@ -23,7 +24,8 @@ import { parseCliArgs, runEngineBenchmark } from './runner.mjs';
 import {
   validateAndDigestManifest,
   buildCandidatePackageMetadata,
-  ingestRunReports
+  ingestRunReports,
+  loadActualRuleInventories
 } from '../../scripts/generate-candidate-package-metadata.mjs';
 
 import {
@@ -680,7 +682,7 @@ test('30. Normalization of Unknown Status and Explicit Partial/Failed Flags', ()
 
 test('31. Finding Adjudication Document Validation: rejects duplicate, unknown, and incomplete entries', () => {
   const dummyEvalResult = {
-    metadata: { scannerEngine: 'web' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-1', datasetManifestVersion: '1.0.0' },
     fileResults: [
       {
         sampleId: 'C-A1-001',
@@ -699,22 +701,33 @@ test('31. Finding Adjudication Document Validation: rejects duplicate, unknown, 
     ]
   };
 
+  const digest = computeEvaluationDigest(dummyEvalResult);
+
   const validKey = makeFindingKey({
     engine: 'web',
     sampleId: 'C-A1-001',
     ruleId: 'OWASP-A08-001',
     line: 9,
     column: 23,
-    kind: 'unmatched'
+    kind: 'unmatched',
+    occurrenceIndex: 0
   });
 
   // Valid document with reviewer, rationale, reviewDate
   const validDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-1',
+    evaluationResultDigest: digest,
     adjudications: [
       {
         findingKey: validKey,
+        scope: 'controlled',
+        kind: 'unmatched',
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        ruleId: 'OWASP-A08-001',
+        location: { line: 9, column: 23 },
         disposition: 'FALSE_POSITIVE',
         rationale: 'Legitimate deserialization in clean sample.',
         reviewer: 'Security Reviewer',
@@ -730,16 +743,24 @@ test('31. Finding Adjudication Document Validation: rejects duplicate, unknown, 
   const incompleteDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-1',
+    evaluationResultDigest: digest,
     adjudications: [
       {
         findingKey: validKey,
+        scope: 'controlled',
+        kind: 'unmatched',
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        ruleId: 'OWASP-A08-001',
+        location: { line: 9, column: 23 },
         disposition: 'TRUE_POSITIVE'
       }
     ]
   };
   const incRes = validateAdjudicationDocument(incompleteDoc, dummyEvalResult);
   assert.equal(incRes.valid, false);
-  assert.ok(incRes.errors.some(e => e.includes('requires a non-empty "reviewer"')));
+  assert.ok(incRes.errors.some(e => e.includes('requires a valid human reviewer')));
   assert.ok(incRes.errors.some(e => e.includes('requires a non-empty "rationale"')));
   assert.ok(incRes.errors.some(e => e.includes('requires a valid ISO "reviewDate"')));
 
@@ -747,39 +768,45 @@ test('31. Finding Adjudication Document Validation: rejects duplicate, unknown, 
   const dupDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-1',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: validKey, disposition: 'PENDING' },
-      { findingKey: validKey, disposition: 'PENDING' }
+      { findingKey: validKey, scope: 'controlled', kind: 'unmatched', sampleId: 'C-A1-001', fileName: 'C-A1-001.js', ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 }, disposition: 'PENDING' },
+      { findingKey: validKey, scope: 'controlled', kind: 'unmatched', sampleId: 'C-A1-001', fileName: 'C-A1-001.js', ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 }, disposition: 'PENDING' }
     ]
   };
   const dupRes = validateAdjudicationDocument(dupDoc, dummyEvalResult);
   assert.equal(dupRes.valid, false);
-  assert.ok(dupRes.errors[0].includes('Duplicate adjudication identifier'));
+  assert.ok(dupRes.errors.some(e => e.includes('Duplicate adjudication identifier')));
 
   // Unknown key rejection against evaluation result
   const unknownDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-1',
+    evaluationResultDigest: digest,
     adjudications: [
       {
-        findingKey: 'web:UNKNOWN:OWASP-A01-001:10:0:unmatched',
+        findingKey: 'web:UNKNOWN:OWASP-A01-001:10:0:unmatched:0',
         disposition: 'PENDING'
       }
     ]
   };
   const unkRes = validateAdjudicationDocument(unknownDoc, dummyEvalResult);
   assert.equal(unkRes.valid, false);
-  assert.ok(unkRes.errors[0].includes('Unknown adjudication identifier'));
+  assert.ok(unkRes.errors.some(e => e.includes('Unknown adjudication identifier')));
 
   // Engine mismatch rejection
   const mismatchDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'extension',
+    evaluationRunId: 'run-web-test-1',
+    evaluationResultDigest: digest,
     adjudications: []
   };
   const misRes = validateAdjudicationDocument(mismatchDoc, dummyEvalResult);
   assert.equal(misRes.valid, false);
-  assert.ok(misRes.errors[0].includes('Scanner engine mismatch'));
+  assert.ok(misRes.errors.some(e => e.includes('Scanner engine mismatch')));
 });
 
 test('32. Adjudication Template Roundtrip and Scoping', () => {
@@ -863,7 +890,7 @@ test('32. Adjudication Template Roundtrip and Scoping', () => {
 
 test('33. Controlled Precision Adjudication: counts only completed controlled unmatched, never double-counts', () => {
   const evalResult = {
-    metadata: { scannerEngine: 'web' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-33', datasetManifestVersion: '1.0.0' },
     fileResults: [
       {
         sampleId: 'V-A1-001',
@@ -909,16 +936,19 @@ test('33. Controlled Precision Adjudication: counts only completed controlled un
     metadataChecksSummary: { totalChecked: 1 }
   };
 
-  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched' });
-  const unmatchedKey = makeFindingKey({ engine: 'web', sampleId: 'C-A1-001', ruleId: 'OWASP-A08-001', line: 9, column: 23, kind: 'unmatched' });
+  const digest = computeEvaluationDigest(evalResult);
+  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched', occurrenceIndex: 0 });
+  const unmatchedKey = makeFindingKey({ engine: 'web', sampleId: 'C-A1-001', ruleId: 'OWASP-A08-001', line: 9, column: 23, kind: 'unmatched', occurrenceIndex: 0 });
 
   // Case A: Unmatched finding is PENDING -> Precision remains N/A
   const pendingDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-33',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: matchedKey, disposition: 'TRUE_POSITIVE', reviewer: 'AUTO', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
-      { findingKey: unmatchedKey, disposition: 'PENDING' }
+      { findingKey: matchedKey, scope: 'controlled', kind: 'matched', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'TRUE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: unmatchedKey, scope: 'controlled', kind: 'unmatched', sampleId: 'C-A1-001', fileName: 'C-A1-001.js', ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 }, disposition: 'PENDING' }
     ]
   };
   const pendingRes = applyAdjudicationToEvaluation(evalResult, pendingDoc);
@@ -931,10 +961,18 @@ test('33. Controlled Precision Adjudication: counts only completed controlled un
   const fpDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-33',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: matchedKey, disposition: 'TRUE_POSITIVE', reviewer: 'AUTO', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: matchedKey, scope: 'controlled', kind: 'matched', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'TRUE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
       {
         findingKey: unmatchedKey,
+        scope: 'controlled',
+        kind: 'unmatched',
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        ruleId: 'OWASP-A08-001',
+        location: { line: 9, column: 23 },
         disposition: 'FALSE_POSITIVE',
         reviewer: 'Chris Ledama',
         rationale: 'Clean sample benign JSON.parse',
@@ -955,10 +993,18 @@ test('33. Controlled Precision Adjudication: counts only completed controlled un
   const tpDoc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-33',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: matchedKey, disposition: 'TRUE_POSITIVE', reviewer: 'AUTO', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: matchedKey, scope: 'controlled', kind: 'matched', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'TRUE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
       {
         findingKey: unmatchedKey,
+        scope: 'controlled',
+        kind: 'unmatched',
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        ruleId: 'OWASP-A08-001',
+        location: { line: 9, column: 23 },
         disposition: 'TRUE_POSITIVE',
         reviewer: 'Chris Ledama',
         rationale: 'Newly discovered valid client-side deserialization flaw',
@@ -976,7 +1022,7 @@ test('33. Controlled Precision Adjudication: counts only completed controlled un
 
 test('34. Scenario Segregation and Incomplete Scans in Adjudication', () => {
   const evalResult = {
-    metadata: { scannerEngine: 'web' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-34', datasetManifestVersion: '1.0.0' },
     fileResults: [
       // 1. Controlled completed with 1 matched target
       {
@@ -1033,18 +1079,21 @@ test('34. Scenario Segregation and Incomplete Scans in Adjudication', () => {
     metadataChecksSummary: {}
   };
 
-  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched' });
-  const scenKey = makeFindingKey({ engine: 'web', sampleId: 'SCENARIO-001', ruleId: 'OWASP-A03-008', line: 40, column: 5, kind: 'unmatched' });
-  const partKey = makeFindingKey({ engine: 'web', sampleId: 'V-A2-PARTIAL', ruleId: 'OWASP-A02-001', line: 5, column: 1, kind: 'unmatched' });
+  const digest = computeEvaluationDigest(evalResult);
+  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched', occurrenceIndex: 0 });
+  const scenKey = makeFindingKey({ engine: 'web', sampleId: 'SCENARIO-001', ruleId: 'OWASP-A03-008', line: 40, column: 5, kind: 'unmatched', occurrenceIndex: 0 });
+  const partKey = makeFindingKey({ engine: 'web', sampleId: 'V-A2-PARTIAL', ruleId: 'OWASP-A02-001', line: 5, column: 1, kind: 'unmatched', occurrenceIndex: 0 });
 
   // Scenario and partial scan findings are reviewed as FP/TP in the doc, but MUST NOT contaminate controlled precision
   const doc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-34',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: matchedKey, disposition: 'TRUE_POSITIVE', reviewer: 'AUTO', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
-      { findingKey: scenKey, disposition: 'FALSE_POSITIVE', reviewer: 'Reviewer', rationale: 'Scenario contextual FP', reviewDate: '2026-09-15T00:00:00.000Z' },
-      { findingKey: partKey, disposition: 'TRUE_POSITIVE', reviewer: 'Reviewer', rationale: 'Partial scan finding', reviewDate: '2026-09-15T00:00:00.000Z' }
+      { findingKey: matchedKey, scope: 'controlled', kind: 'matched', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'TRUE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: scenKey, scope: 'scenario', kind: 'unmatched', sampleId: 'SCENARIO-001', fileName: 'admin.jsx', ruleId: 'OWASP-A03-008', location: { line: 40, column: 5 }, disposition: 'FALSE_POSITIVE', reviewer: 'Reviewer', rationale: 'Scenario contextual FP', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: partKey, scope: 'controlled', kind: 'unmatched', sampleId: 'V-A2-PARTIAL', fileName: 'partial.js', ruleId: 'OWASP-A02-001', location: { line: 5, column: 1 }, disposition: 'TRUE_POSITIVE', reviewer: 'Reviewer', rationale: 'Partial scan finding', reviewDate: '2026-09-15T00:00:00.000Z' }
     ]
   };
 
@@ -1057,7 +1106,7 @@ test('34. Scenario Segregation and Incomplete Scans in Adjudication', () => {
 
 test('35. Semantic Review Scoping: denominator is strictly matched targets', () => {
   const evalResult = {
-    metadata: { scannerEngine: 'web' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-35', datasetManifestVersion: '1.0.0' },
     fileResults: [
       {
         sampleId: 'V-A1-001',
@@ -1079,17 +1128,26 @@ test('35. Semantic Review Scoping: denominator is strictly matched targets', () 
     metadataChecksSummary: { totalChecked: 1 }
   };
 
-  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched' });
+  const digest = computeEvaluationDigest(evalResult);
+  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched', occurrenceIndex: 0 });
 
   // Confirmed accurate
   const docAccurate = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-35',
+    evaluationResultDigest: digest,
     adjudications: [
       {
         findingKey: matchedKey,
+        scope: 'controlled',
+        kind: 'matched',
+        sampleId: 'V-A1-001',
+        fileName: 'V-A1-001.js',
+        ruleId: 'OWASP-A01-001',
+        location: { line: 10, column: 2 },
         disposition: 'TRUE_POSITIVE',
-        reviewer: 'Reviewer',
+        reviewer: 'Human Reviewer',
         rationale: 'Target match',
         reviewDate: '2026-09-15T00:00:00.000Z',
         semanticDescriptionOutcome: 'CONFIRMED_ACCURATE'
@@ -1106,11 +1164,19 @@ test('35. Semantic Review Scoping: denominator is strictly matched targets', () 
   const docInaccurate = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-35',
+    evaluationResultDigest: digest,
     adjudications: [
       {
         findingKey: matchedKey,
+        scope: 'controlled',
+        kind: 'matched',
+        sampleId: 'V-A1-001',
+        fileName: 'V-A1-001.js',
+        ruleId: 'OWASP-A01-001',
+        location: { line: 10, column: 2 },
         disposition: 'TRUE_POSITIVE',
-        reviewer: 'Reviewer',
+        reviewer: 'Human Reviewer',
         rationale: 'Target match',
         reviewDate: '2026-09-15T00:00:00.000Z',
         semanticDescriptionOutcome: 'INACCURATE'
@@ -1125,7 +1191,7 @@ test('35. Semantic Review Scoping: denominator is strictly matched targets', () 
 
 test('36. Duplicate Precision Eligibility Policy in Adjudication', () => {
   const evalResult = {
-    metadata: { scannerEngine: 'web' },
+    metadata: { scannerEngine: 'web', runId: 'run-web-test-36', datasetManifestVersion: '1.0.0' },
     fileResults: [
       {
         sampleId: 'V-A1-001',
@@ -1153,15 +1219,18 @@ test('36. Duplicate Precision Eligibility Policy in Adjudication', () => {
     metadataChecksSummary: {}
   };
 
-  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched' });
-  const dupKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'duplicate' });
+  const digest = computeEvaluationDigest(evalResult);
+  const matchedKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'matched', occurrenceIndex: 0 });
+  const dupKey = makeFindingKey({ engine: 'web', sampleId: 'V-A1-001', ruleId: 'OWASP-A01-001', line: 10, column: 2, kind: 'duplicate', occurrenceIndex: 0 });
 
   const doc = {
     schemaVersion: ADJUDICATION_SCHEMA_VERSION,
     scannerEngine: 'web',
+    evaluationRunId: 'run-web-test-36',
+    evaluationResultDigest: digest,
     adjudications: [
-      { findingKey: matchedKey, disposition: 'TRUE_POSITIVE', reviewer: 'AUTO', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
-      { findingKey: dupKey, disposition: 'FALSE_POSITIVE', reviewer: 'AUTO', rationale: 'Duplicate', reviewDate: '2026-09-15T00:00:00.000Z' }
+      { findingKey: matchedKey, scope: 'controlled', kind: 'matched', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'TRUE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Target match', reviewDate: '2026-09-15T00:00:00.000Z' },
+      { findingKey: dupKey, scope: 'controlled', kind: 'duplicate', sampleId: 'V-A1-001', fileName: 'V-A1-001.js', ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 }, disposition: 'FALSE_POSITIVE', reviewer: 'AUTOMATED_EVALUATOR', rationale: 'Duplicate', reviewDate: '2026-09-15T00:00:00.000Z' }
     ]
   };
 
@@ -1216,6 +1285,299 @@ test('40. Metadata Ingestion: changed synthetic inputs dynamically change report
   assert.equal(typeof syntheticRuns.web.metrics.controlledMatrix.accuracy, 'number');
   assert.ok(Array.isArray(syntheticRuns.web.unmatchedFindings));
   assert.ok(syntheticRuns.web.unmatchedFindings.some(u => u.sampleId === 'C-A1-001' && u.scope === 'controlled'));
+});
+
+test('41. Rule Inventory Registry Parity: dynamically derived inventory matches actual web and extension scanner registries', async () => {
+  const { inventory, counts } = await loadActualRuleInventories();
+
+  assert.equal(counts.totalRules, 24);
+  assert.equal(counts.vulnerabilityRules, 23);
+  assert.equal(counts.advisoryRules, 1);
+  assert.equal(counts.categoriesCount, 7);
+
+  // Spot-check real metadata and verify absence of previous hardcoded errors
+  const a01001 = inventory.find(r => r.ruleId === 'OWASP-A01-001');
+  assert.ok(a01001);
+  assert.equal(a01001.ruleName, 'open-redirect');
+  assert.ok(a01001.description.toLowerCase().includes('open redirect'));
+  assert.equal(a01001.type, 'vulnerability');
+
+  const a02002 = inventory.find(r => r.ruleId === 'OWASP-A02-002');
+  assert.ok(a02002);
+  assert.equal(a02002.ruleName, 'insecure-cookie');
+  assert.ok(a02002.description.toLowerCase().includes('cookie'));
+
+  const a03004 = inventory.find(r => r.ruleId === 'OWASP-A03-004');
+  assert.ok(a03004);
+  assert.equal(a03004.ruleName, 'innerhtml-template-literal');
+  assert.ok(a03004.description.toLowerCase().includes('template literal'));
+
+  const a03002 = inventory.find(r => r.ruleId === 'OWASP-A03-002');
+  assert.ok(a03002);
+  assert.equal(a03002.ruleName, 'dynamic-timer');
+
+  const a06001 = inventory.find(r => r.ruleId === 'OWASP-A06-001');
+  assert.ok(a06001);
+  assert.equal(a06001.type, 'advisory');
+  assert.equal(a06001.severity, 'INFORMATIONAL');
+});
+
+test('42. Cross-Run Adjudication Rejection: rejects documents with mismatched runId or result digest', () => {
+  const evalResultA = {
+    metadata: { scannerEngine: 'web', runId: 'run-alpha', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        label: 'clean',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [],
+          unmatched: [{ actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 } } }],
+          duplicates: []
+        }
+      }
+    ],
+    findingPrecisionMetrics: { matchedFindings: 0, unmatchedFindings: 1, duplicateFindings: 0 }
+  };
+
+  const evalResultB = {
+    metadata: { scannerEngine: 'web', runId: 'run-beta', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'C-A1-002',
+        fileName: 'C-A1-002.js',
+        label: 'clean',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [],
+          unmatched: [{ actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 } } }],
+          duplicates: []
+        }
+      }
+    ],
+    findingPrecisionMetrics: { matchedFindings: 0, unmatchedFindings: 1, duplicateFindings: 0 }
+  };
+
+  const templateA = generateAdjudicationTemplate(evalResultA);
+  assert.equal(templateA.evaluationRunId, 'run-alpha');
+
+  // Attempting to apply template from run A to run B must be rejected due to digest mismatch
+  assert.throws(
+    () => applyAdjudicationToEvaluation(evalResultB, templateA),
+    /Evaluation result digest mismatch/
+  );
+
+  // Tampering with run ID alone also triggers rejection
+  const tamperedRunIdDoc = {
+    ...templateA,
+    evaluationResultDigest: computeEvaluationDigest(evalResultA),
+    evaluationRunId: 'different-run-id'
+  };
+  const valTampered = validateAdjudicationDocument(tamperedRunIdDoc, evalResultA);
+  assert.equal(valTampered.valid, false);
+  assert.ok(valTampered.errors.some(e => e.includes('Evaluation run ID mismatch')));
+});
+
+test('43. Canonical Field Tampering Rejection: detects and rejects modified scope, kind, sampleId, fileName, ruleId, or coordinates', () => {
+  const evalResult = {
+    metadata: { scannerEngine: 'web', runId: 'run-tamper-test', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'C-A1-001',
+        fileName: 'C-A1-001.js',
+        label: 'clean',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [],
+          unmatched: [{ actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 9, column: 23 } } }],
+          duplicates: []
+        }
+      }
+    ]
+  };
+
+  const template = generateAdjudicationTemplate(evalResult);
+  assert.equal(template.adjudications.length, 1);
+
+  // 1. Tampered scope
+  const badScopeDoc = JSON.parse(JSON.stringify(template));
+  badScopeDoc.adjudications[0].scope = 'scenario';
+  const valScope = validateAdjudicationDocument(badScopeDoc, evalResult);
+  assert.equal(valScope.valid, false);
+  assert.ok(valScope.errors.some(e => e.includes('tampered scope')));
+
+  // 2. Tampered kind
+  const badKindDoc = JSON.parse(JSON.stringify(template));
+  badKindDoc.adjudications[0].kind = 'matched';
+  const valKind = validateAdjudicationDocument(badKindDoc, evalResult);
+  assert.equal(valKind.valid, false);
+  assert.ok(valKind.errors.some(e => e.includes('tampered kind')));
+
+  // 3. Tampered sampleId
+  const badSampleDoc = JSON.parse(JSON.stringify(template));
+  badSampleDoc.adjudications[0].sampleId = 'TAMPERED-SAMPLE';
+  const valSample = validateAdjudicationDocument(badSampleDoc, evalResult);
+  assert.equal(valSample.valid, false);
+  assert.ok(valSample.errors.some(e => e.includes('tampered sampleId')));
+
+  // 4. Tampered coordinates
+  const badCoordDoc = JSON.parse(JSON.stringify(template));
+  badCoordDoc.adjudications[0].location = { line: 99, column: 99 };
+  const valCoord = validateAdjudicationDocument(badCoordDoc, evalResult);
+  assert.equal(valCoord.valid, false);
+  assert.ok(valCoord.errors.some(e => e.includes('tampered location coordinates')));
+});
+
+test('44. Identical Unmatched Multiplicity & Duplicate Preservation: preserves distinct occurrence indices and denominator', () => {
+  const evalResult = {
+    metadata: { scannerEngine: 'web', runId: 'run-mult-test', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'C-A8-MULTI',
+        fileName: 'multi.js',
+        label: 'clean',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [],
+          // Two identical unmatched alerts at line 15, column 4
+          unmatched: [
+            { actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 15, column: 4 } } },
+            { actualFinding: { ruleId: 'OWASP-A08-001', location: { line: 15, column: 4 } } }
+          ],
+          // Two duplicate alerts at same line 20
+          duplicates: [
+            { actualFinding: { ruleId: 'OWASP-A08-002', location: { line: 20, column: 1 } } },
+            { actualFinding: { ruleId: 'OWASP-A08-002', location: { line: 20, column: 1 } } }
+          ]
+        }
+      }
+    ],
+    findingPrecisionMetrics: {
+      matchedFindings: 0,
+      unmatchedFindings: 2,
+      duplicateFindings: 2
+    }
+  };
+
+  const findingsMap = extractEvaluationFindingsMap(evalResult);
+  // Both identical unmatched alerts and both duplicate alerts must be preserved without collision
+  assert.equal(findingsMap.size, 4);
+
+  const template = generateAdjudicationTemplate(evalResult);
+  assert.equal(template.adjudications.length, 4);
+
+  const unmatchedEntries = template.adjudications.filter(a => a.kind === 'unmatched');
+  assert.equal(unmatchedEntries.length, 2);
+  assert.notEqual(unmatchedEntries[0].findingKey, unmatchedEntries[1].findingKey);
+  assert.equal(unmatchedEntries[0].occurrenceIndex, 0);
+  assert.equal(unmatchedEntries[1].occurrenceIndex, 1);
+
+  // Review both identical unmatched findings as FALSE_POSITIVE
+  unmatchedEntries[0].disposition = 'FALSE_POSITIVE';
+  unmatchedEntries[0].reviewer = 'Reviewer';
+  unmatchedEntries[0].rationale = 'First FP';
+  unmatchedEntries[0].reviewDate = '2026-09-15T00:00:00.000Z';
+
+  unmatchedEntries[1].disposition = 'FALSE_POSITIVE';
+  unmatchedEntries[1].reviewer = 'Reviewer';
+  unmatchedEntries[1].rationale = 'Second FP';
+  unmatchedEntries[1].reviewDate = '2026-09-15T00:00:00.000Z';
+
+  const res = applyAdjudicationToEvaluation(evalResult, template);
+  // Denominator must count both occurrences: 0 TP / (0 TP + 2 FP) = 0.0
+  assert.equal(res.findingPrecisionMetrics.adjudicatedPrecision, 0.0);
+  assert.equal(res.findingPrecisionMetrics.adjudicatedFalsePositives, 2);
+});
+
+test('45. Human Semantic Review Completion vs Pending: rejects AUTOMATED_EVALUATOR on completed semantic review', () => {
+  const evalResult = {
+    metadata: { scannerEngine: 'web', runId: 'run-sem-test', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'V-A1-001',
+        fileName: 'V-A1-001.js',
+        label: 'vulnerable',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [{
+            expected: { ruleId: 'OWASP-A01-001' },
+            actualFinding: { ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 } }
+          }],
+          unmatched: [],
+          duplicates: []
+        }
+      }
+    ],
+    findingPrecisionMetrics: { matchedFindings: 1, unmatchedFindings: 0, duplicateFindings: 0 },
+    metadataChecksSummary: { totalChecked: 1 }
+  };
+
+  const template = generateAdjudicationTemplate(evalResult);
+  const matchedEntry = template.adjudications.find(a => a.kind === 'matched');
+  assert.equal(matchedEntry.semanticDescriptionOutcome, 'PENDING');
+
+  // Attempting to complete semantic review with AUTOMATED_EVALUATOR is rejected
+  matchedEntry.semanticDescriptionOutcome = 'CONFIRMED_ACCURATE';
+  matchedEntry.reviewer = 'AUTOMATED_EVALUATOR';
+  matchedEntry.rationale = 'Automated confirmation';
+  matchedEntry.reviewDate = '2026-09-15T00:00:00.000Z';
+
+  const valRes = validateAdjudicationDocument(template, evalResult);
+  assert.equal(valRes.valid, false);
+  assert.ok(valRes.errors.some(e => e.includes('cannot be empty or "AUTOMATED_EVALUATOR"')));
+
+  // Completing with human reviewer succeeds
+  matchedEntry.reviewer = 'Human Reviewer';
+  matchedEntry.rationale = 'Manually inspected description matches AST node';
+  matchedEntry.reviewDate = '2026-09-15T00:00:00.000Z';
+
+  const valSuccess = validateAdjudicationDocument(template, evalResult);
+  assert.equal(valSuccess.valid, true);
+
+  const applied = applyAdjudicationToEvaluation(evalResult, template);
+  assert.equal(applied.metadataChecksSummary.semanticReview.confirmedAccurateCount, 1);
+  assert.equal(applied.metadataChecksSummary.semanticReview.status, 'REVIEW_COMPLETE');
+});
+
+test('46. Duplicate Policy Enum Validation: rejects invalid duplicate eligibility enum values', () => {
+  const evalResult = {
+    metadata: { scannerEngine: 'web', runId: 'run-enum-test', datasetManifestVersion: '1.0.0' },
+    fileResults: [
+      {
+        sampleId: 'V-A1-001',
+        fileName: 'V-A1-001.js',
+        label: 'vulnerable',
+        scanStatus: 'completed',
+        hasScanError: false,
+        vulnerabilities: {
+          matched: [{ expected: { ruleId: 'OWASP-A01-001' }, actualFinding: { ruleId: 'OWASP-A01-001', location: { line: 10, column: 2 } } }],
+          unmatched: [],
+          duplicates: []
+        }
+      }
+    ],
+    findingPrecisionMetrics: { matchedFindings: 1, unmatchedFindings: 0, duplicateFindings: 0 }
+  };
+
+  const template = generateAdjudicationTemplate(evalResult);
+
+  // 1. Invalid option passed to applyAdjudicationToEvaluation
+  assert.throws(
+    () => applyAdjudicationToEvaluation(evalResult, template, { duplicateEligibility: 'INVALID_POLICY' }),
+    /Invalid duplicateEligibility policy "INVALID_POLICY"/
+  );
+
+  // 2. Invalid label in entry
+  template.adjudications[0].duplicateEligibility = 'MALFORMED_POLICY';
+  const valRes = validateAdjudicationDocument(template, evalResult);
+  assert.equal(valRes.valid, false);
+  assert.ok(valRes.errors.some(e => e.includes('invalid duplicateEligibility')));
 });
 
 

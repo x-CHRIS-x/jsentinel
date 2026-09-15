@@ -4,20 +4,55 @@
  * Manages human ground-truth adjudication of unmatched alerts and semantic description review:
  * - Versioned schema 1.0.0.
  * - Explicit finding scope ('controlled' | 'scenario') and kind ('unmatched' | 'matched' | 'duplicate').
- * - Stable canonical finding keys incorporating engine, sampleId, ruleId, location, and kind.
+ * - Stable canonical finding keys incorporating engine, sampleId, ruleId, location, kind, and occurrence index.
+ * - Enforces occurrence multiplicity: identical alerts in the same sample preserve distinct occurrence IDs.
+ * - Binds required run ID, result digest, and scanner engine; rejects cross-run documents and tampered canonical fields.
  * - Rejects unknown, duplicate, cross-run, or mismatched finding identifiers.
  * - Computes controlled finding precision without double-counting matched targets or contaminating
  *   controlled metrics with scenario observations.
- * - Requires reviewer, rationale, and reviewDate for completed human dispositions.
+ * - Requires genuine human reviewer, rationale, and reviewDate for completed human dispositions.
+ * - Requires genuine human reviewer (rejecting AUTOMATED_EVALUATOR) for completed semantic review.
+ * - Validates duplicate policy enum ('EXCLUDE_FROM_PRECISION' | 'COUNT_AS_FP').
  * - Keeps precision as null / N/A as long as any completed controlled unmatched finding is pending review.
  */
 
+import crypto from 'node:crypto';
 import { safeRatio } from './metrics.mjs';
 
 export const ADJUDICATION_SCHEMA_VERSION = '1.0.0';
 
 /**
+ * Computes a deterministic SHA-256 digest of an evaluation result's findings and structure.
+ * 
+ * @param {Object} evaluationResult 
+ * @returns {string} 64-character hex digest.
+ */
+export const computeEvaluationDigest = (evaluationResult) => {
+  if (!evaluationResult || typeof evaluationResult !== 'object') {
+    throw new Error('evaluationResult must be a non-null object.');
+  }
+  const engine = evaluationResult.metadata?.scannerEngine || 'unknown';
+  const manifestVer = evaluationResult.metadata?.datasetManifestVersion || 'unknown';
+  const fileSummaries = (evaluationResult.fileResults || []).map(f => {
+    const matchedKeys = (f.vulnerabilities?.matched || []).map(m =>
+      `${m.actualFinding?.ruleId}:${m.actualFinding?.location?.line}:${m.actualFinding?.location?.column}`
+    ).join('|');
+    const unmatchedKeys = (f.vulnerabilities?.unmatched || []).map(u =>
+      `${u.actualFinding?.ruleId}:${u.actualFinding?.location?.line}:${u.actualFinding?.location?.column}`
+    ).join('|');
+    const duplicateKeys = (f.vulnerabilities?.duplicates || []).map(d =>
+      `${d.actualFinding?.ruleId}:${d.actualFinding?.location?.line}:${d.actualFinding?.location?.column}`
+    ).join('|');
+    return `${f.sampleId}:${f.fileName}:${f.scanStatus}:${f.hasScanError}:${matchedKeys}:${unmatchedKeys}:${duplicateKeys}`;
+  }).join(';');
+
+  return crypto.createHash('sha256').update(`${engine}:${manifestVer}:${fileSummaries}`).digest('hex');
+};
+
+/**
  * Builds a canonical finding key for unambiguous identification.
+ * Preserves occurrence index to ensure identical repeated alerts at the same coordinates
+ * do not collapse and distort the evaluation denominator.
  * 
  * @param {Object} params
  * @param {string} [params.engine='any']
@@ -26,6 +61,7 @@ export const ADJUDICATION_SCHEMA_VERSION = '1.0.0';
  * @param {number|null} [params.line=null]
  * @param {number|null} [params.column=null]
  * @param {string} [params.kind='unmatched'] - 'unmatched' | 'matched' | 'duplicate'
+ * @param {number} [params.occurrenceIndex=0]
  * @returns {string}
  */
 export const makeFindingKey = ({
@@ -34,15 +70,17 @@ export const makeFindingKey = ({
   ruleId,
   line = null,
   column = null,
-  kind = 'unmatched'
+  kind = 'unmatched',
+  occurrenceIndex = 0
 }) => {
   const linePart = line ?? 'unknown';
   const colPart = column ?? 'any';
-  return `${engine}:${sampleId}:${ruleId}:${linePart}:${colPart}:${kind}`;
+  return `${engine}:${sampleId}:${ruleId}:${linePart}:${colPart}:${kind}:${occurrenceIndex}`;
 };
 
 /**
  * Extracts a map of all valid finding entries from an evaluation result.
+ * Preserves actual occurrence multiplicity by tracking occurrence indices per coordinate tuple.
  * 
  * @param {Object} evaluationResult 
  * @returns {Map<string, Object>} Map of findingKey to finding context.
@@ -55,25 +93,39 @@ export const extractEvaluationFindingsMap = (evaluationResult) => {
     const scope = fileRes.label === 'scenario' ? 'scenario' : 'controlled';
     const isCompletedScan = fileRes.scanStatus === 'completed' && !fileRes.hasScanError;
 
+    // Track occurrence counts per coordinate tuple within this sample
+    const occurrenceCounters = new Map();
+    const getOccurrenceIndex = (ruleId, line, column, kind) => {
+      const coordKey = `${ruleId}:${line ?? 'unknown'}:${column ?? 'any'}:${kind}`;
+      const current = occurrenceCounters.get(coordKey) || 0;
+      occurrenceCounters.set(coordKey, current + 1);
+      return current;
+    };
+
     // 1. Matched findings
     for (const m of fileRes.vulnerabilities?.matched || []) {
       const f = m.actualFinding;
+      const line = f.location?.line ?? null;
+      const col = f.location?.column ?? null;
+      const occIndex = getOccurrenceIndex(f.ruleId, line, col, 'matched');
       const key = makeFindingKey({
         engine,
         sampleId: fileRes.sampleId,
         ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'matched'
+        line,
+        column: col,
+        kind: 'matched',
+        occurrenceIndex: occIndex
       });
       findingsMap.set(key, {
         findingKey: key,
+        occurrenceIndex: occIndex,
         scope,
         kind: 'matched',
         sampleId: fileRes.sampleId,
         fileName: fileRes.fileName,
         ruleId: f.ruleId,
-        location: f.location,
+        location: f.location ? { line: f.location.line, column: f.location.column } : null,
         isCompletedScan,
         expectedRule: m.expected?.ruleId,
         actualFinding: f
@@ -83,22 +135,27 @@ export const extractEvaluationFindingsMap = (evaluationResult) => {
     // 2. Unmatched findings
     for (const u of fileRes.vulnerabilities?.unmatched || []) {
       const f = u.actualFinding;
+      const line = f.location?.line ?? null;
+      const col = f.location?.column ?? null;
+      const occIndex = getOccurrenceIndex(f.ruleId, line, col, 'unmatched');
       const key = makeFindingKey({
         engine,
         sampleId: fileRes.sampleId,
         ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'unmatched'
+        line,
+        column: col,
+        kind: 'unmatched',
+        occurrenceIndex: occIndex
       });
       findingsMap.set(key, {
         findingKey: key,
+        occurrenceIndex: occIndex,
         scope,
         kind: 'unmatched',
         sampleId: fileRes.sampleId,
         fileName: fileRes.fileName,
         ruleId: f.ruleId,
-        location: f.location,
+        location: f.location ? { line: f.location.line, column: f.location.column } : null,
         isCompletedScan,
         actualFinding: f
       });
@@ -107,22 +164,27 @@ export const extractEvaluationFindingsMap = (evaluationResult) => {
     // 3. Duplicate findings
     for (const d of fileRes.vulnerabilities?.duplicates || []) {
       const f = d.actualFinding;
+      const line = f.location?.line ?? null;
+      const col = f.location?.column ?? null;
+      const occIndex = getOccurrenceIndex(f.ruleId, line, col, 'duplicate');
       const key = makeFindingKey({
         engine,
         sampleId: fileRes.sampleId,
         ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'duplicate'
+        line,
+        column: col,
+        kind: 'duplicate',
+        occurrenceIndex: occIndex
       });
       findingsMap.set(key, {
         findingKey: key,
+        occurrenceIndex: occIndex,
         scope,
         kind: 'duplicate',
         sampleId: fileRes.sampleId,
         fileName: fileRes.fileName,
         ruleId: f.ruleId,
-        location: f.location,
+        location: f.location ? { line: f.location.line, column: f.location.column } : null,
         isCompletedScan,
         actualFinding: f
       });
@@ -134,6 +196,13 @@ export const extractEvaluationFindingsMap = (evaluationResult) => {
 
 /**
  * Validates an adjudication document against schema and optionally against an actual evaluation result.
+ * Enforces:
+ * - Presence of required root provenance fields: scannerEngine, evaluationRunId, evaluationResultDigest.
+ * - Exact cross-run digest and engine agreement when validated against an evaluationResult.
+ * - Integrity of canonical finding fields: rejects tampering with scope, kind, sampleId, fileName, ruleId, or location.
+ * - Real human reviewer, rationale, and reviewDate for completed human dispositions (rejecting AUTOMATED_EVALUATOR).
+ * - Real human reviewer for completed semantic descriptions.
+ * - Validation of duplicateEligibility enum ('EXCLUDE_FROM_PRECISION' | 'COUNT_AS_FP').
  * 
  * @param {Object} doc - Adjudication document.
  * @param {Object} [evaluationResult=null] - Optional actual evaluationResult to validate against.
@@ -150,6 +219,18 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
     errors.push(`Invalid schemaVersion: expected "${ADJUDICATION_SCHEMA_VERSION}", got "${doc.schemaVersion}".`);
   }
 
+  if (!doc.scannerEngine || typeof doc.scannerEngine !== 'string') {
+    errors.push('Adjudication document must specify a non-empty string "scannerEngine".');
+  }
+
+  if (!doc.evaluationRunId || typeof doc.evaluationRunId !== 'string') {
+    errors.push('Adjudication document must specify a non-empty string "evaluationRunId".');
+  }
+
+  if (!doc.evaluationResultDigest || typeof doc.evaluationResultDigest !== 'string') {
+    errors.push('Adjudication document must specify a non-empty string "evaluationResultDigest".');
+  }
+
   if (!Array.isArray(doc.adjudications)) {
     errors.push('Adjudication document must contain an "adjudications" array.');
     return { valid: false, errors };
@@ -158,13 +239,34 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
   let knownFindingsMap = null;
   if (evaluationResult) {
     const expectedEngine = evaluationResult.metadata?.scannerEngine;
-    if (doc.scannerEngine && expectedEngine && doc.scannerEngine !== expectedEngine) {
+    if (expectedEngine && doc.scannerEngine !== expectedEngine) {
       errors.push(`Scanner engine mismatch: document specifies "${doc.scannerEngine}" but evaluation result is for "${expectedEngine}".`);
     }
+
+    const expectedDigest = computeEvaluationDigest(evaluationResult);
+    if (doc.evaluationResultDigest && doc.evaluationResultDigest !== expectedDigest) {
+      errors.push(
+        `Evaluation result digest mismatch: document specifies digest "${doc.evaluationResultDigest}" ` +
+        `but evaluation result digest is "${expectedDigest}". Cross-run adjudication documents are rejected.`
+      );
+    }
+
+    if (evaluationResult.metadata?.runId && doc.evaluationRunId && doc.evaluationRunId !== evaluationResult.metadata.runId) {
+      errors.push(
+        `Evaluation run ID mismatch: document specifies run ID "${doc.evaluationRunId}" ` +
+        `but evaluation result has run ID "${evaluationResult.metadata.runId}".`
+      );
+    }
+
     knownFindingsMap = extractEvaluationFindingsMap(evaluationResult);
   }
 
   const seenKeys = new Set();
+  const validDispositions = ['TRUE_POSITIVE', 'FALSE_POSITIVE', 'PENDING'];
+  const validSemanticOutcomes = ['CONFIRMED_ACCURATE', 'INACCURATE', 'PENDING'];
+  const validScopes = ['controlled', 'scenario'];
+  const validKinds = ['unmatched', 'matched', 'duplicate'];
+  const validDuplicatePolicies = ['EXCLUDE_FROM_PRECISION', 'COUNT_AS_FP'];
 
   for (let i = 0; i < doc.adjudications.length; i++) {
     const entry = doc.adjudications[i];
@@ -184,19 +286,63 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
     }
     seenKeys.add(key);
 
-    if (knownFindingsMap && !knownFindingsMap.has(key)) {
-      errors.push(`Unknown adjudication identifier: "${key}" does not exist in the evaluated findings.`);
+    let knownFinding = null;
+    if (knownFindingsMap) {
+      if (!knownFindingsMap.has(key)) {
+        errors.push(`Unknown adjudication identifier: "${key}" does not exist in the evaluated findings.`);
+      } else {
+        knownFinding = knownFindingsMap.get(key);
+      }
     }
 
-    const validDispositions = ['TRUE_POSITIVE', 'FALSE_POSITIVE', 'PENDING'];
+    // Tampered canonical fields check against ground-truth finding
+    if (knownFinding) {
+      if (entry.scope && entry.scope !== knownFinding.scope) {
+        errors.push(`Entry [${i}] (${key}): tampered scope (expected "${knownFinding.scope}", got "${entry.scope}").`);
+      }
+      if (entry.kind && entry.kind !== knownFinding.kind) {
+        errors.push(`Entry [${i}] (${key}): tampered kind (expected "${knownFinding.kind}", got "${entry.kind}").`);
+      }
+      if (entry.sampleId && entry.sampleId !== knownFinding.sampleId) {
+        errors.push(`Entry [${i}] (${key}): tampered sampleId (expected "${knownFinding.sampleId}", got "${entry.sampleId}").`);
+      }
+      if (entry.fileName && entry.fileName !== knownFinding.fileName) {
+        errors.push(`Entry [${i}] (${key}): tampered fileName (expected "${knownFinding.fileName}", got "${entry.fileName}").`);
+      }
+      if (entry.ruleId && entry.ruleId !== knownFinding.ruleId) {
+        errors.push(`Entry [${i}] (${key}): tampered ruleId (expected "${knownFinding.ruleId}", got "${entry.ruleId}").`);
+      }
+      if (knownFinding.location && entry.location) {
+        if (entry.location.line !== knownFinding.location.line || entry.location.column !== knownFinding.location.column) {
+          errors.push(
+            `Entry [${i}] (${key}): tampered location coordinates ` +
+            `(expected line ${knownFinding.location.line} col ${knownFinding.location.column}, ` +
+            `got line ${entry.location.line} col ${entry.location.column}).`
+          );
+        }
+      }
+    }
+
+    if (entry.scope && !validScopes.includes(entry.scope)) {
+      errors.push(`Entry [${i}] (${key}): invalid scope "${entry.scope}". Allowed: ${validScopes.join(', ')}.`);
+    }
+
+    if (entry.kind && !validKinds.includes(entry.kind)) {
+      errors.push(`Entry [${i}] (${key}): invalid kind "${entry.kind}". Allowed: ${validKinds.join(', ')}.`);
+    }
+
     if (!validDispositions.includes(entry.disposition)) {
       errors.push(`Entry [${i}] (${key}): invalid disposition "${entry.disposition}". Allowed: ${validDispositions.join(', ')}.`);
     }
 
-    // Require reviewer, rationale, and reviewDate for completed human adjudication
-    if (entry.disposition === 'TRUE_POSITIVE' || entry.disposition === 'FALSE_POSITIVE') {
-      if (!entry.reviewer || typeof entry.reviewer !== 'string' || entry.reviewer.trim() === '') {
-        errors.push(`Entry [${i}] (${key}): completed disposition "${entry.disposition}" requires a non-empty "reviewer" field.`);
+    if (entry.duplicateEligibility && !validDuplicatePolicies.includes(entry.duplicateEligibility)) {
+      errors.push(`Entry [${i}] (${key}): invalid duplicateEligibility "${entry.duplicateEligibility}". Allowed: ${validDuplicatePolicies.join(', ')}.`);
+    }
+
+    // Require genuine human reviewer, rationale, and reviewDate for completed human adjudication
+    if (entry.kind === 'unmatched' && (entry.disposition === 'TRUE_POSITIVE' || entry.disposition === 'FALSE_POSITIVE')) {
+      if (!entry.reviewer || typeof entry.reviewer !== 'string' || entry.reviewer.trim() === '' || entry.reviewer === 'AUTOMATED_EVALUATOR') {
+        errors.push(`Entry [${i}] (${key}): completed human disposition requires a valid human reviewer name (cannot be empty or "AUTOMATED_EVALUATOR").`);
       }
       if (!entry.rationale || typeof entry.rationale !== 'string' || entry.rationale.trim() === '') {
         errors.push(`Entry [${i}] (${key}): completed disposition "${entry.disposition}" requires a non-empty "rationale" field.`);
@@ -206,9 +352,25 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
       }
     }
 
-    const validSemanticOutcomes = ['CONFIRMED_ACCURATE', 'INACCURATE', 'PENDING'];
+    // Semantic review completed outcome check
     if (entry.semanticDescriptionOutcome && !validSemanticOutcomes.includes(entry.semanticDescriptionOutcome)) {
       errors.push(`Entry [${i}] (${key}): invalid semanticDescriptionOutcome "${entry.semanticDescriptionOutcome}". Allowed: ${validSemanticOutcomes.join(', ')}.`);
+    }
+
+    if (entry.semanticDescriptionOutcome === 'CONFIRMED_ACCURATE' || entry.semanticDescriptionOutcome === 'INACCURATE') {
+      const semReviewer = entry.semanticReviewer || entry.reviewer;
+      const semRationale = entry.semanticRationale || entry.rationale;
+      const semDate = entry.semanticReviewDate || entry.reviewDate;
+
+      if (!semReviewer || typeof semReviewer !== 'string' || semReviewer.trim() === '' || semReviewer === 'AUTOMATED_EVALUATOR') {
+        errors.push(`Entry [${i}] (${key}): completed semantic review outcome "${entry.semanticDescriptionOutcome}" requires a valid human reviewer (cannot be empty or "AUTOMATED_EVALUATOR").`);
+      }
+      if (!semRationale || typeof semRationale !== 'string' || semRationale.trim() === '') {
+        errors.push(`Entry [${i}] (${key}): completed semantic review requires a non-empty rationale.`);
+      }
+      if (!semDate || typeof semDate !== 'string' || Number.isNaN(Date.parse(semDate))) {
+        errors.push(`Entry [${i}] (${key}): completed semantic review requires a valid ISO reviewDate.`);
+      }
     }
   }
 
@@ -231,109 +393,88 @@ export const validateAdjudicationDocument = (doc, evaluationResult = null) => {
 export const generateAdjudicationTemplate = (evaluationResult, options = {}) => {
   const reviewerName = options.reviewerName || null;
   const engine = evaluationResult.metadata?.scannerEngine || 'web';
+  const resultDigest = computeEvaluationDigest(evaluationResult);
+  const runId = evaluationResult.metadata?.runId || `eval-run-${engine}-${resultDigest.slice(0, 12)}`;
+
+  const findingsMap = extractEvaluationFindingsMap(evaluationResult);
   const adjudications = [];
 
-  for (const fileRes of evaluationResult.fileResults || []) {
-    const scope = fileRes.label === 'scenario' ? 'scenario' : 'controlled';
-    const isCompleted = fileRes.scanStatus === 'completed' && !fileRes.hasScanError;
-
-    // 1. Unmatched findings (primary subjects of ground truth review)
-    for (const u of fileRes.vulnerabilities?.unmatched || []) {
-      const f = u.actualFinding;
-      const key = makeFindingKey({
-        engine,
-        sampleId: fileRes.sampleId,
-        ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'unmatched'
-      });
+  for (const finding of findingsMap.values()) {
+    if (finding.kind === 'unmatched') {
       adjudications.push({
-        findingKey: key,
-        scope,
+        findingKey: finding.findingKey,
+        occurrenceIndex: finding.occurrenceIndex,
+        scope: finding.scope,
         kind: 'unmatched',
-        sampleId: fileRes.sampleId,
-        fileName: fileRes.fileName,
-        ruleId: f.ruleId,
-        location: { line: f.location?.line, column: f.location?.column },
-        sourceLine: f.sourceLine || '',
-        description: f.description || '',
-        scanStatus: fileRes.scanStatus,
-        isCompletedScan: isCompleted,
+        sampleId: finding.sampleId,
+        fileName: finding.fileName,
+        ruleId: finding.ruleId,
+        location: finding.location ? { line: finding.location.line, column: finding.location.column } : null,
+        sourceLine: finding.actualFinding?.sourceLine || '',
+        description: finding.actualFinding?.description || '',
+        scanStatus: finding.isCompletedScan ? 'completed' : 'incomplete',
+        isCompletedScan: finding.isCompletedScan,
         adjudicationOrigin: 'HUMAN_ADJUDICATION',
         disposition: 'PENDING',
         rationale: '',
         reviewer: reviewerName,
         reviewDate: null,
         semanticDescriptionOutcome: 'PENDING',
+        semanticReviewer: null,
+        semanticRationale: '',
+        semanticReviewDate: null,
         duplicateEligibility: 'EXCLUDE_FROM_PRECISION',
         scopeAmbiguityNote: null
       });
-    }
-
-    // 2. Matched findings (already automated target matches; available for semantic review)
-    for (const m of fileRes.vulnerabilities?.matched || []) {
-      const f = m.actualFinding;
-      const key = makeFindingKey({
-        engine,
-        sampleId: fileRes.sampleId,
-        ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'matched'
-      });
+    } else if (finding.kind === 'matched') {
       adjudications.push({
-        findingKey: key,
-        scope,
+        findingKey: finding.findingKey,
+        occurrenceIndex: finding.occurrenceIndex,
+        scope: finding.scope,
         kind: 'matched',
-        sampleId: fileRes.sampleId,
-        fileName: fileRes.fileName,
-        ruleId: f.ruleId,
-        location: { line: f.location?.line, column: f.location?.column },
-        sourceLine: f.sourceLine || '',
-        description: f.description || '',
-        scanStatus: fileRes.scanStatus,
-        isCompletedScan: isCompleted,
+        sampleId: finding.sampleId,
+        fileName: finding.fileName,
+        ruleId: finding.ruleId,
+        location: finding.location ? { line: finding.location.line, column: finding.location.column } : null,
+        sourceLine: finding.actualFinding?.sourceLine || '',
+        description: finding.actualFinding?.description || '',
+        scanStatus: finding.isCompletedScan ? 'completed' : 'incomplete',
+        isCompletedScan: finding.isCompletedScan,
         adjudicationOrigin: 'AUTOMATED_TARGET_MATCH',
         disposition: 'TRUE_POSITIVE',
         rationale: 'Automated 1-to-1 match against ground-truth expected vulnerability target.',
         reviewer: 'AUTOMATED_EVALUATOR',
         reviewDate: new Date().toISOString(),
         semanticDescriptionOutcome: 'PENDING',
+        semanticReviewer: null,
+        semanticRationale: '',
+        semanticReviewDate: null,
         duplicateEligibility: 'EXCLUDE_FROM_PRECISION',
         scopeAmbiguityNote: null
       });
-    }
-
-    // 3. Duplicate findings
-    for (const d of fileRes.vulnerabilities?.duplicates || []) {
-      const f = d.actualFinding;
-      const key = makeFindingKey({
-        engine,
-        sampleId: fileRes.sampleId,
-        ruleId: f.ruleId,
-        line: f.location?.line,
-        column: f.location?.column,
-        kind: 'duplicate'
-      });
+    } else if (finding.kind === 'duplicate') {
       adjudications.push({
-        findingKey: key,
-        scope,
+        findingKey: finding.findingKey,
+        occurrenceIndex: finding.occurrenceIndex,
+        scope: finding.scope,
         kind: 'duplicate',
-        sampleId: fileRes.sampleId,
-        fileName: fileRes.fileName,
-        ruleId: f.ruleId,
-        location: { line: f.location?.line, column: f.location?.column },
-        sourceLine: f.sourceLine || '',
-        description: f.description || '',
-        scanStatus: fileRes.scanStatus,
-        isCompletedScan: isCompleted,
+        sampleId: finding.sampleId,
+        fileName: finding.fileName,
+        ruleId: finding.ruleId,
+        location: finding.location ? { line: finding.location.line, column: finding.location.column } : null,
+        sourceLine: finding.actualFinding?.sourceLine || '',
+        description: finding.actualFinding?.description || '',
+        scanStatus: finding.isCompletedScan ? 'completed' : 'incomplete',
+        isCompletedScan: finding.isCompletedScan,
         adjudicationOrigin: 'AUTOMATED_DUPLICATE_ISOLATION',
         disposition: 'FALSE_POSITIVE',
         rationale: 'Duplicate finding at same coordinates as matched target.',
         reviewer: 'AUTOMATED_EVALUATOR',
         reviewDate: new Date().toISOString(),
         semanticDescriptionOutcome: 'PENDING',
+        semanticReviewer: null,
+        semanticRationale: '',
+        semanticReviewDate: null,
         duplicateEligibility: 'EXCLUDE_FROM_PRECISION',
         scopeAmbiguityNote: null
       });
@@ -349,8 +490,10 @@ export const generateAdjudicationTemplate = (evaluationResult, options = {}) => 
     documentType: 'JSentinelFindingAdjudication',
     createdAt: new Date().toISOString(),
     scannerEngine: engine,
-    evaluatorVersion: evaluationResult.metadata?.evaluatorVersion,
-    datasetManifestVersion: evaluationResult.metadata?.datasetManifestVersion,
+    evaluationRunId: runId,
+    evaluationResultDigest: resultDigest,
+    evaluatorVersion: evaluationResult.metadata?.evaluatorVersion || '1.0.0',
+    datasetManifestVersion: evaluationResult.metadata?.datasetManifestVersion || '1.0.0',
     summary: {
       totalEntries: adjudications.length,
       controlledEntries: adjudications.length - scenarioEntries.length,
@@ -367,8 +510,9 @@ export const generateAdjudicationTemplate = (evaluationResult, options = {}) => 
  * raw scanner results or manifest ground truth.
  * 
  * Strict research guarantees:
- * - Validates input document against actual evaluationResult findings.
+ * - Validates input document against actual evaluationResult findings and cryptographic digest.
  * - Rejects unknown, duplicate, cross-run, or mismatched finding IDs.
+ * - Rejects tampered canonical finding fields.
  * - Controlled precision counts ONLY completed eligible controlled unmatched dispositions in addition
  *   to the baseline automated matched count.
  * - Matched findings are NEVER counted twice.
@@ -388,6 +532,11 @@ export const applyAdjudicationToEvaluation = (
   options = {}
 ) => {
   const duplicatePolicy = options.duplicateEligibility || 'EXCLUDE_FROM_PRECISION';
+  const validDuplicatePolicies = ['EXCLUDE_FROM_PRECISION', 'COUNT_AS_FP'];
+
+  if (!validDuplicatePolicies.includes(duplicatePolicy)) {
+    throw new Error(`Invalid duplicateEligibility policy "${duplicatePolicy}". Allowed: ${validDuplicatePolicies.join(', ')}.`);
+  }
 
   // 1. Validate adjudication document against actual evaluationResult
   const validation = validateAdjudicationDocument(adjudicationDoc, evaluationResult);
@@ -456,7 +605,7 @@ export const applyAdjudicationToEvaluation = (
   const hasPendingUnmatched = reviewedUnmatchedPending > 0;
 
   if (!hasPendingUnmatched && totalControlledUnmatched >= (reviewedUnmatchedTP + reviewedUnmatchedFP)) {
-    // All completed controlled unmatched findings have been reviewed!
+    // All completed controlled unmatched findings have been reviewed
     const numerator = automatedMatched + reviewedUnmatchedTP;
     let denominator = automatedMatched + reviewedUnmatchedTP + reviewedUnmatchedFP;
 

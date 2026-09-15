@@ -35,6 +35,7 @@ export {
 } from './schema.mjs';
 export {
   ADJUDICATION_SCHEMA_VERSION,
+  computeEvaluationDigest,
   makeFindingKey,
   validateAdjudicationDocument,
   applyAdjudicationToEvaluation,

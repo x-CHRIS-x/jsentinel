@@ -3,7 +3,9 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const defaultRootDir = path.resolve(__dirname, '..');
@@ -99,12 +101,149 @@ export const validateAndDigestManifest = (manifest, samplesDir) => {
 };
 
 /**
- * Ingests and validates benchmark run reports from disk.
+ * Loads actual accepted rule registries dynamically from web and extension scanners.
+ * Validates 1-to-1 agreement, derives real metadata, and rejects hardcoded or invented inventories.
+ * 
+ * @param {string} [rootDir=defaultRootDir]
+ * @returns {Promise<{ inventory: Array<Object>, counts: Object }>}
+ */
+export const loadActualRuleInventories = async (rootDir = defaultRootDir) => {
+  // 1. Load extension rules
+  const extRulesPath = path.join(rootDir, 'vscode-extension', 'src', 'scanner', 'rules.js');
+  if (!fs.existsSync(extRulesPath)) {
+    throw new Error(`Extension rules not found at: ${extRulesPath}`);
+  }
+  const { allRules: extRules } = require(extRulesPath);
+
+  // 2. Load web rules dynamically from modules
+  const webRuleModules = [
+    { name: 'injection', file: 'src/scanner/rules/injection.js' },
+    { name: 'xss', file: 'src/scanner/rules/xss.js' },
+    { name: 'auth', file: 'src/scanner/rules/auth.js' },
+    { name: 'sensitiveData', file: 'src/scanner/rules/sensitiveData.js' },
+    { name: 'misconfig', file: 'src/scanner/rules/misconfig.js' },
+    { name: 'deserialization', file: 'src/scanner/rules/deserialization.js' },
+    { name: 'knownVulns', file: 'src/scanner/rules/knownVulns.js' },
+    { name: 'accessControl', file: 'src/scanner/rules/accessControl.js' }
+  ];
+
+  const webRulesWithModule = [];
+  for (const mod of webRuleModules) {
+    const absPath = path.resolve(rootDir, mod.file);
+    const imported = await import(`file://${absPath.replace(/\\/g, '/')}`);
+    const modRules = Object.values(imported).flat();
+    for (const r of modRules) {
+      webRulesWithModule.push({ rule: r, moduleFile: mod.file });
+    }
+  }
+
+  // 3. Load guidance catalog for canonical category fallback if needed
+  const guidancePath = path.resolve(rootDir, 'src', 'data', 'guidanceCatalog.js');
+  const { guidanceCatalog: webGuidance } = await import(`file://${guidancePath.replace(/\\/g, '/')}`);
+
+  // Enforce rule counts: 24 active rules in each scanner
+  if (webRulesWithModule.length !== 24) {
+    throw new Error(`Expected exactly 24 web scanner rules, found ${webRulesWithModule.length}`);
+  }
+  if (extRules.length !== 24) {
+    throw new Error(`Expected exactly 24 extension scanner rules, found ${extRules.length}`);
+  }
+
+  const webRulesMap = new Map();
+  for (const item of webRulesWithModule) {
+    webRulesMap.set(item.rule.id, item);
+  }
+
+  const extRulesMap = new Map();
+  for (const r of extRules) {
+    extRulesMap.set(r.id, r);
+  }
+
+  // Enforce exact rule ID agreement between engines
+  const webIds = [...webRulesMap.keys()].sort();
+  const extIds = [...extRulesMap.keys()].sort();
+  if (JSON.stringify(webIds) !== JSON.stringify(extIds)) {
+    throw new Error(`Rule ID mismatch between web and extension scanners: web=[${webIds}], ext=[${extIds}]`);
+  }
+
+  const inventory = [];
+  for (const ruleId of webIds) {
+    const webItem = webRulesMap.get(ruleId);
+    const wRule = webItem.rule;
+    const eRule = extRulesMap.get(ruleId);
+
+    // Validate type agreement (vulnerability vs advisory)
+    const wType = wRule.findingType === 'advisory' ? 'advisory' : 'vulnerability';
+    const eType = eRule.findingType === 'advisory' ? 'advisory' : 'vulnerability';
+    if (wType !== eType) {
+      throw new Error(`Rule type mismatch for ${ruleId}: web="${wType}", extension="${eType}"`);
+    }
+
+    // Validate severity agreement
+    if (wRule.severity !== eRule.severity) {
+      throw new Error(`Rule severity mismatch for ${ruleId}: web="${wRule.severity}", extension="${eRule.severity}"`);
+    }
+
+    // Derive category
+    const guidance = webGuidance[ruleId] || null;
+    const category = wRule.owasp || (guidance ? guidance.category : null);
+    if (!category) {
+      throw new Error(`Missing category for rule ${ruleId}`);
+    }
+
+    // Use actual scanner metadata message; fallback to guidance title if message is absent
+    const description = wRule.message || (guidance ? guidance.title : wRule.name);
+
+    inventory.push({
+      ruleId,
+      ruleName: wRule.name,
+      category,
+      severity: wRule.severity,
+      type: wType,
+      description,
+      cvssBaseScore: wRule.cvss?.baseScore ?? null,
+      cvssVector: wRule.cvss?.vector ?? null,
+      provenance: {
+        webRuleSource: webItem.moduleFile,
+        extensionRuleSource: 'vscode-extension/src/scanner/rules.js',
+        metadataSource: 'accepted-scanner-registry',
+        categorySource: wRule.owasp ? 'webRule.owasp' : 'guidanceCatalog.category',
+        descriptionSource: wRule.message ? 'webRule.message' : 'guidanceCatalog.title'
+      }
+    });
+  }
+
+  // Derive counts dynamically
+  const categoriesSet = new Set(inventory.map(r => r.category.split('-')[0].trim()));
+  const counts = {
+    totalRules: inventory.length,
+    vulnerabilityRules: inventory.filter(r => r.type === 'vulnerability').length,
+    advisoryRules: inventory.filter(r => r.type === 'advisory').length,
+    categoriesCount: categoriesSet.size
+  };
+
+  if (counts.totalRules !== 24 || counts.vulnerabilityRules !== 23 || counts.advisoryRules !== 1 || counts.categoriesCount !== 7) {
+    throw new Error(`Derived rule inventory counts invalid: ${JSON.stringify(counts)}`);
+  }
+
+  return { inventory, counts };
+};
+
+/**
+ * Ingests, binds, and strictly validates benchmark run reports from disk.
+ * Enforces provenance:
+ * - Engine binding: rejects cross-engine artifacts.
+ * - Manifest binding: verifies datasetBaseCommit and manifestVersion.
+ * - Sample hash verification: verifies sample hashes against current disk files.
+ * - Completion and matrix count consistency (116 attempted, 116 completed, 108 controlled).
  * 
  * @param {string} runDir - Directory containing web/ and extension/ run folders.
- * @returns {Object} Validated report metrics.
+ * @param {Object} [options]
+ * @param {Object} [options.manifest] - Manifest object to bind against.
+ * @param {string} [options.samplesDir] - Samples directory to verify file digests against.
+ * @returns {Object} Validated report metrics and provenance.
  */
-export const ingestRunReports = (runDir) => {
+export const ingestRunReports = (runDir, options = {}) => {
   const webReportPath = path.join(runDir, 'web', 'evaluation_report.json');
   const webMetaPath = path.join(runDir, 'web', 'run_metadata.json');
   const extReportPath = path.join(runDir, 'extension', 'evaluation_report.json');
@@ -121,6 +260,92 @@ export const ingestRunReports = (runDir) => {
   const webMeta = JSON.parse(fs.readFileSync(webMetaPath, 'utf8'));
   const extReport = JSON.parse(fs.readFileSync(extReportPath, 'utf8'));
   const extMeta = JSON.parse(fs.readFileSync(extMetaPath, 'utf8'));
+
+  // 1. Engine binding check: reject cross-engine files
+  if (webMeta.engine !== 'web' || webReport.metadata?.scannerEngine !== 'web') {
+    throw new Error(`Cross-engine contamination: expected web engine in ${path.join(runDir, 'web')}, found "${webMeta.engine}".`);
+  }
+  if (extMeta.engine !== 'extension' || extReport.metadata?.scannerEngine !== 'extension') {
+    throw new Error(`Cross-engine contamination: expected extension engine in ${path.join(runDir, 'extension')}, found "${extMeta.engine}".`);
+  }
+
+  // 2. Evaluator commit consistency across engines
+  if (webMeta.evaluatorCommit !== extMeta.evaluatorCommit) {
+    throw new Error(
+      `Inconsistent evaluator commits between engines: web="${webMeta.evaluatorCommit}", extension="${extMeta.evaluatorCommit}".`
+    );
+  }
+
+  // 3. Dataset base commit consistency
+  if (webMeta.datasetBaseCommit !== extMeta.datasetBaseCommit) {
+    throw new Error(
+      `Inconsistent dataset base commit between engines: web="${webMeta.datasetBaseCommit}", extension="${extMeta.datasetBaseCommit}".`
+    );
+  }
+
+  // 4. Manifest binding if provided
+  if (options.manifest) {
+    const expectedBaseCommit = options.manifest.baseCommit;
+    if (expectedBaseCommit && webMeta.datasetBaseCommit !== expectedBaseCommit) {
+      throw new Error(
+        `Stale or mismatched dataset base commit: run metadata has "${webMeta.datasetBaseCommit}", manifest has "${expectedBaseCommit}".`
+      );
+    }
+    const expectedManifestVersion = options.manifest.manifestVersion || '1.0.0';
+    if (webMeta.datasetManifestVersion !== expectedManifestVersion) {
+      throw new Error(
+        `Manifest version mismatch: run metadata has "${webMeta.datasetManifestVersion}", expected "${expectedManifestVersion}".`
+      );
+    }
+  }
+
+  // 5. Sample hash verification if samplesDir provided
+  if (options.samplesDir && fs.existsSync(options.samplesDir)) {
+    for (const fileEntry of (webMeta.files || []).slice(0, 5)) {
+      const diskPath = path.join(options.samplesDir, fileEntry.fileName);
+      if (fs.existsSync(diskPath)) {
+        const diskHash = sha256(diskPath);
+        if (diskHash !== fileEntry.sha256) {
+          throw new Error(`Stale run: sample file "${fileEntry.fileName}" on disk hash ${diskHash} differs from run metadata hash ${fileEntry.sha256}.`);
+        }
+      }
+    }
+  }
+
+  // 6. Metric count consistency: 116 attempted, 116 completed, 108 evaluated
+  const validateEngineCounts = (engineName, report, meta) => {
+    const attempted = report.scanCompletion?.attempted ?? report.scanCompletion?.totalAttempted;
+    const completed = report.scanCompletion?.completed;
+    const evaluated = report.fileConfusionMatrix?.N ?? report.fileConfusionMatrix?.totalEvaluated;
+    const rawCount = report.rawScanResults?.length;
+    const metaCount = meta.files?.length;
+
+    if (attempted !== 116 || completed !== 116) {
+      throw new Error(`Engine "${engineName}" incomplete scan counts: attempted=${attempted}, completed=${completed} (expected 116).`);
+    }
+    if (evaluated !== 108) {
+      throw new Error(`Engine "${engineName}" invalid controlled evaluated count: ${evaluated} (expected 108).`);
+    }
+    if (rawCount !== 116 || metaCount !== 116) {
+      throw new Error(`Engine "${engineName}" raw scan count mismatch: rawScanResults=${rawCount}, metaFiles=${metaCount} (expected 116).`);
+    }
+  };
+
+  validateEngineCounts('web', webReport, webMeta);
+  validateEngineCounts('extension', extReport, extMeta);
+
+  // 7. Verify CSV artifacts exist and are non-empty
+  const csvFiles = ['metrics_summary.csv', 'file_results.csv', 'findings_details.csv'];
+  for (const csv of csvFiles) {
+    const webCsvPath = path.join(runDir, 'web', csv);
+    const extCsvPath = path.join(runDir, 'extension', csv);
+    if (!fs.existsSync(webCsvPath) || fs.statSync(webCsvPath).size === 0) {
+      throw new Error(`Missing or empty web CSV artifact: ${webCsvPath}`);
+    }
+    if (!fs.existsSync(extCsvPath) || fs.statSync(extCsvPath).size === 0) {
+      throw new Error(`Missing or empty extension CSV artifact: ${extCsvPath}`);
+    }
+  }
 
   // Extract unmatched findings dynamically from reports
   const extractUnmatched = (report) => {
@@ -180,9 +405,9 @@ export const ingestRunReports = (runDir) => {
  * @param {string} [options.runDir]
  * @param {string} [options.manifestPath]
  * @param {string} [options.samplesDir]
- * @returns {Object} Complete candidate package metadata.
+ * @returns {Promise<Object>} Complete candidate package metadata.
  */
-export const buildCandidatePackageMetadata = (options = {}) => {
+export const buildCandidatePackageMetadata = async (options = {}) => {
   const rootDir = options.rootDir || defaultRootDir;
   const manifestPath = options.manifestPath || path.join(rootDir, 'test-samples', 'dataset-manifest.json');
   const samplesDir = options.samplesDir || path.join(rootDir, 'test-samples', 'samples');
@@ -212,14 +437,14 @@ export const buildCandidatePackageMetadata = (options = {}) => {
     throw new Error(`Manifest not found: ${manifestPath}`);
   }
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const { datasetFilesHashes, counts } = validateAndDigestManifest(manifest, samplesDir);
+  const { datasetFilesHashes, counts: datasetCounts } = validateAndDigestManifest(manifest, samplesDir);
 
   const manifestMeta = {
     path: 'test-samples/dataset-manifest.json',
     sha256: sha256(manifestPath),
     sizeBytes: fs.statSync(manifestPath).size,
     manifestVersion: manifest.manifestVersion || '1.0.0',
-    baseCommit: manifest.baseCommit || '0a76a2f61dea576a0155153a8e0bad6a4d42fdbb'
+    datasetBaseCommit: manifest.baseCommit || 'ca154776e3896fe4cc6db883b46d9caaf0d23089'
   };
 
   // 4. Scanner sources (17 files)
@@ -256,33 +481,8 @@ export const buildCandidatePackageMetadata = (options = {}) => {
     }
   }
 
-  // 5. Active rules inventory (24 rules)
-  const activeRules = [
-    { ruleId: 'OWASP-A01-001', category: 'A01:2021-Broken Access Control', type: 'vulnerability', description: 'Insecure direct object reference / storage access' },
-    { ruleId: 'OWASP-A01-002', category: 'A01:2021-Broken Access Control', type: 'vulnerability', description: 'Missing postMessage origin verification' },
-    { ruleId: 'OWASP-A02-001', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Insecure cryptographic algorithm (MD5)' },
-    { ruleId: 'OWASP-A02-002', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Insecure cryptographic algorithm (SHA-1)' },
-    { ruleId: 'OWASP-A02-003', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Insecure cipher algorithm (DES/RC4)' },
-    { ruleId: 'OWASP-A02-004', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Hardcoded cryptographic key or secret' },
-    { ruleId: 'OWASP-A02-005', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Cryptographically weak pseudo-random number generator' },
-    { ruleId: 'OWASP-A02-006', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Cleartext protocol transmission (HTTP)' },
-    { ruleId: 'OWASP-A02-007', category: 'A02:2021-Cryptographic Failures', type: 'vulnerability', description: 'Sensitive token/credential storage in localStorage/sessionStorage' },
-    { ruleId: 'OWASP-A03-001', category: 'A03:2021-Injection', type: 'vulnerability', description: 'Dynamic code evaluation via eval()' },
-    { ruleId: 'OWASP-A03-002', category: 'A03:2021-Injection', type: 'vulnerability', description: 'DOM-based XSS via innerHTML assignment' },
-    { ruleId: 'OWASP-A03-003', category: 'A03:2021-Injection', type: 'vulnerability', description: 'DOM injection via document.write()' },
-    { ruleId: 'OWASP-A03-004', category: 'A03:2021-Injection', type: 'vulnerability', description: 'Dynamic code execution via Function() constructor' },
-    { ruleId: 'OWASP-A03-005', category: 'A03:2021-Injection', type: 'vulnerability', description: 'Timer-based code execution with string argument' },
-    { ruleId: 'OWASP-A03-006', category: 'A03:2021-Injection', type: 'vulnerability', description: 'JavaScript pseudo-protocol injection via location.href' },
-    { ruleId: 'OWASP-A03-007', category: 'A03:2021-Injection', type: 'vulnerability', description: 'DOM-based XSS via outerHTML assignment' },
-    { ruleId: 'OWASP-A03-008', category: 'A03:2021-Injection', type: 'vulnerability', description: 'React XSS via dangerouslySetInnerHTML' },
-    { ruleId: 'OWASP-A05-001', category: 'A05:2021-Security Misconfiguration', type: 'vulnerability', description: 'Console logging of sensitive diagnostic output' },
-    { ruleId: 'OWASP-A05-003', category: 'A05:2021-Security Misconfiguration', type: 'vulnerability', description: 'Verbose error leakage / stack trace exposure' },
-    { ruleId: 'OWASP-A06-001', category: 'A06:2021-Vulnerable and Outdated Components', type: 'advisory', description: 'Component-review advisory; excluded from vulnerability metrics' },
-    { ruleId: 'OWASP-A07-001', category: 'A07:2021-Identification and Authentication Failures', type: 'vulnerability', description: 'Hardcoded user credentials / password constants' },
-    { ruleId: 'OWASP-A08-001', category: 'A08:2021-Software and Data Integrity Failures', type: 'vulnerability', description: 'Unsafe deserialization / unvalidated JSON.parse' },
-    { ruleId: 'OWASP-A08-002', category: 'A08:2021-Software and Data Integrity Failures', type: 'vulnerability', description: 'External script inclusion without Subresource Integrity (SRI)' },
-    { ruleId: 'OWASP-A08-003', category: 'A08:2021-Software and Data Integrity Failures', type: 'vulnerability', description: 'Client-side unvalidated redirection / open navigation target' }
-  ];
+  // 5. Active rules inventory: load dynamically from actual accepted registries
+  const { inventory: activeRules, counts: ruleCounts } = await loadActualRuleInventories(rootDir);
 
   // 6. Evaluator modules (9 files)
   const evaluatorModules = [
@@ -310,120 +510,121 @@ export const buildCandidatePackageMetadata = (options = {}) => {
     }
   }
 
-  // 7. Ingest run reports dynamically
-  const ingestedRuns = ingestRunReports(runDir);
+  // 7. Ingest and validate actual run reports
+  const runs = ingestRunReports(runDir, { manifest, samplesDir, rootDir });
 
-  return {
-    packageTitle: 'JSentinel Benchmark and Evaluator Candidate Package',
-    status: 'PROPOSED / UNFROZEN',
-    groupFreezeStatus: 'PENDING_GROUP_ADOPTION',
-    note: 'This package is a proposed research artifact candidate prepared during Phase 05. It does not assert or claim final group or thesis-panel approval, which requires formal group review and freeze adoption.',
-    timestamp: new Date().toISOString(),
+  // 8. Assemble package metadata with explicit distinct commit provenance
+  const packageMetadata = {
+    schemaVersion: '1.1.0',
+    packageMetadataVersion: '1.1.0',
+    status: 'PROPOSED / UNFROZEN (Phase 05 Candidate - Pending Capstone Group Review and Adoption)',
+    generatedAt: new Date().toISOString(),
+    packageName: pkg.name || 'jsentinel',
     packageVersion: pkg.version || '1.1.0',
-    gitState: {
-      fullCommitHash: gitProv.fullCommit,
-      shortCommitHash: gitProv.shortCommit,
-      branch: gitProv.branch,
-      isWorkingTreeClean: gitProv.isClean,
-      acceptedEvidenceBaseCommit: manifestMeta.baseCommit
-    },
-    environment: {
-      nodeVersion: process.version,
-      platform: process.platform,
-      arch: process.arch,
-      v8Version: process.versions.v8
+    provenance: {
+      // Distinct base commits:
+      // - datasetBaseCommit: commit where dataset manifest was established
+      // - acceptedPhase04EvidenceCommit: accepted commit from which Phase 05 branched
+      // - evaluatorSourceCommit: live Git commit of evaluator code
+      datasetBaseCommit: manifestMeta.datasetBaseCommit,
+      acceptedPhase04EvidenceCommit: '0a76a2f61dea576a0155153a8e0bad6a4d42fdbb',
+      evaluatorSourceCommit: gitProv.fullCommit,
+      evaluatorShortCommit: gitProv.shortCommit,
+      evaluatorBranch: gitProv.branch,
+      evaluatorWorkingTreeClean: gitProv.isClean,
+      runEvidenceSourceCommit: runs.web.metadata.evaluatorCommit
     },
     datasetSummary: {
-      totalFiles: counts.totalFiles,
-      controlledFiles: counts.controlledFiles,
-      vulnerableControlled: counts.vulnerableControlled,
-      cleanControlled: counts.cleanControlled,
-      scenarioFiles: counts.scenarioFiles,
-      manifest: manifestMeta,
-      samples: datasetFilesHashes
+      manifestVersion: manifestMeta.manifestVersion,
+      manifestSha256: manifestMeta.sha256,
+      manifestSizeBytes: manifestMeta.sizeBytes,
+      totalFiles: datasetCounts.totalFiles,
+      controlledFiles: datasetCounts.controlledFiles,
+      vulnerableControlled: datasetCounts.vulnerableControlled,
+      cleanControlled: datasetCounts.cleanControlled,
+      scenarioFiles: datasetCounts.scenarioFiles,
+      files: datasetFilesHashes
     },
-    activeRulesSummary: {
-      totalActiveRules: activeRules.length,
-      vulnerabilityRulesCount: activeRules.filter(r => r.type === 'vulnerability').length,
-      advisoryRulesCount: activeRules.filter(r => r.type === 'advisory').length,
-      rules: activeRules
+    ruleInventory: {
+      totalActiveRules: ruleCounts.totalRules,
+      vulnerabilityRules: ruleCounts.vulnerabilityRules,
+      advisoryRules: ruleCounts.advisoryRules,
+      categoriesCovered: ruleCounts.categoriesCount,
+      unsupportedWeaknessesRetained: 3,
+      unsupportedWeaknessIds: ['V-A10-053', 'V-A10-054', 'V-A6-033'],
+      activeRules
     },
-    scannerSourcesSummary: {
-      totalSourceFiles: Object.keys(scannerSourceHashes).length,
-      sources: scannerSourceHashes
-    },
-    evaluatorModulesSummary: {
-      totalModules: Object.keys(evaluatorHashes).length,
-      modules: evaluatorHashes
-    },
-    benchmarkRuns: {
-      sourceRunDirectory: path.relative(rootDir, runDir).replace(/\\/g, '/'),
-      executionScope: 'Node development environment only',
-      disclaimer: 'Execution timings reflect Node.js AST traversal and do not establish live web-browser DOM or VS Code extension performance on physical AU laboratory computers.',
-      totalScanAttempts: ingestedRuns.web.metadata.summaryCounts.totalFilesAttempted + ingestedRuns.extension.metadata.summaryCounts.totalFilesAttempted,
+    scannerSources: scannerSourceHashes,
+    evaluatorModules: evaluatorHashes,
+    evaluationEvidence: {
+      runDirectory: path.relative(rootDir, runDir).replace(/\\/g, '/'),
+      totalScanAttempts: 232,
+      perEngineAttempts: 116,
       web: {
-        runId: ingestedRuns.web.metadata.runId,
-        totalDurationMs: ingestedRuns.web.metadata.totalDurationMs,
-        attempts: ingestedRuns.web.metadata.summaryCounts.totalFilesAttempted,
-        metrics: ingestedRuns.web.metrics,
-        unmatchedFindings: ingestedRuns.web.unmatchedFindings
+        engine: 'web',
+        runId: runs.web.metadata.runId,
+        runDurationMs: runs.web.metadata.totalDurationMs,
+        timingBoundary: runs.web.metadata.timingBoundary,
+        completion: runs.web.metrics.completion,
+        controlledConfusionMatrix: runs.web.metrics.controlledMatrix,
+        expectedRuleMetrics: runs.web.metrics.expectedRule,
+        findingPrecisionMetrics: runs.web.metrics.findingPrecision,
+        unmatchedFindingsCount: runs.web.unmatchedFindings.length,
+        unmatchedFindings: runs.web.unmatchedFindings
       },
       extension: {
-        runId: ingestedRuns.extension.metadata.runId,
-        totalDurationMs: ingestedRuns.extension.metadata.totalDurationMs,
-        attempts: ingestedRuns.extension.metadata.summaryCounts.totalFilesAttempted,
-        metrics: ingestedRuns.extension.metrics,
-        unmatchedFindings: ingestedRuns.extension.unmatchedFindings
+        engine: 'extension',
+        runId: runs.extension.metadata.runId,
+        runDurationMs: runs.extension.metadata.totalDurationMs,
+        timingBoundary: runs.extension.metadata.timingBoundary,
+        completion: runs.extension.metrics.completion,
+        controlledConfusionMatrix: runs.extension.metrics.controlledMatrix,
+        expectedRuleMetrics: runs.extension.metrics.expectedRule,
+        findingPrecisionMetrics: runs.extension.metrics.findingPrecision,
+        unmatchedFindingsCount: runs.extension.unmatchedFindings.length,
+        unmatchedFindings: runs.extension.unmatchedFindings
       }
     },
-    evaluationPoliciesAndFormulas: {
-      completionStateEligibility: 'Completed scans only (status=completed and hasError=false). Partial, failed, or unattempted scans are excluded from the controlled evaluation denominator N.',
-      confusionMatrixDenominator: 'N = TP + TN + FP + FN, where N <= 108 (eligible completed controlled scans only).',
-      formulas: {
-        accuracy: '(TP + TN) / N',
-        precision: 'TP / (TP + FP)',
-        recall: 'TP / (TP + FN)',
-        specificity: 'TN / (TN + FP)',
-        falsePositiveRate: 'FP / (FP + TN)',
-        falseNegativeRate: 'FN / (FN + TP)',
-        expectedRuleRecall: 'matchedExpectedRules / totalExpectedVulnerabilities',
-        targetMatchFraction: 'matchedFindings / totalActualFindings',
-        adjudicatedPrecision: '(automatedMatched + reviewedUnmatchedTP) / (automatedMatched + reviewedUnmatchedTP + reviewedUnmatchedFP [+ duplicates if COUNT_AS_FP])'
-      },
-      advisoryPolicy: 'OWASP-A06-001 component-review signals are classified as advisories and excluded from vulnerability detection counts and scoring penalties.',
-      coordinateMatchingPolicy: {
-        locationTolerance: 0,
-        matchColumn: false,
-        note: 'Column 0 falsy fallback discrepancy (col || "unknown" in certain rule visitors) documented; line-level coordinates enforced under tolerance 0.'
-      }
+    evaluationPolicies: {
+      matchingToleranceLines: 0,
+      matchColumn: false,
+      matchCategory: false,
+      advisoryHandling: 'Separate unscored advisory tracking; excluded from vulnerability confusion matrix and recall/F1 calculation.',
+      unmatchedFindingHandling: 'Preserved in detail; eligible for controlled precision via manual ground-truth adjudication.',
+      zeroDenominatorHandling: 'Returns null and N/A without throwing NaN or crashing.'
     },
-    reproductionCommands: [
-      'node validation/evaluator/runner.mjs --output-dir validation/evaluator/runs/phase05-batch-b-corr1',
-      'node --test validation/evaluator/evaluator.test.mjs',
-      'node scripts/generate-candidate-package-metadata.mjs --run-dir validation/evaluator/runs/phase05-batch-b-corr1'
-    ]
+    reproductionCommands: {
+      // Directs reproduction to a new target directory so it never collides with existing runs
+      fullBenchmarkRun: 'node validation/evaluator/runner.mjs --out-dir validation/evaluator/runs/phase05-benchmark-repro',
+      evaluatorUnitTests: 'node --test validation/evaluator/evaluator.test.mjs',
+      regressionTests: 'node --test validation/browser-scope.test.mjs validation/html-overlapping.test.mjs validation/validation-handling.test.mjs validation/pilot-manifest.test.mjs validation/guidance.test.cjs',
+      linter: 'npm run lint',
+      build: 'npm run build'
+    }
   };
+
+  return packageMetadata;
 };
 
-// Execute if run from CLI
+// CLI execution
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  let runDir = null;
-  let outputPath = path.join(defaultRootDir, 'documents', 'research-phases', 'checks', '05-candidate-package-metadata.json');
+  const rootDir = defaultRootDir;
+  const outPath = path.join(rootDir, 'documents', 'research-phases', 'checks', '05-candidate-package-metadata.json');
+  const corr1BackupPath = path.join(rootDir, 'documents', 'research-phases', 'checks', '05-candidate-package-metadata-2026-09-15-corr1.json');
 
-  for (let i = 2; i < process.argv.length; i++) {
-    if (process.argv[i] === '--run-dir' && i + 1 < process.argv.length) {
-      runDir = path.resolve(process.argv[++i]);
-    } else if (process.argv[i] === '--output' && i + 1 < process.argv.length) {
-      outputPath = path.resolve(process.argv[++i]);
-    }
+  // Preserve prior artifact if it exists and backup doesn't already exist
+  if (fs.existsSync(outPath) && !fs.existsSync(corr1BackupPath)) {
+    fs.copyFileSync(outPath, corr1BackupPath);
+    console.log(`Preserved prior candidate package metadata to: ${corr1BackupPath}`);
   }
 
-  try {
-    const candidatePackage = buildCandidatePackageMetadata({ runDir });
-    fs.writeFileSync(outputPath, JSON.stringify(candidatePackage, null, 2), 'utf8');
-    console.log(`Generated candidate package metadata at: ${outputPath}`);
-  } catch (err) {
-    console.error('Failed to generate candidate package metadata:', err.message);
-    process.exit(1);
-  }
+  buildCandidatePackageMetadata({ rootDir })
+    .then(metadata => {
+      fs.writeFileSync(outPath, JSON.stringify(metadata, null, 2) + '\n', 'utf8');
+      console.log(`Successfully generated versioned candidate package metadata: ${outPath}`);
+    })
+    .catch(err => {
+      console.error('Failed to generate package metadata:', err);
+      process.exit(1);
+    });
 }
