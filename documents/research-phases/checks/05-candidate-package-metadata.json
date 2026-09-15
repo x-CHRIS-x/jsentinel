@@ -3,23 +3,27 @@
   "status": "PROPOSED / UNFROZEN",
   "groupFreezeStatus": "PENDING_GROUP_ADOPTION",
   "note": "This package is a proposed research artifact candidate prepared during Phase 05. It does not assert or claim final group or thesis-panel approval, which requires formal group review and freeze adoption.",
-  "timestamp": "2026-09-15T05:11:07.108Z",
+  "timestamp": "2026-09-15T05:21:16.497Z",
+  "packageVersion": "1.1.0",
+  "gitState": {
+    "fullCommitHash": "06313806fbda5a3410b69f256e81324584b82ae5",
+    "shortCommitHash": "0631380",
+    "branch": "ao/jsentinel-26/phase05-evaluator",
+    "isWorkingTreeClean": false,
+    "acceptedEvidenceBaseCommit": "ca154776e3896fe4cc6db883b46d9caaf0d23089"
+  },
   "environment": {
     "nodeVersion": "v24.15.0",
     "platform": "win32",
-    "arch": "x64"
-  },
-  "gitState": {
-    "evaluatorCommit": "5239da9",
-    "acceptedEvidenceBaseCommit": "0a76a2f61dea576a0155153a8e0bad6a4d42fdbb",
-    "branch": "ao/jsentinel-26/phase05-evaluator"
+    "arch": "x64",
+    "v8Version": "13.6.233.17-node.48"
   },
   "datasetSummary": {
     "totalFiles": 116,
     "controlledFiles": 108,
     "vulnerableControlled": 54,
     "cleanControlled": 54,
-    "scenarioFiles": 0,
+    "scenarioFiles": 8,
     "manifest": {
       "path": "test-samples/dataset-manifest.json",
       "sha256": "ac9f72499b242d8d580cf617e841766d40d12d7935d65e3381d3d58841ea9199",
@@ -1074,20 +1078,20 @@
         "sizeBytes": 14481
       },
       "validation/evaluator/adjudication.mjs": {
-        "sha256": "56774a21642df363b3f8ca601c1377ecbad62b001891786cb1559624ba42cf15",
-        "sizeBytes": 10251
+        "sha256": "a605d69a56cb29df9373e29865d80600dc583d4d02a0fb67fbf812628ced5729",
+        "sizeBytes": 19695
       },
       "validation/evaluator/evaluator.mjs": {
         "sha256": "a99bfab4538d6318720bfc210e23c8746b9d10cc961bec41e5bcc2f764b6c088",
         "sizeBytes": 14858
       },
       "validation/evaluator/evaluator.test.mjs": {
-        "sha256": "215e97cdc8a5d36f2cf663f050aafdc0284b64d4bd60ea3979b46256b280026e",
-        "sizeBytes": 36598
+        "sha256": "3d00cef6063990f39686cec7565727eff222df29d1fc95eb1ebd45620ca97878",
+        "sizeBytes": 52063
       },
       "validation/evaluator/index.mjs": {
-        "sha256": "d399fba9599f70059495f2fc590789373cf70fc7947da4d0c3481b79eff6ac80",
-        "sizeBytes": 1103
+        "sha256": "f1744aac7442199a7bc9e4dee13faf0d863a9f637e06fec51460c57f5c0f9975",
+        "sizeBytes": 1138
       },
       "validation/evaluator/matching.mjs": {
         "sha256": "fb31c218650995a22ea0b1268a8d2e8a2268bd5dcfddd0373e9cbd93d28a1430",
@@ -1098,8 +1102,8 @@
         "sizeBytes": 12422
       },
       "validation/evaluator/runner.mjs": {
-        "sha256": "edc58751baad5336c48a7925443cd7e50bdb3041f3607bdea81d7053f77e3a3a",
-        "sizeBytes": 9480
+        "sha256": "f003a01f63fb94c17097ccf973085d297736fc119bf5c618557f27f92b5ca7af",
+        "sizeBytes": 12630
       },
       "validation/evaluator/schema.mjs": {
         "sha256": "07c2b14f2d75817b9eaec59c9a2efd2915592d5f14cbe0cd5109e4baf1f23201",
@@ -1107,56 +1111,1176 @@
       }
     }
   },
-  "localBenchmarkSummary": {
+  "benchmarkRuns": {
+    "sourceRunDirectory": "validation/evaluator/runs/phase05-batch-b-corr1",
     "executionScope": "Node development environment only",
     "disclaimer": "Execution timings reflect Node.js AST traversal and do not establish live web-browser DOM or VS Code extension performance on physical AU laboratory computers.",
     "totalScanAttempts": 232,
-    "webAttempts": 116,
-    "extensionAttempts": 116,
-    "results": {
-      "controlledMatrixN": 108,
-      "truePositives": 45,
-      "trueNegatives": 53,
-      "falsePositives": 1,
-      "falseNegatives": 9,
-      "accuracy": 0.9074,
-      "accuracyPercentage": "90.74%",
-      "precision": 0.9783,
-      "precisionPercentage": "97.83%",
-      "recall": 0.8333,
-      "recallPercentage": "83.33%",
-      "specificity": 0.9815,
-      "specificityPercentage": "98.15%",
-      "falsePositiveRate": 0.0185,
-      "falsePositiveRatePercentage": "1.85%",
-      "falseNegativeRate": 0.1667,
-      "falseNegativeRatePercentage": "16.67%",
-      "expectedVulnerabilities": 60,
-      "matchedExpectedRules": 51,
-      "missedExpectedRules": 6,
-      "unsupportedExpectedRules": 3,
-      "expectedRuleRecall": 0.85,
-      "expectedRuleRecallPercentage": "85.00%",
-      "actualVulnerabilityFindings": 52,
-      "matchedFindings": 51,
-      "duplicateFindings": 0,
-      "unmatchedFindings": 1,
-      "targetMatchFraction": 0.9808,
-      "targetMatchFractionPercentage": "98.08%",
-      "adjudicatedPrecision": "PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION"
+    "web": {
+      "runId": "run-web-1789449670937",
+      "totalDurationMs": 2688.417,
+      "attempts": 116,
+      "metrics": {
+        "completion": {
+          "totalSamples": 116,
+          "attempted": 116,
+          "unattempted": 0,
+          "completed": 116,
+          "partial": 0,
+          "failed": 0,
+          "scenarioCompletion": {
+            "total": 8,
+            "attempted": 8,
+            "unattempted": 0,
+            "completed": 8,
+            "partial": 0,
+            "failed": 0
+          },
+          "controlledEligibility": {
+            "total": 108,
+            "eligible": 108,
+            "excluded": 0,
+            "exclusionBreakdown": {
+              "EXCLUDED_SCENARIO": 8,
+              "EXCLUDED_UNATTEMPTED": 0,
+              "EXCLUDED_INCOMPLETE_PARTIAL": 0,
+              "EXCLUDED_INCOMPLETE_FAILED": 0,
+              "EXCLUDED_INVALID_LABEL": 0
+            }
+          }
+        },
+        "controlledMatrix": {
+          "TP": 45,
+          "TN": 53,
+          "FP": 1,
+          "FN": 9,
+          "N": 108,
+          "accuracy": 0.9074074074074074,
+          "precision": 0.9782608695652174,
+          "recall": 0.8333333333333334,
+          "specificity": 0.9814814814814815,
+          "falsePositiveRate": 0.018518518518518517,
+          "falseNegativeRate": 0.16666666666666666,
+          "percentages": {
+            "accuracy": "90.74%",
+            "precision": "97.83%",
+            "recall": "83.33%",
+            "specificity": "98.15%",
+            "falsePositiveRate": "1.85%",
+            "falseNegativeRate": "16.67%"
+          }
+        },
+        "expectedRule": {
+          "totalExpected": 60,
+          "matchedExpected": 51,
+          "missedExpected": 6,
+          "unsupportedExpected": 3,
+          "expectedRuleRecall": 0.85,
+          "expectedRuleRecallPercentage": "85.00%"
+        },
+        "findingPrecision": {
+          "totalActualFindings": 52,
+          "matchedFindings": 51,
+          "duplicateFindings": 0,
+          "unmatchedFindings": 1,
+          "targetMatchFraction": 0.9807692307692307,
+          "targetMatchFractionPercentage": "98.08%",
+          "targetMatchFractionFormula": "matchedFindings / totalActualFindings",
+          "adjudicatedPrecision": null,
+          "adjudicatedPrecisionPercentage": "N/A",
+          "adjudicationStatus": "PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION",
+          "pendingGroundTruthReviewCount": 1,
+          "pendingSemanticDescriptionReviewCount": 51
+        }
+      },
+      "unmatchedFindings": [
+        {
+          "sampleId": "SCENARIO-001",
+          "fileName": "admin-dashboard.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A01-002",
+          "line": 16,
+          "column": 4,
+          "description": "Client-side role or authorization check in condition statement",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 70,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 61,
+          "column": 4,
+          "description": "Sensitive object variable 'config' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 62,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 47,
+          "column": 24,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 51,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 54,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "C-A1-001",
+          "fileName": "C-A1-001.js",
+          "scope": "controlled",
+          "ruleId": "OWASP-A08-001",
+          "line": 9,
+          "column": 23,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 99,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 100,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A07-001",
+          "line": 71,
+          "column": 4,
+          "description": "Sensitive token stored in localStorage (key: 'chatToken')",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-002",
+          "line": 62,
+          "column": 4,
+          "description": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-002",
+          "line": 65,
+          "column": 4,
+          "description": "Cookie set via template literal: verify HttpOnly and Secure flags are present",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-003",
+          "line": 68,
+          "column": 10,
+          "description": "Insecure pseudo-random number generator used for sensitive variable 'sessionSalt'",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 16,
+          "column": 21,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-006",
+          "line": 13,
+          "column": 6,
+          "description": "Hardcoded API key or secret found in variable 'firebaseApiKey'",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 34,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 35,
+          "column": 4,
+          "description": "Sensitive object variable 'user' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 48,
+          "column": 23,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 78,
+          "column": 19,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 82,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 88,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 99,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 102,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 19,
+          "column": 22,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 67,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 44,
+          "column": 18,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 85,
+          "column": 18,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 51,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 88,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 31,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-007",
+          "line": 45,
+          "column": 80,
+          "description": "Sensitive credentials embedded in URL query string",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 38,
+          "column": 19,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 69,
+          "column": 22,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 106,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 107,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 15,
+          "column": 20,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 77,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 78,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 64,
+          "column": 25,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 68,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 74,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-007",
+          "fileName": "student-portal.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 96,
+          "column": 8,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-007",
+          "fileName": "student-portal.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A01-002",
+          "line": 30,
+          "column": 4,
+          "description": "Client-side role or authorization check in condition statement",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 14,
+          "column": 21,
+          "description": "Hardcoded AWS Access Key detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 17,
+          "column": 15,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 84,
+          "column": 4,
+          "description": "Sensitive object variable 'user' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 85,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 70,
+          "column": 20,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        }
+      ]
+    },
+    "extension": {
+      "runId": "run-extension-1789449671265",
+      "totalDurationMs": 317.43,
+      "attempts": 116,
+      "metrics": {
+        "completion": {
+          "totalSamples": 116,
+          "attempted": 116,
+          "unattempted": 0,
+          "completed": 116,
+          "partial": 0,
+          "failed": 0,
+          "scenarioCompletion": {
+            "total": 8,
+            "attempted": 8,
+            "unattempted": 0,
+            "completed": 8,
+            "partial": 0,
+            "failed": 0
+          },
+          "controlledEligibility": {
+            "total": 108,
+            "eligible": 108,
+            "excluded": 0,
+            "exclusionBreakdown": {
+              "EXCLUDED_SCENARIO": 8,
+              "EXCLUDED_UNATTEMPTED": 0,
+              "EXCLUDED_INCOMPLETE_PARTIAL": 0,
+              "EXCLUDED_INCOMPLETE_FAILED": 0,
+              "EXCLUDED_INVALID_LABEL": 0
+            }
+          }
+        },
+        "controlledMatrix": {
+          "TP": 45,
+          "TN": 53,
+          "FP": 1,
+          "FN": 9,
+          "N": 108,
+          "accuracy": 0.9074074074074074,
+          "precision": 0.9782608695652174,
+          "recall": 0.8333333333333334,
+          "specificity": 0.9814814814814815,
+          "falsePositiveRate": 0.018518518518518517,
+          "falseNegativeRate": 0.16666666666666666,
+          "percentages": {
+            "accuracy": "90.74%",
+            "precision": "97.83%",
+            "recall": "83.33%",
+            "specificity": "98.15%",
+            "falsePositiveRate": "1.85%",
+            "falseNegativeRate": "16.67%"
+          }
+        },
+        "expectedRule": {
+          "totalExpected": 60,
+          "matchedExpected": 51,
+          "missedExpected": 6,
+          "unsupportedExpected": 3,
+          "expectedRuleRecall": 0.85,
+          "expectedRuleRecallPercentage": "85.00%"
+        },
+        "findingPrecision": {
+          "totalActualFindings": 52,
+          "matchedFindings": 51,
+          "duplicateFindings": 0,
+          "unmatchedFindings": 1,
+          "targetMatchFraction": 0.9807692307692307,
+          "targetMatchFractionPercentage": "98.08%",
+          "targetMatchFractionFormula": "matchedFindings / totalActualFindings",
+          "adjudicatedPrecision": null,
+          "adjudicatedPrecisionPercentage": "N/A",
+          "adjudicationStatus": "PENDING_MANUAL_GROUND_TRUTH_ADJUDICATION",
+          "pendingGroundTruthReviewCount": 1,
+          "pendingSemanticDescriptionReviewCount": 51
+        }
+      },
+      "unmatchedFindings": [
+        {
+          "sampleId": "SCENARIO-001",
+          "fileName": "admin-dashboard.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A01-002",
+          "line": 16,
+          "column": 4,
+          "description": "Client-side role or authorization check in condition statement",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 70,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 61,
+          "column": 4,
+          "description": "Sensitive object variable 'config' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 62,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 47,
+          "column": 24,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 51,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-002",
+          "fileName": "api-gateway.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 54,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "C-A1-001",
+          "fileName": "C-A1-001.js",
+          "scope": "controlled",
+          "ruleId": "OWASP-A08-001",
+          "line": 9,
+          "column": 23,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 99,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 100,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A07-001",
+          "line": 71,
+          "column": 4,
+          "description": "Sensitive token stored in localStorage (key: 'chatToken')",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-002",
+          "line": 62,
+          "column": 4,
+          "description": "Cookie set via dynamic concatenation: missing HttpOnly or Secure flags",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-002",
+          "line": 65,
+          "column": 4,
+          "description": "Cookie set via template literal: verify HttpOnly and Secure flags are present",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-003",
+          "line": 68,
+          "column": 10,
+          "description": "Insecure pseudo-random number generator used for sensitive variable 'sessionSalt'",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 16,
+          "column": 21,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-006",
+          "line": 13,
+          "column": 6,
+          "description": "Hardcoded API key or secret found in variable 'firebaseApiKey'",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 34,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 35,
+          "column": 4,
+          "description": "Sensitive object variable 'user' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 48,
+          "column": 23,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 78,
+          "column": 19,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 82,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-003",
+          "fileName": "chat-application.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 88,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 99,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 102,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 19,
+          "column": 22,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 67,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 44,
+          "column": 18,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 85,
+          "column": 18,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 51,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-004",
+          "fileName": "data-pipeline.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 88,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 31,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-007",
+          "line": 45,
+          "column": 80,
+          "description": "Sensitive credentials embedded in URL query string",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 38,
+          "column": 19,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-005",
+          "fileName": "ecommerce-checkout.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 69,
+          "column": 22,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 106,
+          "column": 4,
+          "description": "Dangerous use of string in setInterval",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 107,
+          "column": 4,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 15,
+          "column": 20,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 77,
+          "column": 4,
+          "description": "Sensitive object variable 'credentials' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 78,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 64,
+          "column": 25,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 68,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-006",
+          "fileName": "payment-processor.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-002",
+          "line": 74,
+          "column": 4,
+          "description": "Potential prototype pollution assignment detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-007",
+          "fileName": "student-portal.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A03-002",
+          "line": 96,
+          "column": 8,
+          "description": "Dangerous use of string in setTimeout",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-007",
+          "fileName": "student-portal.jsx",
+          "scope": "scenario",
+          "ruleId": "OWASP-A01-002",
+          "line": 30,
+          "column": 4,
+          "description": "Client-side role or authorization check in condition statement",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 14,
+          "column": 21,
+          "description": "Hardcoded AWS Access Key detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A02-005",
+          "line": 17,
+          "column": 15,
+          "description": "Hardcoded IP Address detected in string.",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 84,
+          "column": 4,
+          "description": "Sensitive object variable 'user' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A05-003",
+          "line": 85,
+          "column": 4,
+          "description": "Sensitive object variable 'session' logged to console",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        },
+        {
+          "sampleId": "SCENARIO-008",
+          "fileName": "user-auth-service.js",
+          "scope": "scenario",
+          "ruleId": "OWASP-A08-001",
+          "line": 70,
+          "column": 20,
+          "description": "JSON.parse() usage detected",
+          "adjudicationStatus": "PENDING_MANUAL_ADJUDICATION"
+        }
+      ]
     }
   },
-  "humanAdjudicationProtocol": {
-    "status": "SPECIFIED_AND_IMPLEMENTED",
-    "modulePath": "validation/evaluator/adjudication.mjs",
-    "dispositionValues": [
-      "TRUE_POSITIVE",
-      "FALSE_POSITIVE",
-      "PENDING"
-    ],
-    "duplicatePolicy": "EXCLUDE_FROM_PRECISION",
-    "unmatchedCountRequiringReview": 1,
-    "unmatchedFindingFile": "C-A1-001.js",
-    "unmatchedFindingRule": "OWASP-A08-001"
-  }
+  "evaluationPoliciesAndFormulas": {
+    "completionStateEligibility": "Completed scans only (status=completed and hasError=false). Partial, failed, or unattempted scans are excluded from the controlled evaluation denominator N.",
+    "confusionMatrixDenominator": "N = TP + TN + FP + FN, where N <= 108 (eligible completed controlled scans only).",
+    "formulas": {
+      "accuracy": "(TP + TN) / N",
+      "precision": "TP / (TP + FP)",
+      "recall": "TP / (TP + FN)",
+      "specificity": "TN / (TN + FP)",
+      "falsePositiveRate": "FP / (FP + TN)",
+      "falseNegativeRate": "FN / (FN + TP)",
+      "expectedRuleRecall": "matchedExpectedRules / totalExpectedVulnerabilities",
+      "targetMatchFraction": "matchedFindings / totalActualFindings",
+      "adjudicatedPrecision": "(automatedMatched + reviewedUnmatchedTP) / (automatedMatched + reviewedUnmatchedTP + reviewedUnmatchedFP [+ duplicates if COUNT_AS_FP])"
+    },
+    "advisoryPolicy": "OWASP-A06-001 component-review signals are classified as advisories and excluded from vulnerability detection counts and scoring penalties.",
+    "coordinateMatchingPolicy": {
+      "locationTolerance": 0,
+      "matchColumn": false,
+      "note": "Column 0 falsy fallback discrepancy (col || \"unknown\" in certain rule visitors) documented; line-level coordinates enforced under tolerance 0."
+    }
+  },
+  "reproductionCommands": [
+    "node validation/evaluator/runner.mjs --output-dir validation/evaluator/runs/phase05-batch-b-corr1",
+    "node --test validation/evaluator/evaluator.test.mjs",
+    "node scripts/generate-candidate-package-metadata.mjs --run-dir validation/evaluator/runs/phase05-batch-b-corr1"
+  ]
 }

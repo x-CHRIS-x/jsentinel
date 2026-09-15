@@ -138,3 +138,41 @@ Drafted `documents/research-phases/checks/05-pass-a-technical-method-draft.md` c
 6. Survey methodology preserving 40 user and 10 technical respondents, 10 items, 5 criteria, and explicit denominator rules.
 7. Google Doc transfer gate preserving live Chapter I through III documents until group review and adoption.
 
+---
+
+## 6. Batch B/C Corrections Addressing Manager Review
+
+Following coordinator review of commits `5239da9` and `ab37e50`, six specific defect areas were addressed across the evaluator modules, runner, candidate package metadata generator, and Pass A draft:
+
+### Defect 1: Dynamic Package Metadata Generation and Manifest Verification
+- **Problem:** `scripts/generate-candidate-package-metadata.mjs` hardcoded observed metrics, attempts, evaluatorCommit, branch, and unmatched findings. Scenario files evaluated to 0 because workloadType was checked against `scenario` instead of `simulated-browser-workload` or `label === 'scenario'`.
+- **Correction:** Rewrote the script to ingest actual versioned per-engine reports (`evaluation_report.json`) and run metadata (`run_metadata.json`) dynamically. Dynamically queries Git full and short commit hashes, working tree cleanliness, branch, package version, and tool dependencies. Enforces manifest consistency: derives 54 vulnerable, 54 clean, 8 scenarios (116 total), throwing an error upon any discrepancy. Extracts unmatched findings list directly from the reports with zero hardcoding.
+
+### Defect 2: Adjudication Scoping and Double-Counting Prevention
+- **Problem:** `adjudication.mjs` template included matched and scenario findings without proper scoping. `applyAdjudication` counted all entries with `TRUE_POSITIVE`/`FALSE_POSITIVE` and then added `matchedFindings` again, double-counting matched targets and allowing scenario findings to contaminate controlled precision.
+- **Correction:** Implemented explicit finding scope (`'controlled' | 'scenario'`) and kind (`'unmatched' | 'matched' | 'duplicate'`). Canonical keys now incorporate engine, sampleId, ruleId, location, and kind. The validation engine checks input documents against actual evaluation results, rejecting unknown, duplicate, or cross-run keys. Controlled precision inspects only completed controlled unmatched findings, adding reviewed TP strictly to automated matched targets without double counting. Completed dispositions require non-empty `reviewer`, `rationale`, and valid `reviewDate`. Semantic review denominator is strictly matched targets in completed controlled scans.
+
+### Defect 3: Runner Immutability and Evidence Destination Protection
+- **Problem:** `runner.mjs` defaulted to a fixed output folder (`runs/phase05-batch-b`) and could overwrite existing evidence.
+- **Correction:** Added destination protection that checks if the output folder exists and contains files; if so, it throws an error and refuses to overwrite. Exposed CLI arguments (`--output-dir`, `--run-id`, `--manifest`, `--samples-dir`). Created new versioned run directory `validation/evaluator/runs/phase05-batch-b-corr1`, preserving the original `phase05-batch-b` evidence intact. Recorded dependency versions from `package.json`, Git provenance, and raw errors.
+
+### Defect 4: Pass A Technical Method Checkpoint Revision
+- **Problem:** Prior draft claimed Chris as author of the AI draft, described arrangements as agreed or locked down, omitted the file-size measurement protocol, claimed uninstrumented separate parse/rule timings, misstated N as fixed 108, and placed shared Google Doc transfer in Pass B / Phase 08.
+- **Correction:** Revised `05-pass-a-technical-method-draft.md`:
+  - Header explicitly identifies it as an AI draft prepared in session `jsentinel-26` for student group review.
+  - Clarified lifecycle: the agreed Chapter III technical method must be transferred into the shared Google Doc during Pass A, before Phase 07 laboratory testing begins.
+  - Marked shared Google Doc link as pending group review and adoption.
+  - Specified N as completed eligible controlled scans (N <= 108).
+  - Clarified that detection matches are decided strictly by `ruleId` and location coordinates; category and severity metadata do not decide matches.
+  - Marked warm-up (10 samples), 3 repetitions, SSD execution, cache clearing, and memory monitoring as proposed research protocols pending group and PC adoption.
+  - Feasible timing boundary defined as total elapsed file scan duration without claiming separate parse vs rule timings.
+  - Added explicit file-size measurement protocol (raw byte size on disk, line counts, character length).
+
+### Defect 5: Sourcing Survey Methodology and Active Rule Limitations
+- **Problem:** Survey details added beyond the checklist were unsourced.
+- **Correction:** Sourced survey details directly to `documents/MD/Final-Grp13-IT225-Chapters123-Aug25-2026.md` (Table 6 ISO evaluation form, Table 7 4-point Likert Scale, and respondent composition: 40 users, 10 technical experts). Preserved active 24-rule counts (23 vulnerability + 1 advisory), noted the 3 unsupported weaknesses (`V-A10-053`, `V-A10-054`, `V-A6-033`), and documented the column 0 truthiness limitation (`col || 'unknown'`).
+
+### Defect 6: Expanded Evaluator Test Suite
+- **Correction:** Expanded `evaluator.test.mjs` from 33 to 40 targeted tests covering template roundtrip, duplicate/unknown key rejection, incomplete disposition rejection, scenario segregation, semantic review scoping, runner immutability, and dynamic package metadata ingestion.
+
+

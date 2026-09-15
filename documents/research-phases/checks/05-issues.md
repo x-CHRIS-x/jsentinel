@@ -120,3 +120,26 @@ Because this finding is unreviewed, adjudicated finding precision is reported as
 ### Observation 4: Node Execution Timing Boundary
 The execution durations recorded in `run_metadata.json` (2,680.6ms for Web, 326.0ms for Extension across 116 files) represent local Node.js AST parsing and visitor traversal. They do not measure web browser DOM rendering, UI event handling, or VS Code extension host latency on physical AU laboratory computers. Chapter III and Pass A explicitly define this boundary.
 
+---
+
+## 5. Resolved Review Deficiencies (Phase 05 Batch B/C Corrections)
+
+Following coordinator inspection, five technical review deficiencies were resolved:
+
+### Deficiency 1: Dynamic Ingestion in Package Metadata Generator
+- Prior implementation hardcoded observed metrics, attempts, evaluatorCommit, branch, and unmatched finding identities.
+- Resolved by rewriting `scripts/generate-candidate-package-metadata.mjs` to ingest `evaluation_report.json` and `run_metadata.json` dynamically from disk, extract live Git and package versions, and enforce exact manifest counts (54V, 54C, 8 scenarios, 116 total).
+
+### Deficiency 2: Adjudication Double-Counting and Scenario Segregation
+- Prior template generation included both matched targets and scenario findings. When applied, `applyAdjudication` added `matchedFindings` twice and admitted scenario findings into the controlled precision denominator.
+- Resolved by introducing explicit finding scope (`'controlled' | 'scenario'`) and kind (`'unmatched' | 'matched' | 'duplicate'`). Controlled precision inspects only completed controlled unmatched findings, adding reviewed true positives to automated target matches without double-counting. Scenario findings are segregated.
+
+### Deficiency 3: Runner Evidence Protection
+- Prior runner defaulted to `runs/phase05-batch-b` without verifying whether the directory already contained files.
+- Resolved by adding destination checks that refuse to overwrite populated folders. New runs are versioned (`phase05-batch-b-corr1`), and the runner accepts CLI reproduction flags.
+
+### Deficiency 4: Pass A Lifecycle and Paper Sourcing
+- Prior draft claimed Chris authored the AI draft, asserted that protocols were agreed/locked down, omitted the file-size protocol, and misstated the transfer timing as Pass B / Phase 08.
+- Resolved by updating `05-pass-a-technical-method-draft.md` to clearly state it is an AI draft for group review, establishing that the agreed method must be transferred to the shared Google Doc during Pass A before Phase 07, defining the file-size measurement protocol, and sourcing survey details directly to `documents/MD/Final-Grp13-IT225-Chapters123-Aug25-2026.md`.
+
+

@@ -1,26 +1,26 @@
-# Pass A: Chapter III Technical Method Checkpoint Draft
+# Pass A: Chapter III Technical Method Proposed Checkpoint Draft
 
 Date: September 15, 2026  
 Phase: Phase 05 Batch C  
-Author: John Chris P. Ledama  
-Status: Proposed Draft Checkpoint (Pending Group Review and Freeze Adoption)  
+Prepared by: AI Draft prepared in worker session `jsentinel-26` for student group review  
+Document Status: Proposed Technical Method Draft (Pending Formal Group Review and Adoption)  
+Shared Document Link: `[Shared Google Doc Transfer Link: PENDING GROUP REVIEW AND ADOPTION]`  
 Reference Base Commit: `0a76a2f61dea576a0155153a8e0bad6a4d42fdbb`  
-Evaluator State Commit: `5239da9`  
 Dataset Manifest Version: `1.0.0` (116 files)  
 
 ---
 
-## 1. Overview and Scope
+## 1. Overview, Purpose, and Governance
 
-This document provides the Pass A technical method checkpoint for Chapter III (Research Methodology). It addresses the dataset distribution, ground-truth definitions, evaluation metrics, laboratory testing protocol, and survey procedures before formal laboratory runs take place.
+This document establishes the proposed Pass A technical method checkpoint for Chapter III (Research Methodology). It defines the dataset distribution, ground-truth provenance, technical evaluation metrics, proposed laboratory procedures, and survey methodology.
 
-Following the project guidelines, no direct modifications are made to the live paper or shared Google Doc. This document serves as an agreed draft checkpoint for group review. Once the group reviews and adopts this method, the text will be transferred into the shared Google Doc during Pass B.
+In accordance with project workflow rules, this technical method must be formally reviewed and adopted by the student group during Pass A. Once adopted, the text will be transferred into the shared Google Doc *before* formal Phase 07 laboratory testing begins. (Pass B in Phase 08 is reserved for post-testing reconciliation across Chapters I through V). Zero direct modifications are made to live paper chapters or the shared Google Doc at this checkpoint.
 
 ---
 
 ## 2. Benchmark Dataset and Distribution (Table 1)
 
-The benchmark evaluation dataset contains 116 JavaScript and JSX files. It consists of 108 controlled test files (54 matched pairs of vulnerable and corrected implementations) and 8 composite simulated browser scenarios.
+The benchmark evaluation dataset comprises 116 JavaScript and JSX files. It consists of 108 controlled test files (54 matched pairs of vulnerable and corrected implementations) and 8 composite simulated browser application workloads.
 
 Table 1 presents the dataset distribution across the scanner rule modules:
 
@@ -40,11 +40,11 @@ Table 1 presents the dataset distribution across the scanner rule modules:
 | `Simulated Scenarios` | Composite Multi-Flaw Browser Workloads | - | - | 8 |
 | **Grand Total** | **Entire Benchmark Dataset** | **54** | **54** | **116** |
 
-Every file is counted exactly once in Table 1. Each controlled pair isolates a specific client-side vulnerability alongside a safe remediation. The safe counterpart applies valid browser mitigations such as strict origin checks, parameter allowlists, DOM sanitization, or cryptographic APIs.
+Every file is counted exactly once in Table 1. Each controlled pair isolates a specific client-side vulnerability alongside a safe remediation. The safe counterpart applies genuine browser mitigations such as strict origin verification, parameter allowlists, DOM text sanitization, or Web Crypto APIs.
 
 The advisory module, `knownVulns.js`, implements rule `OWASP-A06-001`. It flags third-party library imports for component-review advisories rather than confirmed static vulnerabilities. Because the controlled matrix measures binary vulnerability detection, `knownVulns.js` contains zero controlled vulnerability pairs in the confusion matrix. Its diagnostic signaling is evaluated separately in automated tests and within the composite scenarios.
 
-The 8 simulated scenario files represent realistic multi-flaw client workloads. These files include administrative dashboards, payment modules, chat interfaces, and API integrations. They evaluate how the scanner handles composite structures containing multiple flaws and third-party imports. These scenarios are evaluated separately from the 108 controlled unit files.
+The 8 simulated scenario files model multi-component browser web applications, such as administrative dashboards, payment gateways, and API routers. These files contain multiple flaws per file and third-party imports. They evaluate how the scanner handles composite structures and are evaluated separately from the 108 controlled unit files.
 
 ---
 
@@ -54,7 +54,8 @@ The ground-truth expectations for all 116 files were established independently o
 
 The initial dataset curation and coordinate mapping were completed using AI-assisted review (Gemini 3.8 Flash High). Formal manual human adjudication of ground-truth findings remains pending group review. The evaluation system marks all unreviewed findings as `PENDING` to prevent false claims of human sign-off.
 
-The scanner engines implement 24 active detection rules across 7 OWASP Top 10 categories:
+### Active Rules vs Tested Coverage
+The scanner engines register 24 active detection rules across 7 OWASP Top 10 categories:
 - A01 (Broken Access Control): 2 rules
 - A02 (Cryptographic Failures): 7 rules
 - A03 (Injection): 8 rules
@@ -65,16 +66,27 @@ The scanner engines implement 24 active detection rules across 7 OWASP Top 10 ca
 
 Five historical rules were retired during Phase 01: `OWASP-A05-002` (server CORS wildcard), `OWASP-A05-004` (server Helmet headers), two `OWASP-A06-001` sub-branches, and `OWASP-A10-001` (server SSRF). These checks inspected server-side HTTP headers or network boundaries outside browser client code.
 
-Rule distribution across categories reflects common client-side weaknesses rather than an equal quota per rule. Categories like A02 and A03 contain more test samples because dynamic code execution and insecure client storage are common browser security defects.
+Rule distribution across benchmark categories reflects common client-side weaknesses rather than an equal quota per rule. Categories like A02 and A03 contain more test samples because dynamic code execution and insecure client storage are prevalent browser defects.
+
+Furthermore, three controlled vulnerability samples (`V-A10-053`, `V-A10-054`, and `V-A6-033`) represent documented unsupported weaknesses (`ruleId: null, unsupported: true` in `dataset-manifest.json`). The active 24-rule registry does not implement detection for ambient credential fetch, dynamic script.src injection, or wildcard postMessage targetOrigin. These samples test whether the benchmark honestly reports scanner coverage gaps.
+
+### Coordinate Handling and Known Limitation
+Both web and extension engines use Babel AST parsers, where line numbers are 1-indexed and column numbers are 0-indexed (`path.node.loc.start.column`). A known discrepancy exists where certain rule visitors used `col || 'unknown'`, which treated column 0 as falsy and returned string `'unknown'`. To prevent coordinate false negatives while preserving auditability, evaluation enforces exact line coordinates (`locationTolerance: 0`, `matchColumn: false`) while retaining raw column values in all exported reports.
 
 ---
 
 ## 4. Technical Evaluation Protocol and Metrics
 
-The evaluation framework separates file-level matrix classification from finding-level rule matching and scenario analysis.
+The evaluation framework strictly separates file-level matrix classification from finding-level rule matching and scenario analysis.
 
 ### Unit of Testing
-One controlled test case is defined as one file with reviewed ground-truth expectations and recorded scanner outputs. The evaluator matches expected targets against scanner alerts using exact line coordinates (line tolerance 0 under default policy), matching rule identifiers, and corresponding vulnerability categories.
+One controlled test case is defined as one file with reviewed ground-truth expectations and recorded scanner outputs.
+
+### Detection Matching vs Metadata Verification
+Target detection matching is evaluated strictly by `ruleId` and location coordinates under the configured policy. Category and severity metadata do NOT decide whether a detection match occurred:
+- A detection match requires identical `ruleId` and coordinates matching within tolerance.
+- Category and severity are compared separately in metadata concordance checks (recording whether the rule's metadata agrees with the target expectation).
+- Manual description verification checks whether the finding's reported description/message identifies the expected weakness.
 
 ### Completion Tracking
 Every scan attempt is classified into one of four states:
@@ -86,21 +98,22 @@ Every scan attempt is classified into one of four states:
 Only scans with a `completed` status and `hasError = false` enter the controlled evaluation matrix. Partial or failed runs are reported in completion metrics but are excluded from detection ratios to prevent distorted performance numbers.
 
 ### Controlled Confusion Matrix
-For completed controlled files (N = 108), results are classified into four standard outcomes:
+The denominator N represents the count of completed eligible controlled scans (N <= 108). If any controlled file scan is partial or failed, N decreases.
+Outcomes are classified as:
 - True Positive (TP): A vulnerable file with one or more in-scope vulnerability alerts.
 - True Negative (TN): A clean file with zero in-scope vulnerability alerts.
 - False Positive (FP): A clean file with one or more in-scope vulnerability alerts.
 - False Negative (FN): A vulnerable file with zero in-scope vulnerability alerts.
 
-The evaluation metrics are computed as follows:
-- Accuracy = (TP + TN) / (TP + TN + FP + FN)
+Formulas:
+- Accuracy = (TP + TN) / N
 - Precision = TP / (TP + FP)
 - Recall (Sensitivity) = TP / (TP + FN)
 - Specificity = TN / (TN + FP)
 - False Positive Rate (FPR) = FP / (FP + TN)
 - False Negative Rate (FNR) = FN / (FN + TP)
 
-If any denominator is zero, the evaluator outputs `N/A` rather than calculating invalid ratios.
+If any denominator is zero, the evaluator outputs `N/A`.
 
 ### Expected-Rule Recall and Finding Adjudication
 Expected-rule recall measures whether specific vulnerability targets were detected:
@@ -108,29 +121,29 @@ Expected-rule recall measures whether specific vulnerability targets were detect
 
 Finding precision assesses the validity of reported alerts:
 - Target-Match Fraction = Matched Findings / Total Actual Findings
-- Adjudicated Precision = Reviewed TP / (Reviewed TP + Reviewed FP)
+- Adjudicated Precision = (Automated Matched TP + Reviewed Unmatched TP) / (Automated Matched TP + Reviewed Unmatched TP + Reviewed Unmatched FP [+ Duplicates if COUNT_AS_FP])
 
-Any finding that does not match a documented target requires manual ground-truth review. The evaluator keeps adjudicated precision as `N/A` until a human reviewer assigns a disposition of `TRUE_POSITIVE` or `FALSE_POSITIVE`. Duplicate alerts at the same line coordinate are excluded from inflating match counts.
+Any finding that does not match a documented target requires manual ground-truth review. The evaluator keeps adjudicated precision as `N/A` until human reviewers assign a disposition of `TRUE_POSITIVE` or `FALSE_POSITIVE`. Automated target matches are distinguished from human approvals. Duplicate alerts at the same line coordinate are excluded from inflating match counts.
 
 ---
 
-## 5. AU Laboratory Testing Protocol
+## 5. Proposed Laboratory Testing Protocol
 
-Formal evaluation runs will be conducted in the computer laboratories of Arellano University. This protocol outlines the procedure for testing both the web interface and the VS Code extension.
+This section outlines the student group's proposed testing protocol for formal evaluation runs at Arellano University. These procedures represent proposed research protocols pending formal group and PC adoption.
 
-### Hardware and Software Configuration
-- Workstation: Dedicated laboratory personal computer (final CPU, RAM, and OS specifications will be recorded on site).
-- Runtime Environments: Node.js (current LTS), modern Chromium-based browser for the web application, and VS Code for the extension interface.
-- Local Isolation: All test files will be stored on local solid-state drives to eliminate network latency during static analysis.
+### Hardware and Software Environment (Proposed)
+- Workstations: Dedicated AU laboratory personal computers (final processor, RAM, and operating system specifications will be recorded on site).
+- Runtime Environments: Node.js (current LTS), modern Chromium browser for web testing, and VS Code for the extension interface.
+- Local Storage: Test files stored on local solid-state drives to eliminate external network latency.
+- Cache Management: Browser cache and temporary extension storage will be cleared prior to test runs.
 
-### Execution Procedure
-1. Environmental Verification: Confirm installed tool versions, clear system cache, and verify dataset file hashes.
-2. Warm-Up Execution: Run an initial pass over 10 sample files to warm up runtime compilation caches. Timings from this warm-up pass are recorded separately and discarded from final timing averages.
-3. Repeated Test Iterations: Execute three consecutive scan passes across all 116 files for both scanner engines.
-4. Data Recording: Record scan completion status, detected issues, AST parsing duration, and rule execution time for each file.
-5. Memory Monitoring: Observe process memory consumption via Node.js `process.memoryUsage()` and browser task managers at regular intervals (start, midpoint, and completion).
-
-The local benchmark runner timings obtained during development reflect Node.js execution. They do not establish physical browser DOM or VS Code extension execution speeds. Formal timing figures belong in Chapter IV after physical laboratory execution.
+### Proposed Execution Protocol
+1. Environmental Check: Verify installed tool versions, Node runtime, and dataset file SHA-256 hashes.
+2. Proposed Warm-Up Run: An initial pass over 10 sample files is proposed to warm up runtime compilation caches. Timings from this warm-up pass are recorded separately and excluded from final timing averages.
+3. Proposed Repeated Iterations: Three consecutive scan passes across all 116 files are proposed for both scanner engines, with timings averaged across iterations.
+4. Feasible Timing Boundary: The feasible timing metric for the selected interfaces is total elapsed file scan duration (measured from scan invocation to report output). The scanner engines do not isolate separate AST parse duration from rule execution duration; therefore, separate parse timings are not claimed. Local Node development timings are explicitly distinguished from AU physical laboratory performance.
+5. File-Size Measurement Protocol: Workload size is recorded using three measures: raw file size in bytes on disk (via filesystem stat), newline-delimited line counts, and total character counts.
+6. Memory Observation Technique: Process memory consumption will be observed at regular intervals (start, midpoint, end of run) using Node.js `process.memoryUsage()` for the engine and browser/VS Code task managers for the user interfaces.
 
 ---
 
@@ -138,43 +151,52 @@ The local benchmark runner timings obtained during development reflect Node.js e
 
 User acceptance testing evaluates the practical usability and effectiveness of JSentinel based on the ISO/IEC 25010 software quality model.
 
+### Sourcing and Baseline Paper Reference
+The survey instrument and methodology are sourced directly from the existing approved research paper snapshot: `documents/MD/Final-Grp13-IT225-Chapters123-Aug25-2026.md` (dated August 25, 2026), Section 1 (Evaluation Tool, Table 6) and Section 2 (The 4-Point Likert Scale, Table 7).
+
 ### Respondents and Sampling
-The evaluation includes 50 purposively selected respondents divided into two groups:
-- 40 General Users: Computer science and information technology students who interact with the web scanning dashboard.
-- 10 Technical Experts: IT faculty members, software engineers, and cybersecurity practitioners who evaluate both the web application and the VS Code extension.
+The evaluation involves 50 purposively selected respondents:
+- 40 User Respondents: Computer science and information technology students learning programming and writing JavaScript code for coursework or personal projects.
+- 10 Technical Experts: Computer professionals with exposure in programming, software quality assurance, or information security.
 
 ### Evaluation Procedure
-1. System Demonstration: Participants watch a standardized video demonstration explaining the installation, AST scanning process, and vulnerability reports.
-2. Hands-On Interaction: Respondents are given optional direct access to test sample files using the web dashboard and VS Code extension.
-3. Questionnaire Administration: Participants complete a structured evaluation form with 10 questions covering 5 ISO quality criteria:
-   - Functional Suitability (2 items)
-   - Reliability (2 items)
-   - Usability (2 items)
-   - Performance Efficiency (2 items)
-   - Maintainability (2 items)
+1. System Demonstration: Participants view a standardized video demonstration detailing system installation, AST scanning, and vulnerability reports.
+2. Hands-On Interaction: Respondents are provided optional direct access to test sample files using the web dashboard and VS Code extension.
+3. Questionnaire Administration: Participants complete a structured evaluation form distributed through Google Forms.
 
-### Statistical Analysis
-Survey responses use a 5-point Likert scale (5 = Strongly Agree, 4 = Agree, 3 = Neutral, 2 = Disagree, 1 = Strongly Disagree). Data will be summarized using three statistical measures:
-1. Frequency Distribution: Counting respondent selections for each rating level.
-2. Percentage Distribution: Calculating the proportion of responses across rating categories.
-3. Weighted Mean: Computing the central tendency for each item and criterion using standard verbal interpretation ranges:
-   - 4.21 to 5.00: Strongly Agree / Very High
-   - 3.41 to 4.20: Agree / High
-   - 2.61 to 3.40: Neutral / Moderate
-   - 1.81 to 2.60: Disagree / Low
-   - 1.00 to 1.80: Strongly Disagree / Very Low
+### Evaluation Criteria (Table 6 in August 25 Paper)
+The questionnaire contains 10 items covering 5 ISO/IEC 25010 criteria:
+1. Functional Suitability (2 items: accurate detection of vulnerabilities, correct classification of issues).
+2. Performance Efficiency (2 items: acceptable response time, multi-file handling without slowdown).
+3. Usability (2 items: interface navigation, clear presentation of scan results).
+4. Security (2 items: standalone operation, local data storage without external transmission).
+5. Reliability (2 items: consistent scan results, graceful error recovery without crashing).
 
-Calculations clearly distinguish between respondent counts (N = 40 or N = 10) and total response counts across multiple questions.
+### Likert Scale and Interpretation (Table 7 in August 25 Paper)
+The study employs a 4-point Likert Scale:
+- 4: 3.01 - 4.00 (Strongly Agree)
+- 3: 2.01 - 3.00 (Agree)
+- 2: 1.01 - 2.00 (Disagree)
+- 1: 0.99 - 1.00 (Strongly Disagree)
+
+### Statistical Tools
+Data analysis employs three statistical techniques:
+1. Frequency Distribution: Raw count of responses per rating level.
+2. Percentage Distribution: Percentage of responses across categories (`P = (f / n) * 100`).
+3. Weighted Mean: Calculation of central tendency per item and criterion (`x̄ = Σ(f * w) / n`).
+
+Calculations strictly distinguish between respondent counts (n = 40 or n = 10) and total response counts across questions (e.g., 400 or 100). Further alignment with the ISO classmate's calculations remains pending group review.
 
 ---
 
 ## 7. Document Governance and Next Steps
 
-This draft represents the method agreed upon for Phase 05. It locks down the sample count at 116, establishes fail-closed completion tracking, separates controlled classification from finding adjudication, and specifies the lab testing protocol.
+This draft represents the proposed method for Phase 05. It locks down the sample count at 116, establishes fail-closed completion tracking, separates controlled classification from finding adjudication, and specifies the proposed lab testing protocol.
 
-Unfulfilled promises or speculative features (such as dynamic taint tracing, automated code fixing, or server-side framework analysis) are excluded from the scope. Static AST visitor analysis remains the sole technical mechanism under evaluation.
+Unfulfilled promises or speculative features (such as dynamic taint tracing, automated code rewriting, or server-side framework analysis) are excluded from the scope. Static AST visitor analysis remains the sole technical mechanism under evaluation.
 
 Following this checkpoint:
-1. The student group reviews the draft method and formally adopts the frozen test package.
-2. Physical laboratory testing will be conducted at Arellano University following the protocol defined in Section 5.
-3. Live Google Doc updates will be executed during Pass B (Phase 08 Batch B), ensuring full alignment across Chapters I through V.
+1. The student group reviews the proposed draft method and formally adopts the candidate test package.
+2. The agreed Chapter III technical method will be transferred into the shared Google Doc during Pass A, prior to Phase 07 laboratory testing.
+3. Physical laboratory testing will be conducted at Arellano University following the agreed protocol.
+4. Pass B (Phase 08 Batch B) will reconcile completed test results across Chapters I through V.
