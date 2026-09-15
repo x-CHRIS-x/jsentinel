@@ -209,5 +209,28 @@ Following coordinator review of commits `0631380` and `9804964`, four remaining 
 ### Defect 4: Phase 05 Checklist Creation
 - **Correction:** Created `documents/research-phases/checks/05-checklist.md` itemizing all 21 acceptance criteria, execution records, exit codes, and explicit research limits (Node development timing boundaries, AST limits, and pending group adoption gates). Expanded unit tests from 40 to 46 passing tests.
 
+---
+
+## 8. Coordinator Residual Review Corrections (Commit b8a9fef Follow-Up)
+
+Following coordinator inspection of commit `b8a9fef`, three concrete residual blockers were resolved across the evaluator modules and metadata scripts:
+
+### Blocker 1: Complete 116 Sample Provenance Across Both Engines
+- **Problem:** `ingestRunReports` previously inspected only `(webMeta.files || []).slice(0, 5)`, leaving 111 files unverified. It also ignored extension engine sample digests and lacked full manifest digest binding.
+- **Correction:** Replaced the 5-sample slice with complete verification of all 116 sample IDs and digests across both engines against the manifest and disk files. Checks for missing or duplicate files, cross-engine digest agreement, and manifest SHA-256 digest binding. Added unit test 47 (detecting hash mismatches beyond index 5 and extension-only mismatches) and test 52 (detecting duplicates and missing samples).
+
+### Blocker 2: Persisted Unique RunId and Adjudication Cross-Run Binding
+- **Problem:** The benchmark runner previously created `runId` only for `run_metadata.json` after running `evaluateSuite`, leaving `evaluation_report.json` with null `runId`. In addition, adjudication validation permitted synthesized fallback run IDs and skipped run ID matching when `evaluationResult.metadata.runId` was absent.
+- **Correction:** The runner now generates a unique `runId` upfront, passes it to the evaluator constructor and `evaluateSuite`, and persists matching `runId`s in both `evaluation_report.json` and `run_metadata.json`. `adjudication.mjs` strictly requires non-empty `metadata.runId`, rejecting legacy unbound evaluation results. `computeEvaluationDigest()` now incorporates `runId`, engine, versions, matching policy, and all finding attributes (rule, location, severity, description, category). Added unit test 48 (legacy unbound rejection) and test 49 (rejecting identical findings from distinct runs via public API).
+
+### Blocker 3: Dynamic Arithmetic Validation Without Hardcoded Completed/Evaluated Counts
+- **Problem:** `validateEngineCounts` hardcoded `completed: 116, N: 108`, which would crash on legitimate partial or failed benchmark runs rather than recording honest outcomes with accurate exclusions.
+- **Correction:** Rewrote `validateEngineCounts` to validate arithmetic invariants dynamically against raw outcomes and manifest totals. It verifies that `totalSamples === attempted + unattempted`, `attempted === completed + partial + failed`, `controlledTotal === eligible + excluded`, `matrix.N === eligible`, and `matrix.N === TP + TN + FP + FN`. Honest partial and failed outcomes are accepted with accurate exclusions, while contradictory counts are strictly rejected. Added unit test 50 (valid partial/failed fixture acceptance) and test 51 (contradictory count rejection).
+
+### Test Suite Expansion and Isolated Corr2 Evidence
+- Expanded unit test coverage in `validation/evaluator/evaluator.test.mjs` from 46 to 52 passing tests.
+- Replaced "frozen 108" claim wording in checklist item 3 with "accepted dataset (108 controlled + 8 scenarios) / proposed package".
+- Executed fresh versioned benchmark run in `validation/evaluator/runs/phase05-batch-b-corr2`, preserving `phase05-batch-b` and `phase05-batch-b-corr1` intact. Regenerated candidate package metadata with version 1.1.0 at `05-candidate-package-metadata.json`.
+
 
 

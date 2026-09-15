@@ -164,5 +164,23 @@ Following coordinator inspection of commits `0631380` and `9804964`, four techni
 - **Observation:** `documents/research-phases/checks/05-checklist.md` was missing from the repository.
 - **Resolution:** Created `05-checklist.md` itemizing all 21 acceptance criteria, execution commands, exit codes, and explicit research limits (Node development timing boundaries, AST limitations, and pending group adoption gates). Unit tests expanded to 46 passing tests.
 
+---
+
+## 7. Resolved Coordinator Residual Deficiencies (Review of Commit b8a9fef)
+
+Following coordinator inspection of commit `b8a9fef`, three residual technical deficiencies were resolved:
+
+### Deficiency 1: IngestRunReports 5-Sample Slice Replaced by Complete 116 Sample Check
+- **Observation:** IngestRunReports checked only `(webMeta.files || []).slice(0, 5)`, leaving 111 samples unverified and ignoring extension sample digests.
+- **Resolution:** Implemented full verification of all 116 sample IDs and digests across both engines against the manifest and disk files. Checks for missing or duplicate files, cross-engine digest agreement, and manifest SHA-256 digest binding. Added unit test 47 (detecting hash mismatches beyond index 5 and extension-only mismatches) and test 52 (detecting duplicates and missing samples).
+
+### Deficiency 2: Persisted RunId and Strict Adjudication Binding
+- **Observation:** The runner generated `runId` after `evaluateSuite`, leaving `evaluation_report.json` with null `runId`. Adjudication allowed synthesized fallback IDs and skipped checking when `metadata.runId` was absent.
+- **Resolution:** Generated unique `runId` upfront in `runEngineBenchmark`, passed it to evaluator, and persisted matching `runId`s in both `evaluation_report.json` and `run_metadata.json`. Adjudication template generation, document validation, and disposition application now require non-empty `metadata.runId`, strictly rejecting legacy unbound results. `computeEvaluationDigest()` incorporates `runId`, engine, versions, matching policy, and all finding attributes (rule, location, severity, description, category). Added unit tests 48 and 49.
+
+### Deficiency 3: Flexible Arithmetic Invariant Validation for Partial and Failed Scans
+- **Observation:** `validateEngineCounts` hardcoded `completed: 116, N: 108`, rejecting legitimate partial or failed benchmark runs rather than recording honest outcomes with accurate exclusions.
+- **Resolution:** Rewrote `validateEngineCounts` to validate arithmetic invariants dynamically: `totalSamples === attempted + unattempted`, `attempted === completed + partial + failed`, `controlledTotal === eligible + excluded`, `matrix.N === eligible`, and `matrix.N === TP + TN + FP + FN`. Honest partial and failed outcomes are accepted with accurate exclusions, while contradictory counts are strictly rejected. Added unit tests 50 and 51.
+
 
 

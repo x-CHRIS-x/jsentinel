@@ -2,17 +2,17 @@
   "schemaVersion": "1.1.0",
   "packageMetadataVersion": "1.1.0",
   "status": "PROPOSED / UNFROZEN (Phase 05 Candidate - Pending Capstone Group Review and Adoption)",
-  "generatedAt": "2026-09-15T05:32:55.904Z",
+  "generatedAt": "2026-09-15T06:12:59.351Z",
   "packageName": "jsentinel",
   "packageVersion": "1.1.0",
   "provenance": {
     "datasetBaseCommit": "ca154776e3896fe4cc6db883b46d9caaf0d23089",
     "acceptedPhase04EvidenceCommit": "0a76a2f61dea576a0155153a8e0bad6a4d42fdbb",
-    "evaluatorSourceCommit": "d3326cda3aa37520e6bcbfb08e66dfa80daf7e95",
-    "evaluatorShortCommit": "d3326cd",
+    "evaluatorSourceCommit": "1b4f885fa4d4b19621ba08ab560cd06034bc9c05",
+    "evaluatorShortCommit": "1b4f885",
     "evaluatorBranch": "ao/jsentinel-26/phase05-evaluator",
     "evaluatorWorkingTreeClean": false,
-    "runEvidenceSourceCommit": "06313806fbda5a3410b69f256e81324584b82ae5"
+    "runEvidenceSourceCommit": "1b4f885fa4d4b19621ba08ab560cd06034bc9c05"
   },
   "datasetSummary": {
     "manifestVersion": "1.0.0",
@@ -1336,16 +1336,16 @@
       "sizeBytes": 14481
     },
     "validation/evaluator/adjudication.mjs": {
-      "sha256": "04b07b08ec187b9e5c8e43422367c6a6ed4aee307e2eb0fc855a86f473f08811",
-      "sizeBytes": 29148
+      "sha256": "eebc0b8ad32c4fb9d910212fae5797dc21dac37a128a0b835e079fc2b0017861",
+      "sizeBytes": 30809
     },
     "validation/evaluator/evaluator.mjs": {
-      "sha256": "a99bfab4538d6318720bfc210e23c8746b9d10cc961bec41e5bcc2f764b6c088",
-      "sizeBytes": 14858
+      "sha256": "a8bdec025538441be6bc23f448cddc03485b7608cb9141270b42f5ac17185f85",
+      "sizeBytes": 15299
     },
     "validation/evaluator/evaluator.test.mjs": {
-      "sha256": "da000a432ed3c293a47ba825ad14d542eaa1f2ea923eef579f82ada12d4b12fe",
-      "sizeBytes": 68463
+      "sha256": "b381dc9bcc9b92efcba34dca7d930e00acb71868dc214972e9d6c5c36d7e5b8e",
+      "sizeBytes": 80323
     },
     "validation/evaluator/index.mjs": {
       "sha256": "9943685347d7c99b927065c1a6b18b5f9dcf456132583ebb1088f519a74e547b",
@@ -1360,22 +1360,22 @@
       "sizeBytes": 12422
     },
     "validation/evaluator/runner.mjs": {
-      "sha256": "f003a01f63fb94c17097ccf973085d297736fc119bf5c618557f27f92b5ca7af",
-      "sizeBytes": 12630
+      "sha256": "1f18f6ee7f67ed6155b6a62c73f8e3db727d39e41f285769eff03f34c6ba088c",
+      "sizeBytes": 12969
     },
     "validation/evaluator/schema.mjs": {
-      "sha256": "07c2b14f2d75817b9eaec59c9a2efd2915592d5f14cbe0cd5109e4baf1f23201",
-      "sizeBytes": 9588
+      "sha256": "98cbd54d0a06ebe373fd45904e582c03ff580a9d9bf22ea13deb2eb3fe8ebb2b",
+      "sizeBytes": 9633
     }
   },
   "evaluationEvidence": {
-    "runDirectory": "validation/evaluator/runs/phase05-batch-b-corr1",
+    "runDirectory": "validation/evaluator/runs/phase05-batch-b-corr2",
     "totalScanAttempts": 232,
     "perEngineAttempts": 116,
     "web": {
       "engine": "web",
-      "runId": "run-web-1789449670937",
-      "runDurationMs": 2688.417,
+      "runId": "run-web-1789452760973-72439942",
+      "runDurationMs": 5296.979,
       "timingBoundary": {
         "scope": "Node development environment only",
         "disclaimer": "Execution timings reflect Node.js AST traversal and do not establish live web-browser DOM or VS Code extension performance on physical AU laboratory computers."
@@ -1947,8 +1947,8 @@
     },
     "extension": {
       "engine": "extension",
-      "runId": "run-extension-1789449671265",
-      "runDurationMs": 317.43,
+      "runId": "run-extension-1789452761648-5bd1c8fb",
+      "runDurationMs": 657.576,
       "timingBoundary": {
         "scope": "Node development environment only",
         "disclaimer": "Execution timings reflect Node.js AST traversal and do not establish live web-browser DOM or VS Code extension performance on physical AU laboratory computers."
