@@ -707,7 +707,7 @@ export const buildCandidatePackageMetadata = async (options = {}) => {
   const packageMetadata = {
     schemaVersion: '1.1.0',
     packageMetadataVersion: '1.1.0',
-    status: 'PROPOSED / UNFROZEN (Phase 05 Candidate - Pending Capstone Group Review and Adoption)',
+    status: options.status || 'FROZEN (Phase 05 Evaluation Package v1.1.0 - Formally Approved and Adopted by Capstone Group)',
     generatedAt: new Date().toISOString(),
     packageName: pkg.name || 'jsentinel',
     packageVersion: pkg.version || '1.1.0',

@@ -1,6 +1,6 @@
 # Phase 05: Build a small evaluator and freeze the test package
 
-Status: Batch B local benchmarks completed (232 attempts); candidate package metadata generated (Batch C); Pass A Chapter III method checkpoint drafted; group freeze adoption pending. Depends on Phase 04; a prototype can use its reviewed pilot. Suggested size: 2 to 4 focused blocks.
+Status: Completed and frozen. Phase 05 Evaluation Package v1.1.0 formally approved and adopted by capstone group on September 15, 2026. Phase 07 eligible. Depends on Phase 04; a prototype can use its reviewed pilot. Suggested size: 2 to 4 focused blocks.
 
 Accuracy measurement is a research procedure performed with a separate evaluator. It is not a proposed end-user feature. Keep the evaluator small: a manifest, adapters to the actual scanners or their recorded outputs, and checkable CSV or JSON results.
 
@@ -42,7 +42,7 @@ A measured 100% result on the frozen constructed cases can be reported with its 
 - [x] Both implementations have local results with raw evidence retained (Batch B & B-corr1 complete; 232 scan attempts per run across Web and Extension engines in versioned folders).
 - [x] No duplicate, unrelated alert, or failed scan can create a false target-detection pass (Batch A verified in tests 1-9 and 19-22).
 - [x] Category, severity, location, and description checks cover the claims made in Chapter III (Batch B schema 1.0.0 and exports).
-- [x] The Chapter III technical method and lab protocol are agreed and recorded before formal runs (Pass A proposed draft checkpoint in `05-pass-a-technical-method-draft.md`; shared Google Doc transfer pending group adoption).
-- [x] The research package is reproducible and its limitations are recorded (Batch C candidate package metadata in `05-candidate-package-metadata.json`, dynamically bound to source commit and versioned reports, labeled `PROPOSED / UNFROZEN`).
+- [x] The Chapter III technical method and lab protocol are agreed and recorded before formal runs (Pass A method formally approved and adopted in `05-pass-a-technical-method-draft.md` and `05-group-freeze-authorization-2026-09-15.md`).
+- [x] The research package is reproducible and its limitations are recorded (Phase 05 package v1.1.0 frozen in `05-candidate-package-metadata.json` and `05-group-freeze-authorization-2026-09-15.md`).
 
 Stop with a frozen package and local verification. Node-based engine checks do not establish web-browser or VS Code performance on AU PCs.

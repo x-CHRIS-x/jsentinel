@@ -264,5 +264,17 @@ Following the documentation-only manifest refinement in commit `fc6395c`, histor
    - Candidate package metadata (`05-candidate-package-metadata.json`) identifies current package manifest SHA-256 (`85a2b536fe00571e2442542d99f7eae200b1593b8ee9995e7ce4c0755ccd0770`) while linking to the underlying corr2 run evidence.
    - Semantic description review header in `05-semantic-description-review-2026-09-15.md` explicitly documents the dual-hash provenance (originally evaluated against baseline `ac9f72499...` and revalidated against current documentation-refined `85a2b536...`).
 
+---
 
+## 8. Phase 05 Human/Group Freeze Authorization and Package v1.1.0 Freeze
 
+On September 15, 2026, the human capstone group formally approved all remaining Phase 05 decisions, transitioning Phase 05 Evaluation Package v1.1.0 from proposed/unfrozen to frozen:
+
+1. **C-A1-001 False Positive Resolution:** Formally approved alert on line 9 as a false positive for OWASP-A08-001 while preserving clean ground truth (`isVulnerable: false`, `expectedScannerFindings: []`).
+2. **Semantic Description Review Adoption:** Approved 51 of 51 reviewed targets as valid matches (0 FAIL, 0 AMBIGUOUS).
+3. **Pass A Technical Method Adoption:** Formally adopted Chapter III evaluation methodology in `05-pass-a-technical-method-draft.md`.
+4. **Timing Boundary Protocol:** Approved scan duration timing boundary: starts upon invocation once input is in memory, stops when scan report is complete. Excludes manual file selection and upload time.
+5. **Dataset and Scenario Policy:** Approved 108 controlled samples (54 vulnerable, 54 clean) and strictly segregated the 8 multi-vulnerability browser scenarios from the controlled confusion matrix.
+6. **Interfaces and Repetitions:** Approved web application and VS Code extension testing. For each interface: 1 unmeasured warm-up (10-file warm-up set) plus 3 measured full runs across all 116 files.
+7. **AU Laboratory Protocol:** Approved laboratory protocol using available physical AU laboratory PCs without synthetic fabrication. Established that existing Phase 05 benchmark observations are local development data only and not formal Phase 07 results.
+8. **Package v1.1.0 Freeze:** Updated package metadata status to `FROZEN (Phase 05 Evaluation Package v1.1.0 - Formally Approved and Adopted by Capstone Group)`. Recorded formal authorization in `05-group-freeze-authorization-2026-09-15.md`. Phase 05 is complete and Phase 07 is eligible.
