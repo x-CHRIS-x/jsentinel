@@ -54,7 +54,7 @@ const pairMetadata = {
     "attackerInput": "String containing arbitrary JavaScript statements concatenated into eval() argument.",
     "execEnv": "Browser JavaScript execution context.",
     "impact": "CRITICAL: Arbitrary code execution in client session (XSS / DOM execution).",
-    "safePartner": "Parses input with JSON.parse() and validates structure without executing code.",
+    "safePartner": "Parses input with JSON.parse() and handles the parsed value without executing code.",
     "refs": [
       "https://owasp.org/Top10/A03_2021-Injection/",
       "https://cwe.mitre.org/data/definitions/95.html",

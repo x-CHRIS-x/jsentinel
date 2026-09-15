@@ -518,7 +518,7 @@
       "securityGroundTruth": {
         "isVulnerable": false,
         "flawType": null,
-        "rationale": "Parses input with JSON.parse() and validates structure without executing code.",
+        "rationale": "Parses input with JSON.parse() and handles the parsed value without executing code.",
         "sourceReferences": [
           "https://owasp.org/Top10/A03_2021-Injection/",
           "https://cwe.mitre.org/data/definitions/95.html",
@@ -530,7 +530,7 @@
         "attackerControlledInput": "Remediated; input is sanitized, validated, or isolated from sensitive execution sinks.",
         "executionEnvironment": "Browser JavaScript execution context.",
         "impactSupportingSeverity": "NONE: Remediated pattern prevents vulnerability execution.",
-        "safePartnerAssumptions": "Parses input with JSON.parse() and validates structure without executing code."
+        "safePartnerAssumptions": "Parses input with JSON.parse() and handles the parsed value without executing code."
       },
       "expectedScannerFindings": [],
       "observedScannerFindings": [
@@ -4944,7 +4944,7 @@
         "attackerControlledInput": "String containing arbitrary JavaScript statements concatenated into eval() argument.",
         "executionEnvironment": "Browser JavaScript execution context.",
         "impactSupportingSeverity": "CRITICAL severity: CRITICAL: Arbitrary code execution in client session (XSS / DOM execution).",
-        "safePartnerAssumptions": "Parses input with JSON.parse() and validates structure without executing code."
+        "safePartnerAssumptions": "Parses input with JSON.parse() and handles the parsed value without executing code."
       },
       "expectedScannerFindings": [
         {

@@ -125,6 +125,9 @@ Finding precision assesses the validity of reported alerts:
 
 Any finding that does not match a documented target requires manual ground-truth review. The evaluator keeps adjudicated precision as `N/A` until human reviewers assign a disposition of `TRUE_POSITIVE` or `FALSE_POSITIVE`. Automated target matches are distinguished from human approvals. Duplicate alerts at the same line coordinate are excluded from inflating match counts.
 
+### Research Stage Boundary (Development vs Formal AU Laboratory Results)
+All metrics and confusion-matrix values produced during Phase 05 development (including local test observations yielding TP=45, TN=53, FP=1, FN=9, 90.74% accuracy, and 85.00% expected-rule recall) represent local pre-freeze development observations only. These local observations verify evaluator mechanics and test-suite integrity. They must not be presented as Phase 07 AU laboratory results, which require physical data collection on Arellano University laboratory computers following the formal multi-run protocol.
+
 ---
 
 ## 5. Proposed Laboratory Testing Protocol
@@ -138,12 +141,21 @@ This section outlines the student group's proposed testing protocol for formal e
 - Cache Management: Browser cache and temporary extension storage will be cleared prior to test runs.
 
 ### Proposed Execution Protocol
-1. Environmental Check: Verify installed tool versions, Node runtime, and dataset file SHA-256 hashes.
-2. Proposed Warm-Up Run: An initial pass over 10 sample files is proposed to warm up runtime compilation caches. Timings from this warm-up pass are recorded separately and excluded from final timing averages.
-3. Proposed Repeated Iterations: Three consecutive scan passes across all 116 files are proposed for both scanner engines, with timings averaged across iterations.
-4. Feasible Timing Boundary: The feasible timing metric for the selected interfaces is total elapsed file scan duration (measured from scan invocation to report output). The scanner engines do not isolate separate AST parse duration from rule execution duration; therefore, separate parse timings are not claimed. Local Node development timings are explicitly distinguished from AU physical laboratory performance.
-5. File-Size Measurement Protocol: Workload size is recorded using three measures: raw file size in bytes on disk (via filesystem stat), newline-delimited line counts, and total character counts.
-6. Memory Observation Technique: Process memory consumption will be observed at regular intervals (start, midpoint, end of run) using Node.js `process.memoryUsage()` for the engine and browser/VS Code task managers for the user interfaces.
+1. Environmental Check: Verify installed tool versions, Node runtime, operating system, and dataset file SHA-256 hashes on each participating workstation.
+2. Setup and Compatibility Pilot: Conduct a dedicated setup and compatibility pilot on each participating AU PC prior to formal measurement. The pilot verifies interface loading, scanner execution, export collection, and screenshot workflows. The pilot is not a formal measured run; its purpose is solely to identify and resolve configuration, path, or permission issues before formal data collection begins.
+3. Proposed Warm-Up Run: An initial pass over 10 sample files is proposed to warm up runtime compilation caches and engine initialization. Timings from this warm-up pass are recorded separately and strictly excluded from final timing averages.
+4. Proposed Repeated Iterations: Three consecutive scan passes across all 116 files are proposed for both scanner engines (web application in the recorded browser and extension in actual VS Code), with timings averaged across iterations.
+5. Timing Start and Stop Boundary: Formal timing starts at scan invocation after the input file or folder is ready in memory and ends when the completed scan and vulnerability report are available. Manual file selection and upload time (such as navigating file dialogs, selecting items, or drag-and-drop movement) is strictly excluded from formal scan-duration timing. The scanner engines do not isolate separate AST parse duration from rule execution duration; therefore, separate parse timings are not claimed. Local Node development timings are explicitly distinguished from AU physical laboratory performance.
+6. File-Size Measurement Protocol: Workload size is recorded using three measures: raw file size in bytes on disk (via filesystem stat), newline-delimited line counts, and total character counts.
+7. Memory Observation Technique: Process memory consumption will be observed at regular intervals (start, midpoint, end of run) using Node.js `process.memoryUsage()` for the engine and browser/VS Code task managers for the user interfaces.
+8. Evidence Retention Requirements: Formal evaluation runs require complete archival of evidence to support verification. The retained evidence package must include:
+   - Raw scanner output and exported reports (JSON and CSV exports from both web and extension interfaces);
+   - Evaluator output files, confusion matrices, and adjudication records;
+   - Detailed timing records for each iteration, warm-up pass, and per-file duration;
+   - Complete workstation environment records (PC identifier, CPU, RAM, OS, browser build, VS Code version, Node runtime, date, and operator);
+   - Photographic or screenshot evidence supporting recorded runs, UI states, and diagnostic summaries (screenshots support recorded runs rather than replacing underlying count records);
+   - Error and completion logs, documenting any parse errors, rule runtime exceptions, partial scans, or failed scans;
+   - Exact version and integrity identifiers (scanner build or commit hash, dataset manifest SHA-256 digest, and evaluator commit SHA).
 
 ---
 

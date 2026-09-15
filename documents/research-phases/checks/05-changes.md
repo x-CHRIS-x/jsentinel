@@ -232,5 +232,23 @@ Following coordinator inspection of commit `b8a9fef`, three concrete residual bl
 - Replaced "frozen 108" claim wording in checklist item 3 with "accepted dataset (108 controlled + 8 scenarios) / proposed package".
 - Executed fresh versioned benchmark run in `validation/evaluator/runs/phase05-batch-b-corr2`, preserving `phase05-batch-b` and `phase05-batch-b-corr1` intact. Regenerated candidate package metadata with version 1.1.0 at `05-candidate-package-metadata.json`.
 
+---
+
+## 6. Pre-Freeze Documentation and Method Refinements (Opus Audit Follow-up)
+
+Following independent verification and pre-freeze audit by Claude Opus 4.6 (session `jsentinel-31`), targeted documentation-only refinements were applied prior to human freeze consideration:
+
+1. **C-A1-001 Manifest Rationale Wording Refinement:**
+   - Corrected inaccurate narrative phrase "validates structure" in `test-samples/dataset-manifest.json` and `test-samples/build-dataset-manifest.cjs`.
+   - Revised rationale to: "Parses input with JSON.parse() and handles the parsed value without executing code."
+   - Preserved clean classification (`isVulnerable: false`), empty expected findings (`[]`), and documented OWASP-A08-001 false-positive limitation. No ground truth or scanner logic changed.
+
+2. **Pass A Technical Method Specification Refinements (`05-pass-a-technical-method-draft.md`):**
+   - Added explicit setup and compatibility pilot requirement on each participating AU PC before formal testing, clarifying it is not a formal measured run.
+   - Defined timing start and stop boundaries: timing starts at scan invocation once input is ready in memory and stops when the scan/report is available.
+   - Explicitly excluded manual file selection and upload time from formal scan-duration timing.
+   - Documented comprehensive evidence-retention requirements (raw outputs, evaluator reports, timing data, environment specifications, screenshots, error logs, and commit/digest identifiers).
+   - Reaffirmed the research stage boundary: Phase 05 benchmark observations remain local development data and are not presented as Phase 07 AU laboratory results.
+
 
 
