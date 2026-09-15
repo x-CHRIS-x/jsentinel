@@ -1,6 +1,6 @@
 # Phase 05: Build a small evaluator and freeze the test package
 
-Status: Not started. Depends on Phase 04; a prototype can use its reviewed pilot. Suggested size: 2 to 4 focused blocks.
+Status: In progress (Batch A complete). Depends on Phase 04; Batch A establishes the evaluator research tooling, scanner adapters, result schema, and known-case tests. Suggested size: 2 to 4 focused blocks.
 
 Accuracy measurement is a research procedure performed with a separate evaluator. It is not a proposed end-user feature. Keep the evaluator small: a manifest, adapters to the actual scanners or their recorded outputs, and checkable CSV or JSON results.
 
@@ -38,9 +38,9 @@ A measured 100% result on the frozen constructed cases can be reported with its 
 
 ## Done and stop
 
-- [ ] Known evaluator cases produce the correct matches, errors, and denominators.
-- [ ] Both implementations have local results with raw evidence retained.
-- [ ] No duplicate, unrelated alert, or failed scan can create a false target-detection pass.
+- [x] Known evaluator cases produce the correct matches, errors, and denominators (Batch A).
+- [ ] Both implementations have local results with raw evidence retained (Batch B).
+- [x] No duplicate, unrelated alert, or failed scan can create a false target-detection pass (Batch A).
 - [ ] Category, severity, location, and description checks cover the claims made in Chapter III.
 - [ ] The Chapter III technical method and lab protocol are agreed and recorded before formal runs.
 - [ ] The research package is reproducible and its limitations are recorded.
