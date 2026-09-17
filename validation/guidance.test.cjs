@@ -122,6 +122,7 @@ test('JSON report uses canonical conditional guidance and preserves unknown sugg
   assert.deepEqual(Object.keys(report.issues[0]).sort(), [
     'fileName', 'id', 'guidanceId', 'severity', 'line', 'column', 'sourceLine',
     'message', 'suggestion', 'cvssBaseScore', 'cvssVector', 'isFalsePositive',
+    'findingType', 'eligibleForVulnerabilityMetrics',
   ].sort());
   assert.equal(report.issues[1].isFalsePositive, true);
   assert.equal(report.files[0].activeIssuesCount, issues.length - 1);

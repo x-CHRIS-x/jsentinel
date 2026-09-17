@@ -3,11 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: creating clean object interfaces
-function createCleanProperties() {
-    const targetObj = Object.create(null);
-    targetObj.safe = true;
-    return targetObj;
+// Clean: Map data structure avoiding Object.prototype pollution
+function createPropertyMapSecure() {
+    const map = new Map();
+    map.set("safe", true);
+    return map;
 }
 
 // Variation signature: #2

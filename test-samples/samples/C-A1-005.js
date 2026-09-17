@@ -3,10 +3,15 @@
  * Safe, compliant implementations.
  */
 
-// Clean: structured formula invocation
-function compileExpressionSecure(staticFormula) {
-    const allowedFormulas = { 'add': (a) => a + 5 };
-    return allowedFormulas[staticFormula]?.(10) || 0;
+// Clean: predefined operator lookup table instead of dynamic code compilation
+const operators = {
+    double: (x) => x * 2,
+    square: (x) => x * x,
+    increment: (x) => x + 1
+};
+function compileExpressionSecure(operatorName, value) {
+    const op = operators[operatorName] || ((x) => x);
+    return op(value);
 }
 
 // Variation signature: #1

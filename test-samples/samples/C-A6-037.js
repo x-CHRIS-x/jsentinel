@@ -3,12 +3,10 @@
  * Safe, compliant implementations.
  */
 
-// Clean: express loaded with helmet protection headers
-const express = require('express');
-const helmet = require('helmet');
-const app = express();
-app.use(helmet());
-app.listen(3002);
-
+// Clean: encrypted WebSocket connection using wss protocol
+const telemetryWsUrlSecure = "wss://telemetry.encrypted.internal-services.com/stream";
+function connectTelemetryStreamSecure() {
+    return new WebSocket(telemetryWsUrlSecure);
+}
 
 // Variation signature: #1

@@ -3,9 +3,9 @@
  * Safe, compliant implementations.
  */
 
-// Clean: restrictive CORS configuration policies
-function setupCorsHeadersSecure(res) {
-    res.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain");
+// Clean: cross-window postMessage with strict target origin restriction
+function broadcastSessionTokenSecure(authToken) {
+    window.parent.postMessage({ sessionToken: authToken }, "https://portal.trusted.domain");
 }
 
 // Variation signature: #1

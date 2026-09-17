@@ -3,9 +3,25 @@
  * Safe, compliant implementations.
  */
 
-// Clean: restrictive CORS configuration policies
-function setupCorsHeadersSecure(res) {
-    res.setHeader("Access-Control-Allow-Origin", "https://trusted.production.domain");
+// Clean: cross-window message handler validating event origin before processing
+const allowedActions = {
+    refresh: () => { window.location.reload(); },
+    ping: () => { window.parent.postMessage({ status: "pong" }, "https://trusted.portal.example.com"); }
+};
+function handleSafeAction(action) {
+    if (Object.prototype.hasOwnProperty.call(allowedActions, action)) {
+        allowedActions[action]();
+    }
+}
+
+const trustedOrigins = ["https://trusted.portal.example.com"];
+function listenForRemoteCommandsSecure() {
+    window.addEventListener("message", function(event) {
+        if (!trustedOrigins.includes(event.origin)) return;
+        if (event.data && typeof event.data.action === "string") {
+            handleSafeAction(event.data.action);
+        }
+    });
 }
 
 // Variation signature: #2

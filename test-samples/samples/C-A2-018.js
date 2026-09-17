@@ -3,13 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: secure random number generation
-function generateUserOtpSecretSecure() {
-    const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    const otp = array[0].toString().substring(2, 8);
-    const otp_key = "secure_" + array[1].toString(36);
-    return { otp, otp_key };
+// Clean: standard cryptographically secure random UUID for nonce generation
+function generateCsrfNonceSecure() {
+    const nonceVal = "nonce_" + crypto.randomUUID();
+    const sessionNonce = crypto.randomUUID();
+    return { nonceVal, sessionNonce };
 }
 
 // Variation signature: #2

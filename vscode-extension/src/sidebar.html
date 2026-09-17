@@ -1121,7 +1121,7 @@
         </div>
         <div class="score-info">
           <div class="score-title">Security Score</div>
-          <span id="score-status-badge" class="score-status-badge compliant">Compliant</span>
+          <span id="score-status-badge" class="score-status-badge compliant">Low deductions</span>
           <span id="score-subtitle" class="score-subtitle">0 files scanned • 0 issues</span>
         </div>
       </div>
@@ -1207,7 +1207,6 @@
         <option value="A06">A06: Vulnerable and Outdated Components</option>
         <option value="A07">A07: Identification and Authentication Failures</option>
         <option value="A08">A08: Software and Data Integrity Failures</option>
-        <option value="A10">A10: Server-Side Request Forgery (SSRF)</option>
       </select>
       <div id="filter-status-ribbon" class="filter-status-ribbon hidden">
         <span id="filter-status-text">Showing filtered findings</span>
@@ -1563,12 +1562,12 @@
 
       let scoreColor = 'var(--js-critical)';
       let statusClass = 'vulnerable';
-      let statusText = 'Vulnerable';
+      let statusText = 'High deductions';
 
       if (score > 80) {
         scoreColor = 'var(--js-success)';
         statusClass = 'compliant';
-        statusText = 'Compliant';
+        statusText = 'Low deductions';
       } else if (score >= 50) {
         scoreColor = 'var(--js-medium)';
         statusClass = 'warning';
@@ -1582,9 +1581,9 @@
 
       const fileCount = stats.filesScanned || Object.keys(currentState.scannedFiles || {}).length;
       const totalIssues = stats.activeIssuesCount || 0;
-      scoreSubtitle.textContent = fileCount + ' file' + (fileCount === 1 ? '' : 's') + ' scanned • ' + totalIssues + ' active issue' + (totalIssues === 1 ? '' : 's');
+      scoreSubtitle.textContent = fileCount + ' file' + (fileCount === 1 ? '' : 's') + ' scanned • ' + totalIssues + ' active vulnerability-pattern finding' + (totalIssues === 1 ? '' : 's') + '; ' + (stats.activeAdvisoryCount || 0) + ' advisories (not scored)';
 
-      statAll.textContent = stats.activeIssuesCount || 0;
+      statAll.textContent = (stats.activeIssuesCount || 0) + (stats.activeAdvisoryCount || 0);
       statCritical.textContent = stats.criticalIssues || 0;
       statHigh.textContent = stats.highIssues || 0;
       statMedium.textContent = stats.mediumIssues || 0;
@@ -1804,7 +1803,7 @@
           const cvssScore = issue.cvssBaseScore !== undefined ? issue.cvssBaseScore : (issue.severity === 'CRITICAL' ? '9.8' : issue.severity === 'HIGH' ? '8.8' : issue.severity === 'MEDIUM' ? '5.3' : '3.7');
           const cvssPill = document.createElement('span');
           cvssPill.className = 'cvss-pill';
-          cvssPill.textContent = 'CVSS ' + cvssScore;
+          cvssPill.textContent = issue.findingType === 'advisory' ? 'Advisory (not scored)' : 'CVSS ' + cvssScore;
           if (issue.cvssVector) {
             cvssPill.title = issue.cvssVector;
           }

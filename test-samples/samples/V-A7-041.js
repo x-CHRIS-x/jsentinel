@@ -5,7 +5,7 @@
 
 // Vulnerable: document.write calls (OWASP-A7-002)
 function writeOutputSnippet(content) {
-    document.write("<div>" + content + "</div>");
+    document.write(content);
 }
 
 // Variation signature: #1

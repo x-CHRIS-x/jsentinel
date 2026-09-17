@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: direct innerHTML assignments (OWASP-A7-001)
-function loadUserBadge(element, badgeHtml) {
-    element.innerHTML = badgeHtml;
+// Vulnerable: direct innerHTML assignment with user comment markup (OWASP-A7-001)
+function renderUserComment(container, commentMarkup) {
+    container.innerHTML = commentMarkup;
 }
 
 // Variation signature: #2

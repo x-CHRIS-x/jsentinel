@@ -3,9 +3,13 @@
  * Safe, compliant implementations.
  */
 
-// Clean: cryptographic settings loaded from environment
-const AWS_ACCESS_SECRET = process.env.AWS_SECRET_ACCESS_KEY;
-const STATIC_JWT_TOKEN = process.env.AUTH_JWT_PRIVATE_SIGNATURE;
-
+// Clean: cloud storage operations dispatched through authenticated backend endpoint
+async function uploadToCloudStorageSecure(fileBlob) {
+    const res = await fetch("/api/cloud/upload", {
+        method: "POST",
+        body: fileBlob
+    });
+    return res.json();
+}
 
 // Variation signature: #1

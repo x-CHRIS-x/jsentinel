@@ -1,71 +1,348 @@
 /**
  * JSentinel Detection Rules - Consolidated for VS Code Extension
- * 
- * All 27 security detection rules across 8 OWASP Top 10:2021 categories, ported to CommonJS.
+ *
+ * 24 active browser security detection rules across 7 OWASP Top 10:2021 categories.
  * Each rule follows the same visitor pattern as the browser version:
  *   rule.visitor(issues) → returns Babel visitor handlers
- * 
+ *
  * Categories covered:
  *   A01 - Broken Access Control (2 rules)
  *   A02 - Cryptographic Failures (7 rules)
  *   A03 - Injection (8 rules)
- *   A05 - Security Misconfiguration (4 rules)
- *   A06 - Vulnerable and Outdated Components (1 rule)
+ *   A05 - Security Misconfiguration (2 rules)
+ *   A06 - Vulnerable and Outdated Components (1 rule, component-review advisory only)
  *   A07 - Identification and Authentication Failures (1 rule)
  *   A08 - Software and Data Integrity Failures (3 rules)
- *   A10 - Server-Side Request Forgery (1 rule)
+ *
+ * Retired from active browser scanning (Phase 01):
+ *   A05-002 (cors-wildcard) — server-side Express header; not a browser check
+ *   A05-004 (missing-helmet) — server-side Node.js/Express; not a browser check
+ *   A06-001 express-headers branch — server-side Express concern
+ *   A06-001 dynamic-request-target branch — duplicate SSRF misclassification
+ *   A10-001 (SSRF) — SSRF is server-side; browser fetch/axios is client HTTP
  */
 
-function isValidated(path, varName) {
-  if (!varName) return false;
-  let currentPath = path;
-  while (currentPath) {
-    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
-      const test = currentPath.node.test;
-      
-      const checkTestNode = (node) => {
-        if (!node) return false;
-        
-        // Match methods like includes, indexOf, test, validate, or check
-        if (node.type === 'CallExpression') {
-          const callee = node.callee;
-          const hasVarArg = node.arguments.some(arg => arg.type === 'Identifier' && arg.name === varName);
-          if (hasVarArg) {
-            let funcName = '';
-            if (callee.type === 'Identifier') {
-              funcName = callee.name;
-            } else if (callee.type === 'MemberExpression' && callee.property.type === 'Identifier') {
-              funcName = callee.property.name;
-            }
-            const lowerFunc = funcName.toLowerCase();
-            if (lowerFunc.includes('include') || lowerFunc.includes('indexof') || lowerFunc.includes('test') || lowerFunc.includes('validate') || lowerFunc.includes('check')) {
-              return true;
+function isDescendant(childPath, ancestorPath) {
+  let cur = childPath;
+  while (cur) {
+    if (cur === ancestorPath) return true;
+    cur = cur.parentPath;
+  }
+  return false;
+}
+
+function getValidAllowlistBinding(scope, arrayName) {
+  if (!scope || !arrayName) return null;
+  const binding = scope.getBinding(arrayName);
+  if (!binding) return null;
+
+  if (!binding.constant || (binding.constantViolations && binding.constantViolations.length > 0)) {
+    return null;
+  }
+
+  const declarator = binding.path;
+  if (!declarator || !declarator.node || declarator.node.type !== 'VariableDeclarator') {
+    return null;
+  }
+
+  const init = declarator.node.init;
+  if (!init || init.type !== 'ArrayExpression' || !Array.isArray(init.elements) || init.elements.length === 0) {
+    return null;
+  }
+
+  for (const elem of init.elements) {
+    if (!elem) return null;
+    if (elem.type === 'StringLiteral') continue;
+    if (elem.type === 'Literal' && typeof elem.value === 'string') continue;
+    if (elem.type === 'TemplateLiteral' && Array.isArray(elem.expressions) && elem.expressions.length === 0) continue;
+    return null;
+  }
+
+  const mutatingMethods = new Set([
+    'push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort', 'fill', 'copyWithin'
+  ]);
+
+  const visitedBindings = new Set([binding]);
+  const bindingQueue = [binding];
+
+  while (bindingQueue.length > 0) {
+    const currentBinding = bindingQueue.shift();
+    if (!Array.isArray(currentBinding.referencePaths)) continue;
+
+    for (const refPath of currentBinding.referencePaths) {
+      let parent = refPath.parentPath;
+      while (parent && parent.isParenthesizedExpression && parent.isParenthesizedExpression()) {
+        parent = parent.parentPath;
+      }
+      if (!parent) continue;
+
+      if (parent.isVariableDeclarator && parent.isVariableDeclarator() && parent.node.init === refPath.node) {
+        if (parent.node.id && parent.node.id.type === 'Identifier') {
+          const aliasBinding = refPath.scope?.getBinding(parent.node.id.name);
+          if (aliasBinding && !visitedBindings.has(aliasBinding)) {
+            visitedBindings.add(aliasBinding);
+            bindingQueue.push(aliasBinding);
+          }
+        }
+      }
+
+      if (parent.isAssignmentExpression && parent.isAssignmentExpression() && parent.node.right === refPath.node) {
+        if (parent.node.left && parent.node.left.type === 'Identifier') {
+          const aliasBinding = refPath.scope?.getBinding(parent.node.left.name);
+          if (aliasBinding && !visitedBindings.has(aliasBinding)) {
+            visitedBindings.add(aliasBinding);
+            bindingQueue.push(aliasBinding);
+          }
+        }
+      }
+
+      if (parent.isMemberExpression && parent.isMemberExpression() && parent.node.object === refPath.node) {
+        let grandParent = parent.parentPath;
+        while (grandParent && grandParent.isParenthesizedExpression && grandParent.isParenthesizedExpression()) {
+          grandParent = grandParent.parentPath;
+        }
+        if (!grandParent) continue;
+
+        if (grandParent.isCallExpression && grandParent.isCallExpression() && grandParent.node.callee === parent.node) {
+          const prop = parent.node.property;
+          const methodName = prop.name || (prop.type === 'StringLiteral' ? prop.value : null);
+          if (mutatingMethods.has(methodName)) {
+            return null;
+          }
+        }
+
+        if (grandParent.isAssignmentExpression && grandParent.isAssignmentExpression() && grandParent.node.left === parent.node) {
+          return null;
+        }
+
+        if (grandParent.isUpdateExpression && grandParent.isUpdateExpression() && grandParent.node.argument === parent.node) {
+          return null;
+        }
+
+        if (grandParent.isUnaryExpression && grandParent.isUnaryExpression() &&
+            grandParent.node.operator === 'delete' && grandParent.node.argument === parent.node) {
+          return null;
+        }
+      }
+    }
+  }
+
+  return binding;
+}
+
+function parseValidationCondition(node, varName, scope, targetBinding) {
+  if (!node || !scope) return null;
+
+  while (node.type === 'ParenthesizedExpression') {
+    node = node.expression;
+  }
+
+  if (node.type === 'UnaryExpression' && node.operator === '!') {
+    const inner = parseValidationCondition(node.argument, varName, scope, targetBinding);
+    if (inner && inner.kind === 'POSITIVE') {
+      return { kind: 'NEGATED', arrayName: inner.arrayName };
+    }
+    return null;
+  }
+
+  if (node.type === 'CallExpression') {
+    const callee = node.callee;
+    if (callee && callee.type === 'MemberExpression' && callee.property && callee.property.type === 'Identifier') {
+      const propName = callee.property.name;
+      if (propName === 'includes') {
+        const obj = callee.object;
+        if (obj && obj.type === 'Identifier') {
+          const arrayName = obj.name;
+          const arg = node.arguments && node.arguments[0];
+          if (arg && arg.type === 'Identifier' && arg.name === varName) {
+            if (scope.getBinding(varName) === targetBinding) {
+              const allowBinding = getValidAllowlistBinding(scope, arrayName);
+              if (allowBinding) {
+                return { kind: 'POSITIVE', arrayName };
+              }
             }
           }
         }
-        
-        if (node.type === 'BinaryExpression') {
-          return checkTestNode(node.left) || checkTestNode(node.right);
-        }
-        if (node.type === 'LogicalExpression') {
-          return checkTestNode(node.left) || checkTestNode(node.right);
-        }
-        if (node.type === 'UnaryExpression') {
-          return checkTestNode(node.argument);
-        }
-        return false;
-      };
-      
-      if (checkTestNode(test)) {
-        return true;
       }
     }
-    // Stop traversal if we leave the current function
+    return null;
+  }
+
+  if (node.type === 'BinaryExpression') {
+    let callNode = null;
+    let otherNode = null;
+    let op = node.operator;
+
+    if (node.left && node.left.type === 'CallExpression') {
+      callNode = node.left;
+      otherNode = node.right;
+    } else if (node.right && node.right.type === 'CallExpression') {
+      callNode = node.right;
+      otherNode = node.left;
+      if (op === '>') op = '<';
+      else if (op === '<') op = '>';
+      else if (op === '>=') op = '<=';
+      else if (op === '<=') op = '>=';
+    }
+
+    if (callNode && callNode.callee && callNode.callee.type === 'MemberExpression' &&
+        callNode.callee.property && callNode.callee.property.name === 'indexOf') {
+      const obj = callNode.callee.object;
+      if (obj && obj.type === 'Identifier') {
+        const arrayName = obj.name;
+        const arg = callNode.arguments && callNode.arguments[0];
+        if (arg && arg.type === 'Identifier' && arg.name === varName) {
+          if (scope.getBinding(varName) === targetBinding) {
+            const allowBinding = getValidAllowlistBinding(scope, arrayName);
+            if (allowBinding) {
+              let compVal = null;
+              if (otherNode && otherNode.type === 'UnaryExpression' && otherNode.operator === '-' &&
+                  otherNode.argument && otherNode.argument.type === 'NumericLiteral' && otherNode.argument.value === 1) {
+                compVal = -1;
+              } else if (otherNode && otherNode.type === 'NumericLiteral') {
+                compVal = otherNode.value;
+              }
+
+              if (compVal === -1) {
+                if (op === '!==' || op === '!=') return { kind: 'POSITIVE', arrayName };
+                if (op === '===' || op === '==') return { kind: 'NEGATED', arrayName };
+                if (op === '>') return { kind: 'POSITIVE', arrayName };
+                if (op === '<=') return { kind: 'NEGATED', arrayName };
+              } else if (compVal === 0) {
+                if (op === '>=') return { kind: 'POSITIVE', arrayName };
+                if (op === '<') return { kind: 'NEGATED', arrayName };
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  return null;
+}
+
+function doesConsequentUnconditionallyExit(node) {
+  if (!node) return false;
+  if (node.type === 'ReturnStatement' || node.type === 'ThrowStatement') {
+    return true;
+  }
+  if (node.type === 'BlockStatement') {
+    const body = node.body;
+    if (!Array.isArray(body) || body.length === 0) return false;
+    const lastStmt = body[body.length - 1];
+    if (lastStmt && (lastStmt.type === 'ReturnStatement' || lastStmt.type === 'ThrowStatement')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isTargetReassignedInPath(targetBinding, startLoc, endLoc) {
+  if (!targetBinding || !targetBinding.constantViolations || targetBinding.constantViolations.length === 0) {
+    return false;
+  }
+  for (const violation of targetBinding.constantViolations) {
+    const loc = violation.node?.loc?.start;
+    if (!loc || !startLoc || !endLoc) {
+      return true;
+    }
+    if ((loc.line > startLoc.line || (loc.line === startLoc.line && loc.column >= startLoc.column)) &&
+        (loc.line < endLoc.line || (loc.line === endLoc.line && loc.column <= endLoc.column))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isValidated(path, varName) {
+  if (!varName || !path || !path.scope) return false;
+  const targetBinding = path.scope.getBinding(varName);
+
+  // Pattern 1: Check enclosing IfStatements (matching allowed branch)
+  let currentPath = path;
+  while (currentPath) {
+    if (currentPath.isIfStatement && currentPath.isIfStatement()) {
+      const ifPath = currentPath;
+      const testNode = ifPath.node.test;
+      const cond = parseValidationCondition(testNode, varName, ifPath.scope, targetBinding);
+
+      if (cond) {
+        const consequentPath = ifPath.get('consequent');
+        const alternatePath = ifPath.node.alternate ? ifPath.get('alternate') : null;
+
+        let inMatchingBranch = false;
+        let branchStart = null;
+        const branchEnd = path.node.loc?.start;
+
+        if (cond.kind === 'POSITIVE' && isDescendant(path, consequentPath)) {
+          inMatchingBranch = true;
+          branchStart = consequentPath.node.loc?.start;
+        } else if (cond.kind === 'NEGATED' && alternatePath && isDescendant(path, alternatePath)) {
+          inMatchingBranch = true;
+          branchStart = alternatePath.node.loc?.start;
+        }
+
+        if (inMatchingBranch) {
+          if (!isTargetReassignedInPath(targetBinding, branchStart, branchEnd)) {
+            return true;
+          }
+        }
+      }
+    }
+
     if (currentPath.isFunction && currentPath.isFunction()) {
       break;
     }
     currentPath = currentPath.parentPath;
   }
+
+  // Pattern 2: Check preceding sibling statements for early return guard
+  let stmt = null;
+  try {
+    stmt = path.getStatementParent ? path.getStatementParent() : null;
+  } catch {
+    stmt = null;
+  }
+
+  while (stmt) {
+    const parentBlock = stmt.parentPath;
+    if (parentBlock && Array.isArray(parentBlock.node?.body)) {
+      const siblings = parentBlock.get('body');
+      if (Array.isArray(siblings)) {
+        const currentIndex = siblings.findIndex(s => s === stmt);
+
+        if (currentIndex > 0) {
+          for (let i = currentIndex - 1; i >= 0; i--) {
+            const sibling = siblings[i];
+            if (sibling.isIfStatement && sibling.isIfStatement()) {
+              const ifNode = sibling.node;
+              const cond = parseValidationCondition(ifNode.test, varName, sibling.scope, targetBinding);
+
+              if (cond && cond.kind === 'NEGATED' && doesConsequentUnconditionallyExit(ifNode.consequent)) {
+                const guardEnd = ifNode.loc?.end;
+                const sinkStart = path.node.loc?.start;
+                if (!isTargetReassignedInPath(targetBinding, guardEnd, sinkStart)) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!parentBlock || (parentBlock.isFunction && parentBlock.isFunction()) || (parentBlock.isProgram && parentBlock.isProgram())) {
+      break;
+    }
+    try {
+      stmt = parentBlock.getStatementParent();
+    } catch {
+      break;
+    }
+  }
+
   return false;
 }
 
@@ -682,6 +959,9 @@ const accessControlRules = [
 
 // ============================================================
 // A05 - Security Misconfiguration Rules
+// Active: OWASP-A05-001, OWASP-A05-003
+// Retired (Phase 01): OWASP-A05-002 (cors-wildcard — server-side Express header),
+//                     OWASP-A05-004 (missing-helmet — server-side Node.js/Express)
 // ============================================================
 const misconfigRules = [
   {
@@ -733,34 +1013,6 @@ const misconfigRules = [
     }
   },
   {
-    name: "cors-wildcard",
-    id: "OWASP-A05-002",
-    severity: "MEDIUM",
-    visitor: (issues) => ({
-      CallExpression(path) {
-        const callee = path.node.callee;
-        if (callee.type === 'MemberExpression' && (callee.property.name === 'setHeader' || callee.property.name === 'header')) {
-          const args = path.node.arguments;
-          if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
-            if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
-              issues.push({
-                id: "OWASP-A05-002",
-                guidanceId: "OWASP-A05-002",
-                severity: "MEDIUM",
-                line: path.node.loc?.start?.line || 1,
-                column: path.node.loc?.start?.column || 0,
-                message: "Wildcard (*) used in Access-Control-Allow-Origin header",
-                suggestion: "Configure server CORS for the actual trusted origins and credential policy.",
-                cvssBaseScore: 6.5,
-                cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N'
-              });
-            }
-          }
-        }
-      }
-    })
-  },
-  {
     name: "console-log-objects",
     id: "OWASP-A05-003",
     severity: "MEDIUM",
@@ -789,50 +1041,9 @@ const misconfigRules = [
         }
       };
     }
-  },
-  {
-    name: "missing-helmet-middleware",
-    id: "OWASP-A05-004",
-    severity: "LOW",
-    visitor: (issues) => {
-      let hasExpress = false;
-      let hasHelmet = false;
-      let expressNode = null;
-      return {
-        ImportDeclaration(path) {
-          if (path.node.source.value === 'express') { hasExpress = true; expressNode = path.node; }
-          if (path.node.source.value === 'helmet') { hasHelmet = true; }
-        },
-        CallExpression(path) {
-          if (path.node.callee.name === 'require') {
-            const arg = path.node.arguments[0];
-            if (arg && arg.type === 'StringLiteral') {
-              if (arg.value === 'express') { hasExpress = true; expressNode = path.node; }
-              if (arg.value === 'helmet') { hasHelmet = true; }
-            }
-          }
-        },
-        Program: {
-          exit() {
-            if (hasExpress && !hasHelmet) {
-              issues.push({
-                id: "OWASP-A05-004",
-                guidanceId: "OWASP-A05-004",
-                severity: "LOW",
-                line: expressNode?.loc?.start?.line || 1,
-                column: expressNode?.loc?.start?.column || 0,
-                message: "Express framework imported without protective helmet middleware",
-                suggestion: "Review server response-header policy and apply the appropriate Express/server hardening.",
-                cvssBaseScore: 3.3,
-                cvssVector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
-              });
-            }
-          }
-        }
-      };
-    }
   }
 ];
+
 
 // ============================================================
 // A03 - Cross-Site Scripting (XSS) Rules
@@ -1058,27 +1269,29 @@ const deserializationRules = [
 
 // ============================================================
 // A06 - Vulnerable and Outdated Components
+// Active: OWASP-A06-001 (component-review advisory branch only)
+// Retired (Phase 01): express-headers branch (server-side Express concern)
+//                     dynamic-request-target branch (duplicate SSRF misclassification)
 // ============================================================
 const knownVulnsRules = [
   {
     name: "risky-library-import",
     id: "OWASP-A06-001",
-    severity: "MEDIUM",
+    severity: "INFORMATIONAL",
+    findingType: "advisory",
     visitor: (issues) => {
-      const cvssBaseScore = 4.8;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N';
+      const cvssBaseScore = null;
+      const cvssVector = '';
+      // Libraries with known vulnerability history or known risky usage patterns.
+      // An import alone does not establish an affected version — this is an advisory
+      // signal prompting a manual version and advisory check.
       const riskyLibs = ['serialize-javascript', 'markdown-it', 'js-yaml', 'node-fetch', 'lodash', 'axios', 'jsonwebtoken', 'express', 'mongoose', 'vm2'];
 
       const imports = [];
-      let hasHelmet = false;
-      const axiosCalls = [];
 
       return {
         ImportDeclaration(path) {
           const moduleName = path.node.source.value;
-          if (moduleName === 'helmet') {
-            hasHelmet = true;
-          }
           if (riskyLibs.includes(moduleName)) {
             imports.push({
               name: moduleName,
@@ -1094,9 +1307,6 @@ const knownVulnsRules = [
             const arg = path.node.arguments[0];
             if (arg && arg.type === 'StringLiteral') {
               const moduleName = arg.value;
-              if (moduleName === 'helmet') {
-                hasHelmet = true;
-              }
               if (riskyLibs.includes(moduleName)) {
                 imports.push({
                   name: moduleName,
@@ -1107,97 +1317,27 @@ const knownVulnsRules = [
               }
             }
           }
-
-          if (callee.type === 'MemberExpression') {
-            const objName = callee.object.name;
-            const propName = callee.property.name;
-            if (objName === 'axios' && (propName === 'get' || propName === 'post')) {
-              axiosCalls.push({ path, arg: path.node.arguments[0] });
-            }
-          } else if (callee.type === 'Identifier' && callee.name === 'axios') {
-            axiosCalls.push({ path, arg: path.node.arguments[0] });
-          }
         },
         Program: {
           exit() {
+            // Component-review branch only: flag any risky library import.
+            // An import does not establish an affected version. This is an
+            // advisory signal prompting a manual version and advisory check.
             imports.forEach(imp => {
-              if (imp.name === 'express') {
-                if (!hasHelmet) {
-                  issues.push({
-                    id: "OWASP-A06-001",
-                    guidanceId: "OWASP-A06-001:express-headers",
-                    severity: "MEDIUM",
-                    line: imp.line,
-                    column: imp.column,
-                    message: imp.type === 'import' 
-                      ? "Risky library imported: 'express' (missing helmet protection)"
-                      : "Risky library required: 'express' (missing helmet protection)",
-                    suggestion: "Review the Express header-hardening configuration.",
-                    cvssBaseScore,
-                    cvssVector
-                  });
-                }
-              } else if (imp.name === 'axios') {
-                let hasUnsafeAxiosCall = false;
-                if (axiosCalls.length > 0) {
-                  hasUnsafeAxiosCall = axiosCalls.some(call => {
-                    const arg = call.arg;
-                    if (!arg) return false;
-                    
-                    let isUnsafe = false;
-                    if (arg.type === 'Identifier') {
-                      if (!isValidated(call.path, arg.name)) {
-                        isUnsafe = true;
-                      }
-                    } else if (arg.type === 'TemplateLiteral') {
-                      if (arg.expressions && arg.expressions.length > 0) {
-                        const hasUnvalidatedExpression = arg.expressions.some(expr => {
-                          if (expr.type === 'Identifier') {
-                            return !isValidated(call.path, expr.name);
-                          }
-                          return true;
-                        });
-                        if (hasUnvalidatedExpression) {
-                          isUnsafe = true;
-                        }
-                      }
-                    } else if (arg.type === 'CallExpression') {
-                      isUnsafe = true;
-                    }
-                    return isUnsafe;
-                  });
-                }
-
-                if (hasUnsafeAxiosCall) {
-                  issues.push({
-                    id: "OWASP-A06-001",
-                    guidanceId: "OWASP-A06-001:dynamic-request-target",
-                    severity: "MEDIUM",
-                    line: imp.line,
-                    column: imp.column,
-                    message: imp.type === 'import' 
-                      ? "Risky library imported: 'axios' (detected dynamic/unvalidated request targets)"
-                      : "Risky library required: 'axios' (detected dynamic/unvalidated request targets)",
-                    suggestion: "Restrict outbound request targets using the application's approved destination policy.",
-                    cvssBaseScore,
-                    cvssVector
-                  });
-                }
-              } else {
-                issues.push({
-                  id: "OWASP-A06-001",
-                  guidanceId: "OWASP-A06-001:component-review",
-                  severity: "MEDIUM",
-                  line: imp.line,
-                  column: imp.column,
-                  message: imp.type === 'import'
-                    ? `Risky library imported: '${imp.name}'`
-                    : `Risky library required: '${imp.name}'`,
-                  suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
-                  cvssBaseScore,
-                  cvssVector
-                });
-              }
+              issues.push({
+                id: "OWASP-A06-001",
+                guidanceId: "OWASP-A06-001:component-review",
+                severity: "INFORMATIONAL",
+                findingType: "advisory",
+                line: imp.line,
+                column: imp.column,
+                message: imp.type === 'import'
+                  ? `Component review for import: '${imp.name}' — verify the installed version against current security advisories`
+                  : `Component review for require: '${imp.name}' — verify the installed version against current security advisories`,
+                suggestion: "Identify the exact package version and applicable current advisory, then update or replace with compatibility tests.",
+                cvssBaseScore,
+                cvssVector
+              });
             });
           }
         }
@@ -1208,69 +1348,19 @@ const knownVulnsRules = [
 
 // ============================================================
 // A10 - Server-Side Request Forgery
+// RETIRED FROM ACTIVE BROWSER SCANNING (Phase 01)
+// SSRF requires server execution context. A browser making fetch(url) or
+// axios.get(url) is a client-side HTTP call, not SSRF. Flagging these as
+// SSRF misclassifies normal API calls as server-side attack vectors.
+// The empty array is kept so the allRules spread does not break.
 // ============================================================
-const ssrfRules = [
-  {
-    name: "ssrf-detection",
-    id: "OWASP-A10-001",
-    severity: "HIGH",
-    visitor: (issues) => ({
-      CallExpression(path) {
-        const callee = path.node.callee;
-        if (!callee) return;
-        let isHttpClientCall = false;
-        let firstArg = null;
-        if (callee.type === 'Identifier' && callee.name === 'fetch') {
-          isHttpClientCall = true;
-          firstArg = path.node.arguments[0];
-        } else if (callee.type === 'MemberExpression') {
-          const objName = callee.object.name;
-          const propName = callee.property.name;
-          if (objName === 'axios' && (propName === 'get' || propName === 'post')) {
-            isHttpClientCall = true;
-            firstArg = path.node.arguments[0];
-          }
-        }
-        if (isHttpClientCall && firstArg) {
-          let isUnsafe = false;
-          if (firstArg.type === 'Identifier') {
-            if (!isValidated(path, firstArg.name)) {
-              isUnsafe = true;
-            }
-          } else if (firstArg.type === 'TemplateLiteral') {
-            if (firstArg.expressions && firstArg.expressions.length > 0) {
-              const hasUnvalidatedExpression = firstArg.expressions.some(expr => {
-                if (expr.type === 'Identifier') {
-                  return !isValidated(path, expr.name);
-                }
-                return true;
-              });
-              if (hasUnvalidatedExpression) {
-                isUnsafe = true;
-              }
-            }
-          } else if (firstArg.type === 'CallExpression') {
-            isUnsafe = true;
-          }
+const ssrfRules = [];
 
-          if (isUnsafe) {
-            issues.push({
-              id: "OWASP-A10-001",
-              guidanceId: "OWASP-A10-001",
-              severity: "HIGH",
-              line: path.node.loc?.start?.line || 1,
-              column: path.node.loc?.start?.column || 0,
-              message: "Dynamic request target passed to HTTP client (SSRF risk)",
-              suggestion: "On the server, enforce a destination policy before making outbound requests.",
-              cvssBaseScore: 8.6,
-              cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N'
-            });
-          }
-        }
-      }
-    })
-  }
-];
+// Kept below for historical reference only — not registered in allRules:
+// const _retiredSsrfDetection = [
+//   { id: "OWASP-A10-001", name: "ssrf-detection", severity: "HIGH", ... }
+// ];
+
 
 // ============================================================
 // Export all rules as a single flat array
@@ -1284,8 +1374,8 @@ const allRules = [
   ...xssRules,
   ...deserializationRules,
   ...knownVulnsRules,
+  // ssrfRules is empty after Phase 01 retirement (SSRF is server-side only)
   ...ssrfRules
 ];
 
 module.exports = { allRules };
-

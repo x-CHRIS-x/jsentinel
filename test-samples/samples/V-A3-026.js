@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: sensitive tokens exposed in query URL parameters (OWASP-A3-003)
-function constructRedirectUrl(username, pwdVal) {
-    return "/auth/callback?user=" + username + "&password=" + pwdVal;
+// Vulnerable: password reset token exposed in query string (OWASP-A3-003)
+function buildPasswordResetUrl(accountEmail, resetToken) {
+    return "/auth/reset?email=" + accountEmail + "&token=" + resetToken;
 }
 
 // Variation signature: #2

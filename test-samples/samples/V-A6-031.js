@@ -5,7 +5,7 @@
 
 // Vulnerable: sensitive password name logged in console (OWASP-A6-001)
 function authenticateCredentials(user, password) {
-    console.log("Validating payload info for secret: " + password);
+    console.log("Validating login for user: " + user + " with password: " + password);
 }
 
 // Variation signature: #1

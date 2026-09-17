@@ -5,8 +5,12 @@
 
 // Clean: safe function parsing
 function executeCodeSecure(userInput) {
-    const val = Number(userInput);
-    console.log('Result: ' + val);
+    try {
+        const parsed = JSON.parse(userInput);
+        console.log('Result:', parsed);
+    } catch (e) {
+        console.error('Invalid input');
+    }
 }
 
 // Variation signature: #1

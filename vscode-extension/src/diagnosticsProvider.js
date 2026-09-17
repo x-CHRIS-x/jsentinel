@@ -20,6 +20,7 @@ const mapSeverity = (severity) => {
       return vscode.DiagnosticSeverity.Error;
     case 'MEDIUM':
       return vscode.DiagnosticSeverity.Warning;
+    case 'INFORMATIONAL':
     case 'LOW':
       return vscode.DiagnosticSeverity.Information;
     default:

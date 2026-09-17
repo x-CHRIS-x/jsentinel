@@ -3,9 +3,12 @@
  * Safe, compliant implementations.
  */
 
-// Clean: importing safe or patched libraries
-const lodashEs = require("lodash-es");
-const safeParser = require("safe-yaml-parser");
-
+// Clean: token transmitted in memory via authorization request header
+async function requestUserDataSecure(userToken) {
+    const res = await fetch("/api/user/profile", {
+        headers: { "Authorization": "Bearer " + userToken }
+    });
+    return res.json();
+}
 
 // Variation signature: #2

@@ -3,10 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: passwords loaded from environment variables
-const adminAuthPassword = process.env.ADMIN_FALLBACK_PASSWORD;
-function loginMasterSecure(pwd) {
-    return pwd === adminAuthPassword;
+// Clean: passwords verified server-side via authentication endpoint
+async function loginMasterSecure(username, pwd) {
+    const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, pwd })
+    });
+    return res.ok;
 }
 
 // Variation signature: #1

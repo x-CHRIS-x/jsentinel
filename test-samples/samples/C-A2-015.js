@@ -3,9 +3,15 @@
  * Safe, compliant implementations.
  */
 
-// Clean: cookies configured with secure properties
-function createSessionCookieSecure(userId) {
-    document.cookie = "session=" + userId + "; path=/; Secure; HttpOnly; SameSite=Strict;";
+// Clean: session cookie issued by server Set-Cookie header rather than client script
+async function createSessionCookieSecure(userId) {
+    const res = await fetch("/api/auth/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+        credentials: "same-origin"
+    });
+    return res.ok;
 }
 
 // Variation signature: #1

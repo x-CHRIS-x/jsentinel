@@ -87,3 +87,9 @@ jsentinel/
 - **Course:** Capstone Project (BSIT)
 - **Adviser:** Dr. Rhonnel S. Paculanan
 - **Researchers:** John Chris Ledama, Charles Selwyn Lim, Marc Jorem Luchavez, Gian Crispo
+
+## Browser scan scope
+
+New results use the `JSentinel browser-scope v2` ruleset identifier. The web app and extension register 24 checks in 8 modules across 7 OWASP Top 10 (2021) categories: A01, A02, A03, A05, A06, A07, and A08. This includes 23 vulnerability-pattern checks and one informational A06 component-review check. Imports do not establish an affected dependency version. Advisories remain visible but are excluded from vulnerability totals and project-score deductions.
+
+New scans exclude server-side SSRF, response-side CORS, and Express-header checks. Stored historical findings remain identifiable. The project score is a fixed-deduction summary of static findings, not proof of security or a CVSS score.

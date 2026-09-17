@@ -3,9 +3,12 @@
  * Safe, compliant implementations.
  */
 
-// Clean: textContent sanitizes values safely
-function renderGreetingSecure(element, username) {
-    element.textContent = "Hello, " + username + "!";
+// Clean: DOM element creation and textContent assignment for user profile
+function renderUserProfileSecure(container, bioText) {
+    const span = document.createElement("span");
+    span.className = "bio-display";
+    span.textContent = bioText;
+    container.replaceChildren(span);
 }
 
 // Variation signature: #2

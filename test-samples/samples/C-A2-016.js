@@ -3,9 +3,15 @@
  * Safe, compliant implementations.
  */
 
-// Clean: cookies configured with secure properties
-function createSessionCookieSecure(userId) {
-    document.cookie = "session=" + userId + "; path=/; Secure; HttpOnly; SameSite=Strict;";
+// Clean: auth token storage delegated to server Set-Cookie response header via token exchange endpoint
+async function storeAuthCookieSecure(authToken) {
+    const res = await fetch("/api/auth/token-exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: authToken }),
+        credentials: "same-origin"
+    });
+    return res.ok;
 }
 
 // Variation signature: #2

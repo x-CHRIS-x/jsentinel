@@ -1,3 +1,4 @@
+const { calculateStats, isAdvisory, getOwaspCategories, getScanVersions } = require('./findingPolicy');
 /**
  * JSentinel VS Code Extension: Academic PDF Security Report Generator
  * 
@@ -63,6 +64,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
 
   // Convert scannedFiles to array if passed as object
   const results = Array.isArray(scannedFiles) ? scannedFiles : Object.values(scannedFiles);
+  stats = calculateStats(results, fpFlags);
 
   // Setup Cover Header Panel on first page
   doc.setFillColor(...brand.maroon);
@@ -93,11 +95,11 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
   const score = (stats && typeof stats.securityScore === 'number') 
     ? stats.securityScore 
     : ((stats && typeof stats.complianceScore === 'number') ? stats.complianceScore : 100);
-  let bandText = "COMPLIANT (EXCELLENT STATUS)";
+  let bandText = "LOW DEDUCTIONS";
   let bandColor = brand.emerald;
 
   if (score < 50) {
-    bandText = "NON-COMPLIANT (HIGH RISK BREACH PROTOCOL)";
+    bandText = "HIGH DEDUCTIONS (REVIEW REQUIRED)";
     bandColor = brand.rose;
   } else if (score < 80) {
     bandText = "WARNING STATUS (MITIGATION STRONGLY SUGGESTED)";
@@ -117,7 +119,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
 
-  const scoreExplanation = "This score is computed in your IDE environment using a CVSS v3.1 mathematical model. The baseline rating starts at 100.0 points. Deductions are dynamically applied based on unmitigated active breaches detected in scanned files: Critical severity issues incur a 20.0 point penalty, High severity issues incur 10.0 points, Medium severity issues incur 5.0 points, and Low severity issues incur 1.0 point. Exempted false positive overrides immediately restore score metrics in real time.";
+  const scoreExplanation = "This project score starts at 100 and deducts 20, 10, 5, or 1 points for active Critical, High, Medium, or Low static findings. It is not a CVSS score or proof of security. Informational component-review advisories and false-positive overrides do not deduct points. Versions: " + getScanVersions(results).join(", ");
   const splitExplanation = doc.splitTextToSize(scoreExplanation, 182);
   doc.text(splitExplanation, 14, y);
   y += (splitExplanation.length * 4) + 6;
@@ -137,8 +139,9 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     body: [
       ['Scope of Project Workspace', projectName],
       ['Total Source Files Scanned', `${results.length} JavaScript/TypeScript resource files`],
-      ['Total Vulnerability Breaches Detected', `${stats ? stats.totalIssues : 0} items flagged in AST nodes`],
-      ['Active Vulnerability Breaches Remaining', `${stats ? stats.activeIssuesCount : 0} issues affecting rating compliance`],
+      ['Component-review Advisories (not scored)', `${stats.advisoryCount} informational findings`],
+      ['Vulnerability-pattern Findings', `${stats ? stats.totalIssues : 0} items flagged in AST nodes`],
+      ['Active Vulnerability-pattern Findings', `${stats ? stats.activeIssuesCount : 0} issues affecting rating compliance`],
       ['Flagged False Positive Override Exceptions', `${fpFlags.length} issues excluded from score model`],
       ['Scanning Engine Code Parser Status', 'Complete - Babel AST Parser Engine (VS Code Native)']
     ],
@@ -160,7 +163,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
 
   autoTable(doc, {
     startY: y,
-    head: [['Severity Band', 'Active Breaches', 'Weight Deduction', 'Standard CVSS v3.1 Representative Vector']],
+    head: [['Severity Band', 'Active Findings', 'Weight Deduction', 'Standard CVSS v3.1 Representative Vector']],
     body: [
       ['CRITICAL', `${stats ? stats.criticalIssues : 0} active`, '20.0 points', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H'],
       ['HIGH', `${stats ? stats.highIssues : 0} active`, '10.0 points', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N'],
@@ -190,7 +193,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     if (res.issues) {
       res.issues.forEach(issue => {
         const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        if (fpFlags.includes(fpKey)) return;
+        if (fpFlags.includes(fpKey) || isAdvisory(issue)) return;
 
         activeIssues++;
         if (issue.severity === 'CRITICAL') filePenalty += 20.0;
@@ -206,7 +209,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     return [
       shortName,
       res.relativePath || res.fileName,
-      res.issues ? res.issues.length : 0,
+      res.issues ? res.issues.filter(issue => !isAdvisory(issue)).length : 0,
       activeIssues,
       `${fileScore.toFixed(1)}%`
     ];
@@ -229,7 +232,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
   y = checkHeightAndPageBreak(doc, 60, y);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('5. DETAILED VULNERABILITY FINDINGS REPORT', 14, y);
+  doc.text('5. DETAILED SECURITY FINDINGS AND ADVISORIES REPORT', 14, y);
   y += 5;
 
   const activeIssuesList = [];
@@ -246,6 +249,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
           line: issue.line,
           id: issue.id,
           guidanceId: issue.guidanceId || issue.id,
+          findingType: isAdvisory(issue) ? 'INFORMATIONAL ADVISORY' : 'VULNERABILITY PATTERN',
           severity: issue.severity,
           message: issue.message
         });
@@ -262,10 +266,11 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...brand.gray);
-    doc.text('No active unmitigated security vulnerabilities are logged in this scanning session.', 14, y);
+    doc.text('No active security findings or informational advisories are logged in this scanning session.', 14, y);
     y += 10;
   } else {
     const findingsBody = activeIssuesList.map(issue => [
+      issue.findingType,
       issue.severity,
       issue.id,
       `Line ${issue.line}`,
@@ -275,13 +280,13 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
 
     autoTable(doc, {
       startY: y,
-      head: [['Severity', 'Rule ID', 'Location', 'Resource', 'Breach Description']],
+      head: [['Finding Type', 'Severity', 'Rule ID', 'Location', 'Resource', 'Finding Description']],
       body: findingsBody,
       theme: 'grid',
       styles: { fontSize: 7.5, cellPadding: 3.5 },
       headStyles: { fillColor: brand.slate, fontStyle: 'bold' },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 0) {
+        if (data.section === 'body' && data.column.index === 1) {
           const sev = data.cell.raw;
           if (sev === 'CRITICAL') data.cell.styles.textColor = brand.maroon;
           else if (sev === 'HIGH') data.cell.styles.textColor = [194, 65, 12];
@@ -289,7 +294,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
           data.cell.styles.fontStyle = 'bold';
         }
       },
-      columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 25 }, 2: { cellWidth: 15 }, 3: { cellWidth: 35 } }
+      columnStyles: { 0: { cellWidth: 25 }, 1: { cellWidth: 18 }, 2: { cellWidth: 23 }, 3: { cellWidth: 14 }, 4: { cellWidth: 30 } }
     });
     y = doc.lastAutoTable.finalY + 12;
   }
@@ -466,44 +471,14 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
   doc.text('7. OWASP CATEGORY VULNERABILITY PROFILE', 14, y);
   y += 5;
 
-  const owaspData = {
-    'A01:2021-Broken Access Control': 0,
-    'A02:2021-Cryptographic Failures': 0,
-    'A03:2021-Injection': 0,
-    'A05:2021-Security Misconfiguration': 0,
-    'A06:2021-Vulnerable and Outdated Components': 0,
-    'A07:2021-Identification and Authentication Failures': 0,
-    'A08:2021-Software and Data Integrity Failures': 0,
-    'A10:2021-Server-Side Request Forgery (SSRF)': 0
-  };
-
-  results.forEach(res => {
-    if (res.issues) {
-      res.issues.forEach(issue => {
-        const fpKey = `${res.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        if (fpFlags.includes(fpKey)) return;
-
-        const match = issue.id.match(/^OWASP-(A\d+)/);
-        const catCode = match ? match[1] : '';
-        if (catCode === 'A01') owaspData['A01:2021-Broken Access Control']++;
-        else if (catCode === 'A02') owaspData['A02:2021-Cryptographic Failures']++;
-        else if (catCode === 'A03') owaspData['A03:2021-Injection']++;
-        else if (catCode === 'A05') owaspData['A05:2021-Security Misconfiguration']++;
-        else if (catCode === 'A06') owaspData['A06:2021-Vulnerable and Outdated Components']++;
-        else if (catCode === 'A07') owaspData['A07:2021-Identification and Authentication Failures']++;
-        else if (catCode === 'A08') owaspData['A08:2021-Software and Data Integrity Failures']++;
-        else if (catCode === 'A10') owaspData['A10:2021-Server-Side Request Forgery (SSRF)']++;
-      });
-    }
-  });
-
-  const owaspBody = Object.entries(owaspData).map(([name, count]) => {
-    return [name, `${count} active breaches`, count > 0 ? 'Exposed status' : 'Secure compliance'];
-  });
+  const owaspBody = getOwaspCategories(results, fpFlags).map(cat => [
+    cat.name, `${cat.count} active findings; ${cat.advisoryCount} advisories`,
+    cat.count > 0 ? 'Review required' : 'No active vulnerability-pattern findings'
+  ]);
 
   autoTable(doc, {
     startY: y,
-    head: [['OWASP Core Category Profile Description', 'Breach Frequency Metric', 'Compliance Status']],
+    head: [['OWASP Core Category Profile Description', 'Finding Frequency', 'Review Status']],
     body: owaspBody,
     theme: 'striped',
     styles: { fontSize: 8, cellPadding: 3.5 },
@@ -524,7 +499,7 @@ const generatePDFBuffer = ({ scannedFiles = {}, stats, fpFlags = [], projectName
     doc.setFontSize(9);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(...brand.gray);
-    doc.text('No false positive override annotations have been logged. All breaches remain active.', 14, y);
+    doc.text('No false positive override annotations have been logged. Findings have not been exempted. Advisories are not scored.', 14, y);
     y += 10;
     doc.setTextColor(...brand.charcoal);
   } else {

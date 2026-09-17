@@ -3,12 +3,20 @@
  * Safe, compliant implementations.
  */
 
-// Clean: authorization checks validated on the server API side
-function renderSecureComponentsSecure(userContext) {
-    // Only query client UI components: server enforces real validation
-    if (userContext.isAuthenticated) {
-        showSuperUserMenu();
+function triggerSystemPurge() {
+    return fetch("/api/admin/purge", { method: "POST" });
+}
+
+// Clean: destructive action authorized server-side before execution
+async function executePurgeOperationSecure() {
+    const res = await fetch("/api/admin/purge-authorized", {
+        method: "POST",
+        credentials: "same-origin"
+    });
+    if (res.ok) {
+        return triggerSystemPurge();
     }
+    throw new Error("Server rejected purge operation");
 }
 
 // Variation signature: #2

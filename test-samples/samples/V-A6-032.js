@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: sensitive password name logged in console (OWASP-A6-001)
-function authenticateCredentials(user, password) {
-    console.log("Validating payload info for secret: " + password);
+// Vulnerable: sensitive authentication secret printed to console (OWASP-A6-001)
+function recordAuthSession(user, secretKey) {
+    console.warn("Session established for: " + user + " secret: " + secretKey);
 }
 
 // Variation signature: #2

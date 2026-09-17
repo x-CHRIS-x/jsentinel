@@ -1,0 +1,540 @@
+[
+  {
+    "fileName": "C-A1-007.js",
+    "filePath": "test-samples/samples/C-A1-007.js",
+    "sampleId": "C-A1-007",
+    "pairId": "PAIR-007-TEMPLATE-HTML",
+    "primaryModule": "injection.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Renders greeting text by setting element.textContent safely.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "Setting textContent causes the browser to treat username strictly as literal text, preventing HTML parsing and script execution.",
+      "sourceReferences": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+        "https://cheatsheetseries.owasp.org/cheatsheets/DOM_based_XSS_Prevention_Cheat_Sheet.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Dynamic username assigned to textContent property of DOM node.",
+      "attackerControlledInput": "Arbitrary string, including markup characters.",
+      "executionEnvironment": "Browser DOM node property update.",
+      "impactSupportingSeverity": "Benign / Clean: DOM engine creates text node content, preventing script execution.",
+      "safePartnerAssumptions": "textContent renders plain text characters directly; it does not parse or sanitize HTML tags."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Renders strictly plain text. If HTML formatting is needed, safe DOM construction or DOMPurify is required."
+  },
+  {
+    "fileName": "C-A1-009.js",
+    "filePath": "test-samples/samples/C-A1-009.js",
+    "sampleId": "C-A1-009",
+    "pairId": "PAIR-009-FUNCTION-RESULT-HTML",
+    "primaryModule": "injection.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Updates container with plain text retrieved from endpoint helper function getCleanTextFromEndpoint.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "Using container.textContent ensures returned data is rendered as text without HTML parsing, eliminating DOM XSS.",
+      "sourceReferences": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+        "https://cwe.mitre.org/data/definitions/79.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Endpoint data assigned to textContent of DOM element.",
+      "attackerControlledInput": "Data payload from endpoint.",
+      "executionEnvironment": "Browser DOM update.",
+      "impactSupportingSeverity": "Benign / Clean: textContent prevents HTML interpretation.",
+      "safePartnerAssumptions": "Assumes getCleanTextFromEndpoint returns text content and textContent renders character data without HTML parsing."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Assumes plain text data."
+  },
+  {
+    "fileName": "C-A3-023.js",
+    "filePath": "test-samples/samples/C-A3-023.js",
+    "sampleId": "C-A3-023",
+    "pairId": "PAIR-023-API-SECRETS",
+    "primaryModule": "sensitiveData.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Dispatches API operations via backend proxy route (/api/gateway/dispatch) without client-stored secrets.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "Delegates privileged API requests to a backend service proxy, ensuring long-lived API keys are never held or exposed in the client browser bundle.",
+      "sourceReferences": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html",
+        "https://cwe.mitre.org/data/definitions/798.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Client sends request payload to internal endpoint /api/gateway/dispatch; secret credentials remain on the server.",
+      "attackerControlledInput": "Client request payload.",
+      "executionEnvironment": "Browser client fetch invocation.",
+      "impactSupportingSeverity": "Benign / Clean: Eliminates client-side secret exposure.",
+      "safePartnerAssumptions": "Assumes the server-side proxy endpoint enforces authentication and authorization checks and manages credentials securely. Moving secrets off the client eliminates bundle exposure but does not prove the backend endpoint is immune to server-side flaws."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Updated in Phase 04 Batch A to replace server-only process.env with genuine browser backend delegation.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Replaces earlier legacy template that used process.env."
+  },
+  {
+    "fileName": "C-A5-027.js",
+    "filePath": "test-samples/samples/C-A5-027.js",
+    "sampleId": "C-A5-027",
+    "pairId": "PAIR-027-REDIRECT",
+    "primaryModule": "accessControl.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Navigates browser location only when targetUrl matches pre-approved allowedDomains allowlist.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "Validates targetUrl against an explicit allowedDomains array before redirection, preventing redirection to arbitrary external hosts.",
+      "sourceReferences": [
+        "https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html",
+        "https://cwe.mitre.org/data/definitions/601.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "targetUrl received from external source is checked at the allowlist boundary before reaching the navigation sink.",
+      "attackerControlledInput": "External URL string supplied as parameter.",
+      "executionEnvironment": "Browser window navigation.",
+      "impactSupportingSeverity": "Benign / Clean: Navigation only occurs for verified domains, eliminating open redirect exposure.",
+      "safePartnerAssumptions": "Assumes allowedDomains is maintained securely with trusted, protocol-restricted URLs; exact string match prevents prefix or subdomain spoofing."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; verified as clean partner in Phase 02 validation testing.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Allowlist check performs exact array string lookup."
+  },
+  {
+    "fileName": "C-A7-039.js",
+    "filePath": "test-samples/samples/C-A7-039.js",
+    "sampleId": "C-A7-039",
+    "pairId": "PAIR-039-GENERAL-HTML",
+    "primaryModule": "xss.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Loads user badge text into an element via textContent safely.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "textContent assignment prevents HTML parsing, safely displaying badge text without injection vulnerability.",
+      "sourceReferences": [
+        "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent",
+        "https://cwe.mitre.org/data/definitions/79.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "badgeHtml input assigned to textContent property.",
+      "attackerControlledInput": "Dynamic string value.",
+      "executionEnvironment": "DOM node text assignment.",
+      "impactSupportingSeverity": "Benign / Clean: textContent treats all characters as text.",
+      "safePartnerAssumptions": "textContent renders text directly without invoking HTML parser."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Plain text rendering of badge."
+  },
+  {
+    "fileName": "C-A8-049.js",
+    "filePath": "test-samples/samples/C-A8-049.js",
+    "sampleId": "C-A8-049",
+    "pairId": "PAIR-049-OBJECT-MERGE",
+    "primaryModule": "deserialization.js",
+    "label": "clean",
+    "legacyClassification": {
+      "legacyLabel": "clean",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Safely merges configuration into a fresh empty object after sanitizing payload keys.",
+    "securityGroundTruth": {
+      "isVulnerable": false,
+      "flawType": null,
+      "rationale": "Filters __proto__, constructor, and prototype properties via sanitizeInputProperties and targets a new empty object {} to avoid mutating defaultConfig.",
+      "sourceReferences": [
+        "https://cwe.mitre.org/data/definitions/1321.html",
+        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Input userPayload is filtered before merging; target is an isolated fresh object literal {}.",
+      "attackerControlledInput": "Dynamic user payload object.",
+      "executionEnvironment": "JavaScript client object merge routine.",
+      "impactSupportingSeverity": "Benign / Clean: Preserves object integrity and prevents prototype mutation.",
+      "safePartnerAssumptions": "Assumes defaultConfig contains trusted application baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties strips prototype-polluting keys."
+    },
+    "expectedScannerFindings": [],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; updated in Phase 04 Batch A with self-contained prototype property filtering.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Shallow property filtering."
+  },
+  {
+    "fileName": "V-A1-007.js",
+    "filePath": "test-samples/samples/V-A1-007.js",
+    "sampleId": "V-A1-007",
+    "pairId": "PAIR-007-TEMPLATE-HTML",
+    "primaryModule": "injection.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Renders greeting banner interpolating dynamic username parameter into an HTML template literal.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+      "rationale": "Interpolates unescaped username directly into template literal assigned to element.innerHTML, allowing execution of attacker-supplied markup with event handlers.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cwe.mitre.org/data/definitions/79.html",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "User-supplied input username crosses trust boundary into client DOM rendering sink without encoding.",
+      "attackerControlledInput": "username containing HTML markup with event-handler payload semantics (e.g. <img src=x onerror=alert(1)>). Inline script tags are not executed by innerHTML per HTML5 Section 4.12.1, but event-handler attributes execute upon element insertion.",
+      "executionEnvironment": "Browser DOM execution environment during page render.",
+      "impactSupportingSeverity": "HIGH severity: Arbitrary script execution within victim origin allows reading DOM state, non-HttpOnly cookies, storage tokens, and executing actions on behalf of the user.",
+      "safePartnerAssumptions": "C-A1-007.js uses element.textContent to render text directly. The browser DOM engine treats input strictly as character data and never invokes the HTML parser; it renders plain text rather than sanitizing HTML."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A03-004",
+        "owasp2021Category": "A03:2021-Injection",
+        "severity": "HIGH",
+        "location": {
+          "line": 8,
+          "column": 4
+        },
+        "weaknessDescription": "Unsafe innerHTML assignment using dynamic template literal."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Phase 03 deduplication ensures only A03-004 is emitted and A03-006 is suppressed."
+  },
+  {
+    "fileName": "V-A1-009.js",
+    "filePath": "test-samples/samples/V-A1-009.js",
+    "sampleId": "V-A1-009",
+    "pairId": "PAIR-009-FUNCTION-RESULT-HTML",
+    "primaryModule": "injection.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Updates container innerHTML with markup returned by endpoint helper function getRawHtmlFromEndpoint.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+      "rationale": "Directly assigns the return value of an external endpoint retrieval function to innerHTML without sanitization, exposing the DOM to script injection via event-handler payloads.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cwe.mitre.org/data/definitions/79.html",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Data source parameter apiSource represents an untrusted endpoint or external data payload whose returned markup is assigned to the DOM.",
+      "attackerControlledInput": "The helper function getRawHtmlFromEndpoint(apiSource) provides an executable synchronous contract returning attacker-controlled markup with event-handler payload semantics.",
+      "executionEnvironment": "Browser DOM content update cycle.",
+      "impactSupportingSeverity": "HIGH severity: Dynamic unneutralized markup assigned to innerHTML executes embedded event handlers in the victim session (DOM XSS).",
+      "safePartnerAssumptions": "C-A1-009.js retrieves text via getCleanTextFromEndpoint and assigns to container.textContent, ensuring the browser renders the string as plain text without parsing markup."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A03-005",
+        "owasp2021Category": "A03:2021-Injection",
+        "severity": "HIGH",
+        "location": {
+          "line": 13,
+          "column": 4
+        },
+        "weaknessDescription": "Unsafe innerHTML assignment using function return value."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings deduplication tests.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Executable helper getRawHtmlFromEndpoint defined to provide a synchronous attacker-controlled return contract."
+  },
+  {
+    "fileName": "V-A3-023.js",
+    "filePath": "test-samples/samples/V-A3-023.js",
+    "sampleId": "V-A3-023",
+    "pairId": "PAIR-023-API-SECRETS",
+    "primaryModule": "sensitiveData.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Declares static credentials intended for authenticating API gateway communications.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-798: Use of Hard-coded Credentials / CWE-312: Cleartext Storage of Sensitive Information",
+      "rationale": "API key and gateway token are hardcoded as static string literals in client-delivered JavaScript, exposing secret credentials to browser inspection.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A02_2021-Cryptographic_Failures/",
+        "https://cwe.mitre.org/data/definitions/798.html",
+        "https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Client-side JavaScript executes in untrusted browser runtime environments accessible to end users, browser extensions, and reverse engineering tools.",
+      "attackerControlledInput": "None required for exposure; static assets are publicly retrievable and inspectable by any visitor or adversary.",
+      "executionEnvironment": "Client-side web application source bundle delivered to browser.",
+      "impactSupportingSeverity": "CRITICAL severity: Privileged nonpublic service secret keys grant unauthorized, direct access to backend administrative APIs or cloud resources, bypassing client authentication entirely.",
+      "safePartnerAssumptions": "C-A3-023.js delegates operations to an internal backend proxy route (/api/gateway/dispatch) without client-stored secrets. Assumes backend proxy enforces server authentication and authorization."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A02-006",
+        "owasp2021Category": "A02:2021-Cryptographic Failures",
+        "severity": "CRITICAL",
+        "location": {
+          "line": 7,
+          "column": 6
+        },
+        "weaknessDescription": "Hardcoded API key or secret found in variable 'application_secret_key'."
+      },
+      {
+        "ruleId": "OWASP-A02-006",
+        "owasp2021Category": "A02:2021-Cryptographic Failures",
+        "severity": "CRITICAL",
+        "location": {
+          "line": 8,
+          "column": 6
+        },
+        "weaknessDescription": "Hardcoded API key or secret found in variable 'gatewayToken'."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and guidance catalog tests.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Synthetic secret strings represent privileged nonpublic credentials. Scanner matches sensitive identifier names with string literal initialization."
+  },
+  {
+    "fileName": "V-A5-027.js",
+    "filePath": "test-samples/samples/V-A5-027.js",
+    "sampleId": "V-A5-027",
+    "pairId": "PAIR-027-REDIRECT",
+    "primaryModule": "accessControl.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Navigates browser location to dynamic targetUrl destination parameter.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')",
+      "rationale": "Directly assigns unvalidated targetUrl parameter to window.location.href without allowlist validation, enabling attacker-directed client redirection to arbitrary external hosts.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A01_2021-Broken_Access_Control/",
+        "https://cwe.mitre.org/data/definitions/601.html",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Window/location"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Input targetUrl crosses the client trust boundary from an untrusted origin, such as a URL query parameter or unverified post-auth redirect target.",
+      "attackerControlledInput": "targetUrl parameter containing arbitrary external URI (e.g. https://attacker.example.com or malicious scheme).",
+      "executionEnvironment": "Browser client executing window navigation in victim session.",
+      "impactSupportingSeverity": "HIGH severity: Arbitrary navigation enables credential phishing, social engineering attacks, and session deception under the application origin.",
+      "safePartnerAssumptions": "C-A5-027.js assumes allowedDomains is an immutable allowlist of trusted origins; exact array lookup rejects arbitrary external hosts and non-HTTP schemes."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A01-001",
+        "owasp2021Category": "A01:2021-Broken Access Control",
+        "severity": "HIGH",
+        "location": {
+          "line": 8,
+          "column": 4
+        },
+        "weaknessDescription": "Unsafe location redirection using dynamic value."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite; specifically evaluated for validation-handling in Phase 02.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Scanner uses AST scope allowlist check traversal (isValidated); does not perform whole-program taint tracking."
+  },
+  {
+    "fileName": "V-A7-039.js",
+    "filePath": "test-samples/samples/V-A7-039.js",
+    "sampleId": "V-A7-039",
+    "pairId": "PAIR-039-GENERAL-HTML",
+    "primaryModule": "xss.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Loads user badge content into an element via direct innerHTML assignment.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+      "rationale": "Assigns unvalidated badgeHtml variable to element.innerHTML, allowing DOM-based XSS when dynamic input contains markup with event handlers.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A03_2021-Injection/",
+        "https://cwe.mitre.org/data/definitions/79.html",
+        "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "Variable badgeHtml carries dynamic input from external source or user profile.",
+      "attackerControlledInput": "badgeHtml variable containing markup with inline event handler attributes (e.g. <img src=x onerror=alert(1)>).",
+      "executionEnvironment": "Browser DOM rendering of UI component.",
+      "impactSupportingSeverity": "HIGH severity: Direct assignment of unvalidated input to innerHTML triggers DOM XSS in victim session.",
+      "safePartnerAssumptions": "C-A7-039.js assigns badgeHtml to element.textContent, rendering the value strictly as plain text characters without markup evaluation."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A03-006",
+        "owasp2021Category": "A03:2021-Injection",
+        "severity": "HIGH",
+        "location": {
+          "line": 8,
+          "column": 4
+        },
+        "weaknessDescription": "Dangerous use of innerHTML."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite and Phase 03 duplicate HTML findings tests.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Legacy filename uses OWASP 2017 A7 prefix; scanner and manifest map to OWASP 2021 A03."
+  },
+  {
+    "fileName": "V-A8-049.js",
+    "filePath": "test-samples/samples/V-A8-049.js",
+    "sampleId": "V-A8-049",
+    "pairId": "PAIR-049-OBJECT-MERGE",
+    "primaryModule": "deserialization.js",
+    "label": "vulnerable",
+    "legacyClassification": {
+      "legacyLabel": "vulnerable",
+      "source": "filename-prefix"
+    },
+    "intendedBehavior": "Merges default configuration with user payload.",
+    "securityGroundTruth": {
+      "isVulnerable": true,
+      "flawType": "CWE-1321: Improperly Controlled Modification of Dynamically-Determined Object Attributes ('Prototype Pollution')",
+      "rationale": "Mutates target defaultConfig object directly with userPayload using Object.assign. If userPayload contains an own __proto__ property, prototype pollution occurs on the target prototype chain.",
+      "sourceReferences": [
+        "https://owasp.org/Top10/A08_2021-Software_and_Data_Integrity_Failures/",
+        "https://cwe.mitre.org/data/definitions/1321.html",
+        "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign"
+      ]
+    },
+    "threatModelAndAssumptions": {
+      "trustBoundary": "userPayload represents an untrusted JSON object received from an external caller, API response, or user input.",
+      "attackerControlledInput": "userPayload containing an own __proto__ property (e.g. parsed from JSON data) holding injected properties.",
+      "executionEnvironment": "JavaScript client runtime executing Object.assign on mutable application configuration object.",
+      "impactSupportingSeverity": "MEDIUM severity: Mutating the prototype chain of defaultConfig affects downstream prototype-sensitive property lookups across components sharing that object structure, potentially overriding settings or altering execution logic if suitable gadgets exist.",
+      "safePartnerAssumptions": "C-A8-049.js assumes defaultConfig represents trusted baseline properties and userPayload is plain JSON data without hostile getters. sanitizeInputProperties filters dangerous property keys (__proto__, constructor, prototype) and Object.assign({}, ...) merges into a fresh empty object, preventing mutation of defaultConfig."
+    },
+    "expectedScannerFindings": [
+      {
+        "ruleId": "OWASP-A08-003",
+        "owasp2021Category": "A08:2021-Software and Data Integrity Failures",
+        "severity": "MEDIUM",
+        "location": {
+          "line": 8,
+          "column": 11
+        },
+        "weaknessDescription": "Unsafe use of Object.assign() mutating target object."
+      }
+    ],
+    "developmentUse": true,
+    "developmentUseRationale": "Included in Phase 01-03 baseline regression suite.",
+    "reviewStatus": {
+      "coverage": "pilot-reviewed",
+      "aiReviewer": "Agy (Gemini 3.8 Flash High)",
+      "humanReview": "PENDING"
+    },
+    "ambiguityOrKnownLimitations": "Scanner rule triggers when the first argument is an Identifier. It does not perform deep taint analysis."
+  }
+]

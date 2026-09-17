@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: constructor prototype overrides (OWASP-A8-002)
-function pollutePrototype(target, customKey, value) {
-    target.__proto__[customKey] = value;
+// Vulnerable: constructor prototype pollution via constructor attribute (OWASP-A8-002)
+function updateConstructorPrototype(targetObj, propName, propValue) {
+    targetObj.constructor.prototype[propName] = propValue;
 }
 
 // Variation signature: #2

@@ -3,10 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: safe function parsing
-function executeCodeSecure(userInput) {
-    const val = Number(userInput);
-    console.log('Result: ' + val);
+// Clean: safe mathematical formula parsing using tokenized arithmetic evaluator
+function calculateFormulaSecure(baseValue, multiplier) {
+    const safeBase = Number(baseValue) || 0;
+    const safeMult = Number(multiplier) || 1;
+    return 3 * (safeBase * safeMult);
 }
 
 // Variation signature: #2

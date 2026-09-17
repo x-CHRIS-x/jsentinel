@@ -3,9 +3,12 @@
  * Safe, compliant implementations.
  */
 
-// Clean: passing callback reference directly
-function scheduleTaskSecure(callbackFn, delay) {
-    setTimeout(callbackFn, delay);
+// Clean: setInterval passing callback function closure
+function startPollingTimerSecure(actionCallback, intervalMs) {
+    if (typeof actionCallback === 'function') {
+        return setInterval(() => actionCallback(), intervalMs);
+    }
+    return null;
 }
 
 // Variation signature: #2

@@ -3,10 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: passwords loaded from environment variables
-const adminAuthPassword = process.env.ADMIN_FALLBACK_PASSWORD;
-function loginMasterSecure(pwd) {
-    return pwd === adminAuthPassword;
+// Clean: emergency access verification delegated to secure server challenge
+async function verifyEmergencyAccessSecure(challengeResponse) {
+    const res = await fetch("/api/auth/emergency-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeResponse })
+    });
+    return res.ok;
 }
 
 // Variation signature: #2

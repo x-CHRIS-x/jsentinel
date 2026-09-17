@@ -1,3 +1,4 @@
+const { SCANNER_VERSION } = require('../utils/findingPolicy');
 /**
  * JSentinel Scanner Engine: Node.js / VS Code Extension Port
  * 
@@ -42,6 +43,7 @@ const scanCode = (code, fileName, rules) => {
     console.error(`Parse error in ${fileName}:`, parseError.message);
     return {
       fileName,
+    scannerVersion: SCANNER_VERSION,
       issues: [],
       success: false,
       hasError: true,
@@ -74,12 +76,15 @@ const scanCode = (code, fileName, rules) => {
     }
   });
 
+  const deduplicatedIssues = deduplicateOverlappingHtmlIssues(issues);
+
   // Assign confidence levels (same logic as browser version)
-  assignConfidenceLevels(issues);
+  assignConfidenceLevels(deduplicatedIssues);
 
   return {
     fileName,
-    issues,
+    scannerVersion: SCANNER_VERSION,
+    issues: deduplicatedIssues,
     success: true,
     hasError
   };
@@ -135,4 +140,63 @@ const assignConfidenceLevels = (issues) => {
   });
 };
 
-module.exports = { scanCode };
+const HTML_INJECTION_RULE_PRIORITY = {
+  'OWASP-A03-004': 1,
+  'OWASP-A03-005': 2,
+  'OWASP-A03-006': 3
+};
+
+/**
+ * Deduplicates overlapping HTML findings representing the same assignment.
+ * When multiple HTML injection rules fire on the same assignment expression,
+ * priority is:
+ *   1. OWASP-A03-004 (template-specific)
+ *   2. OWASP-A03-005 (function-result)
+ *   3. OWASP-A03-006 (general innerHTML detection)
+ *
+ * Distinct assignments (including separate assignments on the same line)
+ * and unrelated vulnerabilities at the same location survive.
+ *
+ * @param {Array} issues - Array of detected issue objects.
+ * @returns {Array} - Deduplicated issues array preserving survivor metadata and order.
+ */
+const deduplicateOverlappingHtmlIssues = (issues = []) => {
+  if (!Array.isArray(issues) || issues.length <= 1) {
+    return issues || [];
+  }
+
+  const chosenHtmlIssuesByLoc = new Map();
+
+  for (const issue of issues) {
+    const priority = HTML_INJECTION_RULE_PRIORITY[issue?.id];
+    if (!priority) continue;
+
+    const locKey = `${issue.line ?? 'unknown'}:${issue.column ?? 'unknown'}`;
+    const existing = chosenHtmlIssuesByLoc.get(locKey);
+
+    if (!existing || priority < existing.priority) {
+      chosenHtmlIssuesByLoc.set(locKey, { issue, priority });
+    }
+  }
+
+  if (chosenHtmlIssuesByLoc.size === 0) {
+    return issues;
+  }
+
+  const remainingChosen = new Set(
+    Array.from(chosenHtmlIssuesByLoc.values()).map(entry => entry.issue)
+  );
+
+  return issues.filter(issue => {
+    if (!HTML_INJECTION_RULE_PRIORITY[issue?.id]) {
+      return true;
+    }
+    if (remainingChosen.has(issue)) {
+      remainingChosen.delete(issue);
+      return true;
+    }
+    return false;
+  });
+};
+
+module.exports = { scanCode, deduplicateOverlappingHtmlIssues };

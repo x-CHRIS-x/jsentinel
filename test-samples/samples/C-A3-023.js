@@ -3,9 +3,14 @@
  * Safe, compliant implementations.
  */
 
-// Clean: API keys stored in configuration files loaded at runtime
-const application_secret_key = process.env.SECRET_KEY;
-const gatewayToken = process.env.API_GATEWAY_TOKEN;
-
+// Clean: API requests dispatched through backend proxy without client-exposed secrets
+async function callGatewayService(payload) {
+    const response = await fetch("/api/gateway/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    return response.json();
+}
 
 // Variation signature: #1

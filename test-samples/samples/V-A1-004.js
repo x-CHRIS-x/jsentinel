@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: string in setTimeout (OWASP-A1-002)
-function scheduleTask(callbackStr, delay) {
-    setTimeout(callbackStr + "()", delay);
+// Vulnerable: dynamic string code in setInterval (OWASP-A1-002)
+function startPollingTimer(actionCode, intervalMs) {
+    return setInterval(actionCode + "()", intervalMs);
 }
 
 // Variation signature: #2

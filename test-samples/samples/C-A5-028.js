@@ -3,11 +3,11 @@
  * Safe, compliant implementations.
  */
 
-// Clean: safelist checked redirects
-const allowedDomains = ["https://app.example.com", "https://api.example.com"];
-function redirectToExternalSecure(targetUrl) {
-    if (allowedDomains.includes(targetUrl)) {
-        window.location.href = targetUrl;
+// Clean: domain allowlist verification before location.replace
+const trustedPartnerDomains = ["https://partner.example.com", "https://auth.example.com"];
+function navigateToPartnerSiteSecure(partnerUrl) {
+    if (trustedPartnerDomains.includes(partnerUrl)) {
+        window.location.replace(partnerUrl);
     }
 }
 

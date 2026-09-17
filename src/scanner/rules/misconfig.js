@@ -1,6 +1,18 @@
 /**
  * A05 - Security Misconfiguration Rules
- * Targets: console.log of secrets/sensitive variables, permissive CORS, logging sensitive objects, Express without helmet
+ * Targets: console.log of secrets/sensitive variables, logging sensitive objects
+ *
+ * Active browser checks: OWASP-A05-001, OWASP-A05-003
+ *
+ * RETIRED FROM ACTIVE BROWSER SCANNING (Phase 01):
+ *   OWASP-A05-002 (cors-wildcard) — res.setHeader('Access-Control-Allow-Origin', '*')
+ *     is an Express server-side response header call. Browsers do not set CORS
+ *     response headers; only servers do. This check is meaningless in browser JS.
+ *   OWASP-A05-004 (missing-helmet-middleware) — Express and helmet are Node.js
+ *     server packages. Browser-side JavaScript cannot import or run them.
+ *     Flagging their absence in browser code is a server-side concern.
+ *
+ * Rule IDs and guidance entries are retained for historical result resolution.
  */
 export const misconfigRules = [
   {
@@ -69,53 +81,6 @@ export const misconfigRules = [
     }
   },
   {
-    name: "cors-wildcard",
-    id: "OWASP-A05-002",
-    severity: "MEDIUM",
-    message: "Permissive CORS policy detected (Access-Control-Allow-Origin: *).",
-    owasp: "A05:2021-Security Misconfiguration",
-    cvss: {
-      AV: 'N',
-      AC: 'L',
-      PR: 'N',
-      UI: 'R',
-      S:  'U',
-      C:  'H',
-      I:  'N',
-      A:  'N',
-      baseScore: 6.5,
-      baseSeverity: 'MEDIUM',
-      vector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N'
-    },
-    visitor: (issues) => {
-      const cvssBaseScore = 6.5;
-      const cvssVector = 'CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N';
-      return {
-        CallExpression(path) {
-          const callee = path.node.callee;
-          if (callee.type === 'MemberExpression' && (callee.property.name === 'setHeader' || callee.property.name === 'header')) {
-            const args = path.node.arguments;
-            if (args.length === 2 && args[0].type === 'StringLiteral' && args[1].type === 'StringLiteral') {
-              if (args[0].value.toLowerCase() === 'access-control-allow-origin' && args[1].value === '*') {
-                issues.push({
-                  id: "OWASP-A05-002",
-                  guidanceId: "OWASP-A05-002",
-                  severity: "MEDIUM",
-                  line: path.node.loc?.start?.line || 'unknown',
-                  column: path.node.loc?.start?.column || 'unknown',
-                  message: "Wildcard (*) used in Access-Control-Allow-Origin header",
-                  suggestion: "Configure server CORS for the actual trusted origins and credential policy.",
-                  cvssBaseScore,
-                  cvssVector
-                });
-              }
-            }
-          }
-        }
-      };
-    }
-  },
-  {
     name: "console-log-objects",
     id: "OWASP-A05-003",
     severity: "MEDIUM",
@@ -159,76 +124,6 @@ export const misconfigRules = [
                 }
               }
             });
-          }
-        }
-      };
-    }
-  },
-  {
-    name: "missing-helmet-middleware",
-    id: "OWASP-A05-004",
-    severity: "LOW",
-    message: "Express application detected without helmet middleware integration. Use helmet to set secure HTTP headers.",
-    owasp: "A05:2021-Security Misconfiguration",
-    cvss: {
-      AV: 'L',
-      AC: 'L',
-      PR: 'L',
-      UI: 'N',
-      S:  'U',
-      C:  'L',
-      I:  'N',
-      A:  'N',
-      baseScore: 3.3,
-      baseSeverity: 'LOW',
-      vector: 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N'
-    },
-    visitor: (issues) => {
-      const cvssBaseScore = 3.3;
-      const cvssVector = 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N';
-      let hasExpress = false;
-      let hasHelmet = false;
-      let expressNode = null;
-
-      return {
-        ImportDeclaration(path) {
-          if (path.node.source.value === 'express') {
-            hasExpress = true;
-            expressNode = path.node;
-          }
-          if (path.node.source.value === 'helmet') {
-            hasHelmet = true;
-          }
-        },
-        CallExpression(path) {
-          if (path.node.callee.name === 'require') {
-            const arg = path.node.arguments[0];
-            if (arg && arg.type === 'StringLiteral') {
-              if (arg.value === 'express') {
-                hasExpress = true;
-                expressNode = path.node;
-              }
-              if (arg.value === 'helmet') {
-                hasHelmet = true;
-              }
-            }
-          }
-        },
-        Program: {
-          exit() {
-            if (hasExpress && !hasHelmet) {
-              issues.push({
-                id: "OWASP-A05-004",
-                guidanceId: "OWASP-A05-004",
-                severity: "LOW",
-                line: expressNode?.loc?.start?.line || 1,
-                column: expressNode?.loc?.start?.column || 0,
-                message: "Express framework imported without protective helmet middleware",
-                suggestion: "Review server response-header policy and apply the appropriate Express/server hardening.",
-                cvssBaseScore,
-                cvssVector
-              });
-            }
           }
         }
       };

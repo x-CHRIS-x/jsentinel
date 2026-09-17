@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: full request or session objects printed to logging endpoints (OWASP-A6-003)
-function debugGateway(req) {
-    console.log("Full request context logs:", req);
+// Vulnerable: logging full user authentication context object (OWASP-A6-003)
+function auditLoginContext(authContext) {
+    console.error("Authentication context failure:", authContext);
 }
 
 // Variation signature: #2

@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: localStorage token caching (OWASP-A2-002)
-function cacheSessionToken(jwtToken) {
-    localStorage.setItem("session_token", jwtToken);
+// Vulnerable: localStorage auth credential storage (OWASP-A2-002)
+function persistAuthCredentials(authToken) {
+    localStorage.setItem("user_auth_credential", authToken);
 }
 
 // Variation signature: #2

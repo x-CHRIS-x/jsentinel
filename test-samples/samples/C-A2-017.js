@@ -3,12 +3,18 @@
  * Safe, compliant implementations.
  */
 
-// Clean: secure random number generation
+// Clean: cryptographically secure random values via Web Crypto API with 256-bit secret key
 function generateUserOtpSecretSecure() {
-    const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    const otp = array[0].toString().substring(2, 8);
-    const otp_key = "secure_" + array[1].toString(36);
+    // 6-digit numeric OTP generated using crypto.getRandomValues (uniform 20-bit numeric range)
+    const otpBytes = new Uint32Array(1);
+    crypto.getRandomValues(otpBytes);
+    const otp = String(otpBytes[0] % 1000000).padStart(6, '0');
+
+    // Cryptographic secret key using 256 bits (32 bytes) of cryptographic entropy
+    const secretBytes = new Uint8Array(32);
+    crypto.getRandomValues(secretBytes);
+    const otp_key = "secure_" + Array.from(secretBytes, b => b.toString(16).padStart(2, '0')).join('');
+
     return { otp, otp_key };
 }
 

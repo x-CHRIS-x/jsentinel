@@ -3,9 +3,13 @@
  * Safe, compliant implementations.
  */
 
-// Clean: importing safe or patched libraries
-const lodashEs = require("lodash-es");
-const safeParser = require("safe-yaml-parser");
-
+// Clean: transient in-memory token storage preventing persistent web storage exposure
+let memoryBearerToken = null;
+function persistBearerTokenSecure(token) {
+    memoryBearerToken = token;
+}
+function getBearerTokenSecure() {
+    return memoryBearerToken;
+}
 
 // Variation signature: #1

@@ -33,6 +33,7 @@ const owaspCategories = {
 // Severity display configuration
 // ──────────────────────────────────────────────
 const severityConfig = {
+  INFORMATIONAL: { emoji: 'i', label: 'Component review advisory' },
   'CRITICAL': { emoji: '🔴', label: 'CRITICAL', color: 'Red' },
   'HIGH':     { emoji: '🟠', label: 'HIGH',     color: 'Orange' },
   'MEDIUM':   { emoji: '🟡', label: 'MEDIUM',   color: 'Yellow' },
@@ -136,7 +137,7 @@ const buildHoverCard = (issue) => {
   lines.push('');
   const metricsRow = [];
   metricsRow.push(`${confidence.emoji} **Confidence:** ${issue.confidence}: *${confidence.description}*`);
-  if (issue.cvssBaseScore !== undefined) {
+  if (issue.cvssBaseScore != null) {
     metricsRow.push(`📊 **CVSS Score:** ${formatCvssScore(issue.cvssBaseScore)}`);
   }
   if (issue.cvssVector) {

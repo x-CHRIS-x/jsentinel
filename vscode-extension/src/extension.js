@@ -1,3 +1,4 @@
+const { calculateStats: summarizeFindings } = require('./utils/findingPolicy');
 /**
  * JSentinel VS Code Extension: Main Entry Point
  * 
@@ -30,53 +31,7 @@ let sidebarProvider;
  * Calculates security stats and score based on scanned files and active false positives
  */
 const calculateStats = (scannedFiles, fpFlags) => {
-  let totalIssues = 0;
-  let activeIssuesCount = 0;
-  let criticalIssues = 0;
-  let highIssues = 0;
-  let mediumIssues = 0;
-  let lowIssues = 0;
-  let penalty = 0.0;
-
-  Object.values(scannedFiles).forEach(fileData => {
-    if (fileData.issues) {
-      fileData.issues.forEach(issue => {
-        totalIssues++;
-        const fpKey = `${fileData.fileName}:${issue.id}:${issue.line}:${issue.column}`;
-        const isFP = fpFlags.includes(fpKey);
-
-        if (!isFP) {
-          activeIssuesCount++;
-          if (issue.severity === 'CRITICAL') {
-            criticalIssues++;
-            penalty += 20.0;
-          } else if (issue.severity === 'HIGH') {
-            highIssues++;
-            penalty += 10.0;
-          } else if (issue.severity === 'MEDIUM') {
-            mediumIssues++;
-            penalty += 5.0;
-          } else if (issue.severity === 'LOW') {
-            lowIssues++;
-            penalty += 1.0;
-          }
-        }
-      });
-    }
-  });
-
-  const securityScore = parseFloat(Math.max(0, 100 - penalty).toFixed(1));
-
-  return {
-    totalIssues,
-    activeIssuesCount,
-    criticalIssues,
-    highIssues,
-    mediumIssues,
-    lowIssues,
-    securityScore,
-    filesScanned: Object.keys(scannedFiles).length
-  };
+  return { ...summarizeFindings(Object.values(scannedFiles), fpFlags), filesScanned: Object.keys(scannedFiles).length };
 };
 
 /**
@@ -124,6 +79,7 @@ const scanDocument = (document, context) => {
       // Store issues in global scannedFiles state
       scannedFiles[uriStr] = {
         fileName,
+        scannerVersion: result.scannerVersion,
         relativePath: vscode.workspace.asRelativePath(document.uri),
         issues: result.issues,
         success: true,
@@ -137,25 +93,16 @@ const scanDocument = (document, context) => {
       diagnosticCollection.set(document.uri, diagnostics);
 
       // Show status bar summary
-      const criticalCount = result.issues.filter(i => i.severity === 'CRITICAL').length;
-      const highCount = result.issues.filter(i => i.severity === 'HIGH').length;
-      const totalActive = result.issues.length;
-
-      if (criticalCount > 0) {
-        vscode.window.setStatusBarMessage(
-          `$(shield) JSentinel: ${totalActive} issues found (${criticalCount} critical, ${highCount} high)`,
-          5000
-        );
-      } else if (totalActive > 0) {
-        vscode.window.setStatusBarMessage(
-          `$(shield) JSentinel: ${totalActive} issues found`,
-          5000
-        );
-      }
+      const summary = summarizeFindings([scannedFiles[uriStr]], fpFlags);
+      vscode.window.setStatusBarMessage(
+        `$(shield) JSentinel: ${summary.activeIssuesCount} active vulnerability-pattern findings; ${summary.activeAdvisoryCount} advisories (not scored)`,
+        5000
+      );
     } else {
       // Parse error
       scannedFiles[uriStr] = {
         fileName,
+        scannerVersion: result.scannerVersion,
         relativePath: vscode.workspace.asRelativePath(document.uri),
         issues: [],
         success: false,
@@ -231,7 +178,6 @@ const scanWorkspace = async (context) => {
         cancellable: true
       },
       async (progress, token) => {
-        let totalIssues = 0;
         let scannedCount = 0;
 
         for (const fileUri of files) {
@@ -245,10 +191,7 @@ const scanWorkspace = async (context) => {
             const document = await vscode.workspace.openTextDocument(fileUri);
             scanDocument(document, context);
 
-            const diags = diagnosticCollection.get(fileUri);
-            if (diags) {
-              totalIssues += diags.length;
-            }
+
           } catch (err) {
             console.warn(`JSentinel: Could not scan ${fileUri.fsPath}:`, err.message);
           }
@@ -268,8 +211,9 @@ const scanWorkspace = async (context) => {
           });
         }
 
+        const summary = calculateStats(scannedFiles, context.workspaceState.get('jsentinel_fpFlags', []));
         vscode.window.showInformationMessage(
-          `JSentinel: Workspace scan complete. ${scannedCount} files scanned, ${totalIssues} issues found.`
+          `JSentinel: Workspace scan complete. ${scannedCount} files scanned, ${summary.activeIssuesCount} active vulnerability-pattern findings; ${summary.activeAdvisoryCount} advisories (not scored).`
         );
       }
     );

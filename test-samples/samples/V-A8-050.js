@@ -3,9 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: Object.assign with untrusted second argument parameters (OWASP-A8-003)
-function mergeConfigurations(defaultConfig, userPayload) {
-    return Object.assign(defaultConfig, userPayload);
+// Vulnerable: Object.assign copying untrusted options to settings object (OWASP-A8-003)
+function applyUserThemeSettings(baseSettings, untrustedOptions) {
+    return Object.assign(baseSettings, untrustedOptions);
 }
 
 // Variation signature: #2

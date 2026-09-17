@@ -26,7 +26,11 @@ gemini.md
 .agents/
 skills-lock.json
 # Local research and documentation
-documents/
+documents/*
+# Track only the phased work plan; keep other research files local.
+!documents/research-phases/
+documents/research-phases/*
+!documents/research-phases/*.md
 tests/
 scripts/
 vscode-extension/verify-scan.js

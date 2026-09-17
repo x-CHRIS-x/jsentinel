@@ -3,10 +3,9 @@
  * Demonstrates OWASP vulnerabilities.
  */
 
-// Vulnerable: dynamic SSRF connection endpoints (OWASP-A10-001)
-const axios = require('axios');
-function proxyRemoteResource(targetUri) {
-    return axios.get(targetUri);
+// Vulnerable: client-side fetch to arbitrary user-supplied URL with ambient credentials (CWE-20)
+function fetchRemoteData(userProvidedUrl) {
+    return fetch(userProvidedUrl, { credentials: "include" });
 }
 
 // Variation signature: #1
